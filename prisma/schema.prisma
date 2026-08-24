@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ------------------------------------------------------
+// SCHEMA BUILDER (Meta-schema para as Coleções)
+// ------------------------------------------------------
+
+// Representa uma Coleção criada pelo usuário (ex: "Posts", "Produtos")
+model SchemaCollection {
+  id        String   @id @default(cuid())
+  name      String   // "Artigos"
+  slug      String   @unique // "artigos" (usado na API: /api/adimy/artigos)
+  icon      String?  // Ícone Lucide opcional
+  
+  fields    SchemaField[]
+  documents Document[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Representa um Campo dentro de uma Coleção (ex: "Título", "Conteúdo")
+model SchemaField {
+  id           String           @id @default(cuid())
+  name         String           // "title" (chave do JSON)
+  label        String           // "Título da Postagem" (Nome exibido)
+  type         String           // "text", "richText", "image", "number", "boolean", "relation"
+  required     Boolean          @default(false)
+  
+  collectionId String
+  collection   SchemaCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  
+  order        Int              @default(0) // Para ordenar na UI
+}
+
+// ------------------------------------------------------
+// DATA STORE (Armazenamento flexível dos conteúdos)
+// ------------------------------------------------------
+
+// Armazena os registros (linhas) de qualquer Coleção no formato JSON
+model Document {
+  id           String           @id @default(cuid())
+  
+  collectionId String
+  collection   SchemaCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  
+  data         String           // O payload JSON com os dados do registro
+  
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+}

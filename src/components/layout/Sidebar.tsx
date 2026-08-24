@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { getCollections } from '@/core/schema/actions';
 import { 
   LayoutDashboard, 
   Settings,
@@ -14,17 +15,11 @@ import {
   Globe,
   CalendarDays,
   Users,
-  X
+  X,
+  Database,
+  Layers
 } from 'lucide-react';
-
-const navItems = [
-  { name: 'Visão Geral', href: '/', icon: LayoutDashboard },
-  { name: 'Módulo 1', href: '/modulo-1', icon: Globe },
-  { name: 'Módulo 2', href: '/modulo-2', icon: Hash },
-  { name: 'Módulo 3', href: '/modulo-3', icon: CalendarDays },
-  { name: 'Equipe', href: '/equipe', icon: Users },
-  { name: 'Configurações', href: '/configuracoes', icon: Settings },
-];
+import { adimyConfig } from '@/adimy.config';
 
 export function Sidebar({
   isSidebarCollapsed,
@@ -38,7 +33,15 @@ export function Sidebar({
   setIsMobileSidebarOpen: (v: boolean) => void;
 }) {
   const pathname = usePathname();
-  const [isProjectFlyoutOpen, setIsProjectFlyoutOpen] = useState(false);
+  const [dynamicCollections, setDynamicCollections] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function fetchCollections() {
+      const cols = await getCollections();
+      setDynamicCollections(cols);
+    }
+    fetchCollections();
+  }, []);
 
   return (
     <>
@@ -81,7 +84,7 @@ export function Sidebar({
         {/* Navigation */}
         <nav className="flex-1 py-6 pl-3 pr-0 overflow-visible">
           {!isSidebarCollapsed && <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">Menu Principal</div>}
-          {navItems.map((item) => {
+          {adimyConfig.navItems.map((item) => {
             const isActive = item.href === '/' ? pathname === '/' : pathname?.startsWith(item.href);
             
             return (
@@ -107,6 +110,37 @@ export function Sidebar({
               </Link>
             );
           })}
+
+          {dynamicCollections.length > 0 && (
+            <>
+              {!isSidebarCollapsed && <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-6 px-3">Conteúdo Dinâmico</div>}
+              {dynamicCollections.map((col) => {
+                const href = `/content/${col.slug}`;
+                const isActive = pathname?.startsWith(href);
+                return (
+                  <Link
+                    key={col.id}
+                    href={href}
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className={`group relative flex items-center gap-2 pl-3 pr-4 py-2 rounded-l-xl rounded-r-none text-[16px] font-normal transition-all mb-0.5 ${
+                      isActive 
+                        ? 'bg-blue-600/10 text-blue-600' 
+                        : 'text-gray-900 hover:text-blue-600 hover:bg-gray-50/50'
+                    } ${isSidebarCollapsed ? 'justify-center pr-3 rounded-xl mr-3' : ''}`}
+                  >
+                    <Layers strokeWidth={1.5} className={`w-5 h-5 transition-colors shrink-0 ${isActive ? 'text-blue-600' : 'text-gray-900 group-hover:text-blue-600'}`} />
+                    {!isSidebarCollapsed && <span className="truncate">{col.name}</span>}
+                    
+                    {isSidebarCollapsed && (
+                      <div className="absolute left-full ml-2 px-3 py-1.5 bg-gray-900 text-white text-[13px] font-medium rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 shadow-lg border border-gray-800 before:content-[''] before:absolute before:top-1/2 before:-translate-y-1/2 before:-left-1 before:border-4 before:border-transparent before:border-r-gray-900">
+                        {col.name}
+                      </div>
+                    )}
+                  </Link>
+                );
+              })}
+            </>
+          )}
         </nav>
 
 
