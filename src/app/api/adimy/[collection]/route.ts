@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/core/db';
 
 // GET /api/adimy/[collection]
 export async function GET(
@@ -20,10 +18,27 @@ export async function GET(
       return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const limitParam = searchParams.get('limit');
+    const pageParam = searchParams.get('page');
+
+    const limit = limitParam ? parseInt(limitParam, 10) : undefined;
+    const page = pageParam ? parseInt(pageParam, 10) : undefined;
+
+    const skip = page && limit ? (page - 1) * limit : undefined;
+    const take = limit;
+
+    // Fetch total count for pagination metadata
+    const total = await prisma.document.count({
+      where: { collectionId: collection.id }
+    });
+
     // Fetch documents
     const documents = await prisma.document.findMany({
       where: { collectionId: collection.id },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      ...(skip !== undefined ? { skip } : {}),
+      ...(take !== undefined ? { take } : {}),
     });
 
     // Parse JSON data
@@ -36,7 +51,9 @@ export async function GET(
 
     return NextResponse.json({
       collection: collection.name,
-      total: parsedDocs.length,
+      total,
+      limit,
+      page,
       data: parsedDocs
     });
     

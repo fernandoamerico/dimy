@@ -1,9 +1,7 @@
 'use server';
 
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/core/db';
 import { revalidatePath } from 'next/cache';
-
-const prisma = new PrismaClient();
 
 export async function getCollectionBySlug(slug: string) {
   return await prisma.schemaCollection.findUnique({
@@ -16,10 +14,15 @@ export async function getCollectionBySlug(slug: string) {
   });
 }
 
-export async function getDocuments(collectionId: string) {
+export async function getDocuments(collectionId: string, options?: { limit?: number; page?: number }) {
+  const skip = options?.page && options?.limit ? (options.page - 1) * options.limit : undefined;
+  const take = options?.limit;
+
   const docs = await prisma.document.findMany({
     where: { collectionId },
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: 'desc' },
+    ...(skip !== undefined ? { skip } : {}),
+    ...(take !== undefined ? { take } : {}),
   });
   
   return docs.map((doc: any) => ({
