@@ -1,6 +1,7 @@
 import { prisma as db } from '@/core/db'
 import { redirect } from 'next/navigation'
 import { login } from '@/core/auth/actions'
+import { LoginForm } from './LoginForm'
 import { Box, Lock } from 'lucide-react'
 
 export default async function LoginPage() {
@@ -29,36 +30,7 @@ export default async function LoginPage() {
             </p>
           </div>
 
-          <form action={login} className="space-y-4">
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-neutral-300 ml-1">E-mail</label>
-              <input 
-                type="email" 
-                name="email"
-                placeholder="admin@exemplo.com"
-                required
-                className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-3 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
-              />
-            </div>
-            
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-neutral-300 ml-1">Senha</label>
-              <input 
-                type="password" 
-                name="password"
-                placeholder="••••••••"
-                required
-                className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-3 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
-              />
-            </div>
-
-            <button 
-              type="submit"
-              className="w-full bg-white text-black hover:bg-neutral-200 font-medium py-3 rounded-lg mt-6 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]"
-            >
-              Entrar no Painel
-            </button>
-          </form>
+          <LoginForm />
         </div>
       </div>
     </div>
