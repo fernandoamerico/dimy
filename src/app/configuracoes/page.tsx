@@ -1,49 +1,53 @@
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Settings } from 'lucide-react';
+import { Settings } from 'lucide-react'
+import { ThemeToggle } from './ThemeToggle'
 
-export default function ConfiguracoesPage() {
+export default function SettingsPage() {
   return (
-    <DashboardLayout>
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Settings className="w-6 h-6 text-blue-600" />
-            Configurações Gerais
-          </h1>
-          <p className="text-gray-500 mt-1">Ajuste as preferências globais do seu CMS e chaves de API.</p>
+    <div className="p-4 lg:p-8 max-w-5xl mx-auto w-full animate-in fade-in duration-500">
+      
+      {/* Header da Página */}
+      <div className="mb-8 flex items-center gap-4">
+        <div className="p-3 bg-blue-100 dark:bg-emerald-500/10 rounded-2xl border border-blue-200 dark:border-emerald-500/20 text-blue-600 dark:text-emerald-400">
+          <Settings className="w-6 h-6" />
         </div>
-
-        <div className="bg-white/60 backdrop-blur-md border border-slate-200/50 rounded-2xl p-6 shadow-sm space-y-6">
-          <h2 className="text-lg font-semibold text-gray-900 border-b border-gray-100 pb-2">Preferências do Sistema</h2>
-          
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">Nome da Plataforma</label>
-                <input 
-                  type="text" 
-                  defaultValue="Adimy"
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">Idioma Principal</label>
-                <select className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow">
-                  <option value="pt-BR">Português (Brasil)</option>
-                  <option value="en">English</option>
-                  <option value="es">Español</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="pt-4 flex justify-end border-t border-gray-100">
-              <button className="px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium transition-colors shadow-sm">
-                Salvar Configurações
-              </button>
-            </div>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Configurações</h1>
+          <p className="text-gray-500 dark:text-neutral-400 mt-1">
+            Gerencie as preferências visuais e gerais do sistema.
+          </p>
         </div>
       </div>
-    </DashboardLayout>
-  );
+
+      {/* Seção de Aparência */}
+      <section className="bg-white dark:bg-neutral-900 rounded-3xl p-6 lg:p-8 border border-gray-200/50 dark:border-neutral-800 shadow-sm relative overflow-hidden">
+        {/* Glow de fundo se for tema escuro (opcional, só pra dar charme) */}
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-emerald-500/5 rounded-full blur-[80px] pointer-events-none hidden dark:block" />
+
+        <div className="relative z-10">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Aparência do Painel</h2>
+          <p className="text-gray-500 dark:text-neutral-400 text-sm mt-1 mb-6">
+            Escolha como você prefere visualizar o Adimy. A sua escolha é salva no navegador.
+          </p>
+
+          <hr className="border-gray-100 dark:border-neutral-800" />
+
+          <ThemeToggle />
+        </div>
+      </section>
+
+      {/* Outras Seções Futuras */}
+      <section className="bg-white dark:bg-neutral-900 rounded-3xl p-6 lg:p-8 border border-gray-200/50 dark:border-neutral-800 shadow-sm mt-8 opacity-50 select-none">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-3">
+          Mais configurações 
+          <span className="text-xs bg-gray-100 dark:bg-neutral-800 px-2 py-1 rounded-md text-gray-500 dark:text-neutral-400 font-medium">
+            Em breve
+          </span>
+        </h2>
+        <p className="text-gray-500 dark:text-neutral-400 text-sm mt-1">
+          Opções de conta, banco de dados e integrações serão adicionadas em futuras atualizações.
+        </p>
+      </section>
+
+    </div>
+  )
 }
