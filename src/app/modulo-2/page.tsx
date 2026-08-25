@@ -20,7 +20,7 @@ export default function Modulo2Page() {
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-1">Módulo 2 está pronto para expansão</h3>
             <p className="text-gray-500 max-w-md mx-auto">
-              Espaço reservado para chaves, enums e configurações de parâmetros estáticos do CMS Adimy.
+              Espaço reservado para chaves, enums e configurações de parâmetros estáticos do CMS Dimy.
             </p>
           </div>
         </div>

@@ -35,7 +35,7 @@ export function ThemeToggle() {
         
         <h3 className="text-lg font-semibold text-gray-900">Tema Claro</h3>
         <p className="text-sm text-gray-500 mt-1">
-          O padrão atual do Adimy. Uma interface limpa, iluminada e focada no conteúdo.
+          O padrão atual do Dimy. Uma interface limpa, iluminada e focada no conteúdo.
         </p>
 
         {/* Mini Preview */}

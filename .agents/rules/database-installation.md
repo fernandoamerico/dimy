@@ -1,10 +1,10 @@
-# Diretrizes de Instalação e Banco de Dados (Adimy CMS)
+# Diretrizes de Instalação e Banco de Dados (Dimy CMS)
 
-Esta regra documenta como o Adimy gerencia sua instalação inicial e como IAs e desenvolvedores devem proceder para alterar o banco de dados principal (ex: migrar de SQLite para PostgreSQL/Supabase).
+Esta regra documenta como o Dimy gerencia sua instalação inicial e como IAs e desenvolvedores devem proceder para alterar o banco de dados principal (ex: migrar de SQLite para PostgreSQL/Supabase).
 
 ## 1. Fluxo de Instalação Inicial (Setup Wizard)
 
-O Adimy não requer que o banco de dados seja populado manualmente antes da primeira execução. Ele possui um sistema de "Onboarding" automático:
+O Dimy não requer que o banco de dados seja populado manualmente antes da primeira execução. Ele possui um sistema de "Onboarding" automático:
 
 1. **Middleware (`src/middleware.ts`)**: Bloqueia rotas protegidas se o usuário não tiver uma sessão JWT válida, e o redireciona para `/login`.
 2. **Página de Login (`src/app/login/page.tsx`)**: Executa uma query simples `db.user.count()`. Se o retorno for `0` (nenhum usuário no banco), ele entende que é uma instalação nova e redireciona para `/setup`.
@@ -14,8 +14,8 @@ O Adimy não requer que o banco de dados seja populado manualmente antes da prim
 
 ## 2. Mudando de SQLite para PostgreSQL (Supabase, Neon, AWS, etc)
 
-O Adimy vem configurado por padrão com o SQLite (`provider = "sqlite"`) por ser um arquivo local (`dev.db`), facilitando testes rápidos.
-Para instalar o Adimy em servidores escaláveis usando PostgreSQL (ex: Supabase), siga estes passos:
+O Dimy vem configurado por padrão com o SQLite (`provider = "sqlite"`) por ser um arquivo local (`dev.db`), facilitando testes rápidos.
+Para instalar o Dimy em servidores escaláveis usando PostgreSQL (ex: Supabase), siga estes passos:
 
 ### Passo 1: Atualizar o Schema
 No arquivo `prisma/schema.prisma`, altere o provider:
@@ -48,4 +48,4 @@ npx prisma db push
 npx prisma generate
 ```
 
-Feito isso, ao rodar `npm run dev` ou `npm run start`, o Adimy se conectará ao Postgres e o fluxo de `/setup` (Criar primeiro admin) começará automaticamente na interface Web.
+Feito isso, ao rodar `npm run dev` ou `npm run start`, o Dimy se conectará ao Postgres e o fluxo de `/setup` (Criar primeiro admin) começará automaticamente na interface Web.

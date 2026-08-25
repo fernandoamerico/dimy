@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/core/db';
 
-// GET /api/adimy/[collection]
+// GET /api/dimy/[collection]
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ collection: string }> }
@@ -62,7 +62,7 @@ export async function GET(
   }
 }
 
-// POST /api/adimy/[collection]
+// POST /api/dimy/[collection]
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ collection: string }> }

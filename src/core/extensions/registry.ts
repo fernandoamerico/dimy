@@ -1,0 +1,80 @@
+import type { ExtensionDef } from './types';
+
+export const EXTENSION_REGISTRY: ExtensionDef[] = [
+  // ---------------------------------------------------------
+  // CORE EXTENSIONS
+  // ---------------------------------------------------------
+  {
+    id: 'core_dashboard',
+    name: 'Painel Inicial',
+    description: 'Dashboard principal com a visão geral do sistema.',
+    type: 'core',
+    isEssential: true,
+    navItems: [
+      { label: 'Visão Geral', href: '/', iconName: 'LayoutDashboard', requiredPermissions: ['view:dashboard'] }
+    ]
+  },
+  {
+    id: 'core_settings',
+    name: 'Configurações',
+    description: 'Gerenciamento das configurações globais do CMS.',
+    type: 'core',
+    isEssential: true,
+    navItems: [
+      { label: 'Configurações', href: '/configuracoes', iconName: 'Settings', requiredPermissions: ['manage:settings'] }
+    ]
+  },
+  {
+    id: 'core_extensions',
+    name: 'Extensões',
+    description: 'Gerencie e instale novos módulos e funcionalidades no CMS.',
+    type: 'core',
+    isEssential: true,
+    navItems: [
+      { label: 'Extensões', href: '/extensoes', iconName: 'Blocks', requiredPermissions: ['manage:extensions'] }
+    ]
+  },
+
+  // ---------------------------------------------------------
+  // SCHEMA EXTENSIONS (MARKETPLACE PLUGINS)
+  // ---------------------------------------------------------
+  {
+    id: 'schema_publications',
+    name: 'Publicações',
+    description: 'Crie e gerencie artigos, notícias ou posts de blog.',
+    type: 'schema',
+    isEssential: false,
+    schema: {
+      name: 'Publicações',
+      slug: 'publicacoes',
+      iconName: 'FileText',
+      fields: [
+        { name: 'title', label: 'Título', type: 'text', required: true, order: 0 },
+        { name: 'slug', label: 'Slug', type: 'text', required: true, order: 1 },
+        { name: 'coverImage', label: 'Imagem de Capa', type: 'image', required: false, order: 2 },
+        { name: 'excerpt', label: 'Resumo', type: 'text', required: false, order: 3 },
+        { name: 'content', label: 'Conteúdo', type: 'richText', required: true, order: 4 },
+      ]
+    }
+  },
+  {
+    id: 'schema_products',
+    name: 'Produtos',
+    description: 'Catálogo de produtos com preços e estoque.',
+    type: 'schema',
+    isEssential: false,
+    schema: {
+      name: 'Produtos',
+      slug: 'produtos',
+      iconName: 'Package',
+      fields: [
+        { name: 'name', label: 'Nome do Produto', type: 'text', required: true, order: 0 },
+        { name: 'slug', label: 'Slug', type: 'text', required: true, order: 1 },
+        { name: 'price', label: 'Preço', type: 'number', required: true, order: 2 },
+        { name: 'description', label: 'Descrição', type: 'richText', required: true, order: 3 },
+        { name: 'mainImage', label: 'Imagem Principal', type: 'image', required: false, order: 4 },
+        { name: 'inStock', label: 'Em Estoque', type: 'boolean', required: true, order: 5 },
+      ]
+    }
+  }
+];

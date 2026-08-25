@@ -29,7 +29,7 @@ export default function EquipePage() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 text-sm">Administrador</h3>
-                  <p className="text-gray-500 text-xs">admin@adimy.com</p>
+                  <p className="text-gray-500 text-xs">admin@dimy.com</p>
                 </div>
               </div>
               <span className="px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold">

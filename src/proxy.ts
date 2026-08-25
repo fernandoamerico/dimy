@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { jwtVerify } from 'jose'
 
-const secretKey = process.env.SESSION_SECRET || 'adimy-super-secret-key-change-me'
+const secretKey = process.env.SESSION_SECRET || 'dimy-super-secret-key-change-me'
 const key = new TextEncoder().encode(secretKey)
 
 export async function proxy(request: NextRequest) {
@@ -12,7 +12,7 @@ export async function proxy(request: NextRequest) {
   const isPublicRoute = pathname === '/login' || pathname === '/setup'
 
   // Recupera o cookie
-  const sessionCookie = request.cookies.get('adimy_session')?.value
+  const sessionCookie = request.cookies.get('dimy_session')?.value
 
   let isSessionValid = false
 

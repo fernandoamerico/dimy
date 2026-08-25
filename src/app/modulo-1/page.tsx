@@ -20,7 +20,7 @@ export default function Modulo1Page() {
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-1">Módulo 1 está pronto para expansão</h3>
             <p className="text-gray-500 max-w-md mx-auto">
-              Espaço reservado para as configurações globais de rede e comunicações externas do seu CMS Adimy.
+              Espaço reservado para as configurações globais de rede e comunicações externas do seu CMS Dimy.
             </p>
           </div>
         </div>

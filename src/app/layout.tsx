@@ -6,8 +6,8 @@ import { ThemeProvider } from '@/components/providers/ThemeProvider';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
-  title: 'Adimy',
-  description: 'Adimy Platform',
+  title: 'Dimy',
+  description: 'Dimy Platform',
 };
 
 export default function RootLayout({

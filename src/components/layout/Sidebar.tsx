@@ -19,7 +19,7 @@ import {
   Database,
   Layers
 } from 'lucide-react';
-import { adimyConfig } from '@/adimy.config';
+import { dimyConfig } from '@/dimy.config';
 
 export function Sidebar({
   isSidebarCollapsed,
@@ -34,13 +34,20 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   const [dynamicCollections, setDynamicCollections] = useState<any[]>([]);
+  const [extensionNavItems, setExtensionNavItems] = useState<any[]>([]);
 
   useEffect(() => {
-    async function fetchCollections() {
-      const cols = await getCollections();
+    async function fetchData() {
+      // Import here to avoid circular dependency issues if any
+      const { getEnabledNavItems } = await import('@/core/extensions/actions');
+      const [cols, navs] = await Promise.all([
+        getCollections(),
+        getEnabledNavItems()
+      ]);
       setDynamicCollections(cols);
+      setExtensionNavItems(navs);
     }
-    fetchCollections();
+    fetchData();
   }, []);
 
   return (
@@ -60,7 +67,7 @@ export function Sidebar({
         <div className="h-16 flex items-center px-4 shrink-0 justify-between">
           {!isSidebarCollapsed && (
             <Link href="/" className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
-              Adimy<span className="text-blue-600 dark:text-emerald-400">.</span>
+              Dimy<span className="text-blue-600 dark:text-emerald-400">.</span>
             </Link>
           )}
           
@@ -84,12 +91,16 @@ export function Sidebar({
         {/* Navigation */}
         <nav className="flex-1 py-6 pl-3 pr-0 overflow-visible">
           {!isSidebarCollapsed && <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">Menu Principal</div>}
-          {adimyConfig.navItems.map((item) => {
+          {extensionNavItems.map((item) => {
             const isActive = item.href === '/' ? pathname === '/' : pathname?.startsWith(item.href);
+            
+            // Map icon string to Lucide component
+            const iconsMap: any = { LayoutDashboard, Settings, Blocks: Layers }; // Fallback Blocks to Layers if not imported properly
+            const IconComponent = iconsMap[item.iconName] || Folder;
             
             return (
               <Link
-                key={item.name}
+                key={item.label}
                 href={item.href}
                 onClick={() => setIsMobileSidebarOpen(false)}
                 className={`group relative flex items-center gap-2 pl-3 pr-4 py-2 rounded-l-xl rounded-r-none text-[16px] font-normal transition-all mb-0.5 ${
@@ -98,13 +109,13 @@ export function Sidebar({
                     : 'text-gray-900 dark:text-neutral-400 hover:text-blue-600 dark:hover:text-white hover:bg-gray-50/50 dark:hover:bg-neutral-800'
                 } ${isSidebarCollapsed ? 'justify-center pr-3 rounded-xl mr-3' : ''}`}
               >
-                <item.icon strokeWidth={1.5} className={`w-5 h-5 transition-colors shrink-0 ${isActive ? 'text-blue-600 dark:text-emerald-400' : 'text-gray-900 dark:text-neutral-500 group-hover:text-blue-600 dark:group-hover:text-white'}`} />
-                {!isSidebarCollapsed && <span className="truncate">{item.name}</span>}
+                <IconComponent strokeWidth={1.5} className={`w-5 h-5 transition-colors shrink-0 ${isActive ? 'text-blue-600 dark:text-emerald-400' : 'text-gray-900 dark:text-neutral-500 group-hover:text-blue-600 dark:group-hover:text-white'}`} />
+                {!isSidebarCollapsed && <span className="truncate">{item.label}</span>}
                 
                 {/* Custom Tooltip */}
                 {isSidebarCollapsed && (
                   <div className="absolute left-full ml-2 px-3 py-1.5 bg-gray-900 text-white text-[13px] font-medium rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 shadow-lg border border-gray-800 before:content-[''] before:absolute before:top-1/2 before:-translate-y-1/2 before:-left-1 before:border-4 before:border-transparent before:border-r-gray-900">
-                    {item.name}
+                    {item.label}
                   </div>
                 )}
               </Link>

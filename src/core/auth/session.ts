@@ -2,7 +2,7 @@ import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
 
 // In a real production app, this should be a strong random string kept in an environment variable.
-const secretKey = process.env.SESSION_SECRET || 'adimy-super-secret-key-change-me'
+const secretKey = process.env.SESSION_SECRET || 'dimy-super-secret-key-change-me'
 const key = new TextEncoder().encode(secretKey)
 
 export async function encrypt(payload: any) {
@@ -30,7 +30,7 @@ export async function createSession(userId: string) {
   
   const cookieStore = await cookies()
 
-  cookieStore.set('adimy_session', session, {
+  cookieStore.set('dimy_session', session, {
     expires,
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -41,12 +41,12 @@ export async function createSession(userId: string) {
 
 export async function getSession() {
   const cookieStore = await cookies()
-  const session = cookieStore.get('adimy_session')?.value
+  const session = cookieStore.get('dimy_session')?.value
   if (!session) return null
   return await decrypt(session)
 }
 
 export async function deleteSession() {
   const cookieStore = await cookies()
-  cookieStore.delete('adimy_session')
+  cookieStore.delete('dimy_session')
 }

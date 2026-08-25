@@ -1,9 +1,9 @@
 <div align="center">
-  <h1>Adimy</h1>
+  <h1>Dimy</h1>
   <p><strong>Um CMS Moderno, Rápido e Descomplicado</strong></p>
 </div>
 
-O **Adimy** é um Sistema de Gerenciamento de Conteúdo (CMS) focado em performance, design moderno e facilidade de configuração inicial. Inspirado em soluções como Payload CMS, ele foi projetado para rodar onde você quiser — desde uma VPS modesta até arquiteturas Serverless/Edge na Vercel — graças à sua base construída sobre as tecnologias web mais modernas.
+O **Dimy** é um Sistema de Gerenciamento de Conteúdo (CMS) focado em performance, design moderno e facilidade de configuração inicial. Inspirado em soluções como Payload CMS, ele foi projetado para rodar onde você quiser — desde uma VPS modesta até arquiteturas Serverless/Edge na Vercel — graças à sua base construída sobre as tecnologias web mais modernas.
 
 ## 🚀 Principais Tecnologias
 - **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
@@ -16,14 +16,14 @@ O **Adimy** é um Sistema de Gerenciamento de Conteúdo (CMS) focado em performa
 
 ## ✨ Funcionalidades em Destaque
 - **Instalação Descomplicada (Wizard):** Assim que você roda o projeto pela primeira vez e acessa o sistema, uma tela guiada maravilhosa (Wizard) ajuda a criar a sua primeira conta de administrador e definir o nome do projeto. Sem a necessidade de rodar comandos de seeds complicados.
-- **Autenticação Stateless (Zero Banco de Dados para Sessões):** Usamos JWT via cookies HttpOnly. Isso significa que as verificações de sessão não sobrecarregam o seu banco de dados, deixando o Adimy extremamente rápido.
+- **Autenticação Stateless (Zero Banco de Dados para Sessões):** Usamos JWT via cookies HttpOnly. Isso significa que as verificações de sessão não sobrecarregam o seu banco de dados, deixando o Dimy extremamente rápido.
 - **Sistema de Temas Avançado:** Suporte imediato a modo claro e escuro, com transições fluídas graças à integração nativa com o `next-themes` e Tailwind v4.
 
 ---
 
 ## 🛠️ Como Instalar e Rodar Localmente
 
-Siga os passos abaixo para testar ou desenvolver usando o **Adimy** na sua máquina.
+Siga os passos abaixo para testar ou desenvolver usando o **Dimy** na sua máquina.
 
 ### Pré-requisitos
 - [Node.js](https://nodejs.org/en/) (Versão 18.17 ou superior)
@@ -33,8 +33,8 @@ Siga os passos abaixo para testar ou desenvolver usando o **Adimy** na sua máqu
 
 1. **Clone o repositório:**
    ```bash
-   git clone https://github.com/SEU_USUARIO/adimy.git
-   cd adimy
+   git clone https://github.com/SEU_USUARIO/dimy.git
+   cd dimy
    ```
 
 2. **Instale as dependências:**
@@ -65,19 +65,19 @@ Siga os passos abaixo para testar ou desenvolver usando o **Adimy** na sua máqu
 
 6. **Inicie a Configuração:**
    Abra seu navegador em [http://localhost:3000](http://localhost:3000). 
-   Você será redirecionado para a tela de `/setup`. Preencha os dados do formulário para criar seu superusuário e aproveitar o Adimy!
+   Você será redirecionado para a tela de `/setup`. Preencha os dados do formulário para criar seu superusuário e aproveitar o Dimy!
 
 ---
 
 ## ☁️ Colocando em Produção e Mudando de Banco (PostgreSQL / Supabase)
 
-O Adimy usa o `SQLite` para facilitar a vida de quem está testando ou construindo um projeto simples localmente. Porém, para produção, recomendamos usar um banco de dados robusto como **PostgreSQL**, hospedado em serviços como [Supabase](https://supabase.com/), Neon ou Railway.
+O Dimy usa o `SQLite` para facilitar a vida de quem está testando ou construindo um projeto simples localmente. Porém, para produção, recomendamos usar um banco de dados robusto como **PostgreSQL**, hospedado em serviços como [Supabase](https://supabase.com/), Neon ou Railway.
 
 Para realizar a mudança, leia o guia de arquitetura e documentação para migração que preparamos em: 
 📄 `/.agents/rules/database-installation.md`
 
 ## 🤝 Contribuindo
-Sinta-se livre para abrir issues e enviar Pull Requests! Toda ajuda para tornar o Adimy ainda mais rápido, seguro e modular é bem-vinda.
+Sinta-se livre para abrir issues e enviar Pull Requests! Toda ajuda para tornar o Dimy ainda mais rápido, seguro e modular é bem-vinda.
 
 ## 📄 Licença
 Distribuído sob a licença MIT. Consulte `LICENSE` para mais informações.

@@ -1,4 +1,4 @@
-export class AdimyClient {
+export class DimyClient {
   private baseUrl: string;
   private apiKey?: string | undefined;
 
@@ -16,7 +16,7 @@ export class AdimyClient {
       headers['Authorization'] = `Bearer ${this.apiKey}`;
     }
 
-    const response = await fetch(`${this.baseUrl}/api/adimy${path}`, {
+    const response = await fetch(`${this.baseUrl}/api/dimy${path}`, {
       ...options,
       headers: { ...headers, ...options.headers },
     });

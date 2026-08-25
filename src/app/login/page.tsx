@@ -23,7 +23,7 @@ export default async function LoginPage() {
             <div className="w-16 h-16 bg-neutral-800/50 rounded-2xl flex items-center justify-center border border-neutral-700/50 mb-4 shadow-inner">
               <Lock className="w-8 h-8 text-neutral-300" />
             </div>
-            <h1 className="text-2xl font-semibold text-white tracking-tight">Login no Adimy</h1>
+            <h1 className="text-2xl font-semibold text-white tracking-tight">Login no Dimy</h1>
             <p className="text-neutral-400 text-sm mt-2 text-center">
               Bem-vindo de volta! Insira suas credenciais.
             </p>

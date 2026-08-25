@@ -18,7 +18,7 @@ datasource db {
 model SchemaCollection {
   id        String   @id @default(cuid())
   name      String   // "Artigos"
-  slug      String   @unique // "artigos" (usado na API: /api/adimy/artigos)
+  slug      String   @unique // "artigos" (usado na API: /api/dimy/artigos)
   icon      String?  // Ícone Lucide opcional
   
   fields    SchemaField[]
@@ -76,5 +76,16 @@ model User {
 model SystemConfig {
   key       String   @id // e.g. "projectName"
   value     String
+  updatedAt DateTime @updatedAt
+}
+
+// ------------------------------------------------------
+// EXTENSIONS (Marketplace & Core Modules)
+// ------------------------------------------------------
+
+model Extension {
+  id        String   @id // ex: 'core_dashboard', 'schema_publications'
+  enabled   Boolean  @default(true)
+  installedAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

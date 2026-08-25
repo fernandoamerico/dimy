@@ -20,7 +20,7 @@ export default function Modulo3Page() {
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-1">Módulo 3 está pronto para expansão</h3>
             <p className="text-gray-500 max-w-md mx-auto">
-              Espaço reservado para visualização de logs e históricos de eventos recorrentes do CMS Adimy.
+              Espaço reservado para visualização de logs e históricos de eventos recorrentes do CMS Dimy.
             </p>
           </div>
         </div>

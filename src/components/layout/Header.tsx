@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Bell, Search, Settings, LogOut, Menu } from 'lucide-react';
+import { Bell, Search, Settings, LogOut, Menu, User } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { logout } from '@/core/auth/actions';
@@ -51,7 +51,7 @@ export function Header({
       {/* Title & Logo (Center on Mobile, Left on Desktop) */}
       <div className="flex-1 flex items-center justify-center lg:justify-start lg:flex-none">
         <Link href="/" className="lg:hidden text-xl font-bold tracking-tight text-gray-900 dark:text-white">
-          Adimy<span className="text-blue-600 dark:text-emerald-400">.</span>
+          Dimy<span className="text-blue-600 dark:text-emerald-400">.</span>
         </Link>
         <h1 className="hidden lg:block text-lg font-semibold text-gray-800 dark:text-neutral-100">{getTitle()}</h1>
       </div>
@@ -80,7 +80,7 @@ export function Header({
           >
             <div className="text-right hidden sm:block">
               <div className="text-sm font-medium text-gray-700 dark:text-neutral-200">Administrador</div>
-              <div className="text-xs text-gray-500 dark:text-neutral-400">Adimy</div>
+              <div className="text-xs text-gray-500 dark:text-neutral-400">Dimy</div>
             </div>
             <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-neutral-800 flex items-center justify-center text-blue-700 dark:text-emerald-400 font-bold border border-blue-200 dark:border-neutral-700 hover:ring-2 hover:ring-blue-100 dark:hover:ring-neutral-700 transition-all">
               AD
@@ -90,12 +90,12 @@ export function Header({
           {isDropdownOpen && (
             <div className="absolute right-0 mt-3 w-56 bg-white dark:bg-neutral-900 rounded-xl shadow-lg border border-gray-100 dark:border-neutral-800 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
               <Link 
-                href="/configuracoes" 
+                href="/perfil" 
                 onClick={() => setIsDropdownOpen(false)}
                 className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
               >
-                <Settings className="w-4 h-4 text-gray-400 dark:text-neutral-500" />
-                Configurações
+                <User className="w-4 h-4 text-gray-400 dark:text-neutral-500" />
+                Meu Perfil
               </Link>
               
               <div className="h-px bg-gray-100 dark:bg-neutral-800 my-1"></div>

@@ -26,7 +26,7 @@ export default async function SetupPage() {
               <Rocket className="w-6 h-6 text-emerald-400" />
             </div>
             <h1 className="text-2xl font-bold text-white tracking-tight leading-tight mb-2">
-              Bem-vindo ao Adimy
+              Bem-vindo ao Dimy
             </h1>
             <p className="text-neutral-400 text-sm mb-6 leading-relaxed">
               O seu novo CMS de alta performance está quase pronto. Vamos configurar o administrador principal.
