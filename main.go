@@ -1,12 +1,16 @@
 package main
 
 import (
+	"embed"
 	"log"
 	"os"
 	
 	"github.com/fernandoamerico/dimy/api"
 	"github.com/fernandoamerico/dimy/db"
 )
+
+//go:embed all:frontend/out
+var frontendFS embed.FS
 
 func main() {
 	log.Println("Starting Dimy CMS...")
@@ -25,7 +29,7 @@ func main() {
 		port = "8080"
 	}
 	
-	err = api.StartServer(port)
+	err = api.StartServer(port, frontendFS)
 	if err != nil {
 		log.Fatalf("Server failed: %v", err)
 	}

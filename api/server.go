@@ -1,7 +1,6 @@
 package api
 
 import (
-	"embed"
 	"io/fs"
 	"log"
 	"net/http"
@@ -11,11 +10,8 @@ import (
 	"github.com/fernandoamerico/dimy/handlers"
 )
 
-//go:embed all:frontend/out
-var frontendFS embed.FS
-
 // StartServer initializes the HTTP router and starts listening.
-func StartServer(port string) error {
+func StartServer(port string, frontendFS fs.FS) error {
 	mux := http.NewServeMux()
 
 	// API Routes (using Go 1.22 enhanced routing)
