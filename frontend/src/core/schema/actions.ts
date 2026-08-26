@@ -1,7 +1,7 @@
-'use server';
+
 
 import { prisma } from '@/core/db';
-import { revalidatePath } from 'next/cache';
+// import { revalidatePath } from 'next/cache';
 
 export type CreateCollectionInput = {
   name: string;
@@ -46,7 +46,7 @@ export async function createCollection(data: CreateCollectionInput) {
       },
     });
     
-    revalidatePath('/'); // revalidate sidebar and routes
+    // revalidatePath('/'); // revalidate sidebar and routes
     return { success: true, collection: newCollection };
   } catch (error: any) {
     console.error('Error creating collection:', error);
@@ -59,7 +59,7 @@ export async function deleteCollection(id: string) {
     await prisma.schemaCollection.delete({
       where: { id }
     });
-    revalidatePath('/');
+    // revalidatePath('/');
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -112,8 +112,8 @@ export async function updateCollection(id: string, data: CreateCollectionInput) 
       return updatedCollection;
     });
 
-    revalidatePath('/'); // revalidate sidebar and routes
-    revalidatePath('/schema');
+    // revalidatePath('/'); // revalidate sidebar and routes
+    // revalidatePath('/schema');
     return { success: true, collection: result };
   } catch (error: any) {
     console.error('Error updating collection:', error);

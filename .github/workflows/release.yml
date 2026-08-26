@@ -34,6 +34,8 @@ jobs:
         run: |
           cd frontend
           npm ci
+          npx prisma db push --schema=../prisma/schema.prisma --accept-data-loss
+          export DATABASE_URL="file:./dev.db"
           npm run build # Next.js outputs to frontend/out
 
       - name: Run GoReleaser

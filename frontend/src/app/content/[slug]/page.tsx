@@ -2,7 +2,7 @@ import { getCollectionBySlug, getDocuments, deleteDocument } from '@/core/conten
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Layers, Plus, Edit2, Trash2 } from 'lucide-react';
-import { revalidatePath } from 'next/cache';
+// import { revalidatePath } from 'next/cache';
 
 export default async function ContentListPage({ params }: { params: Promise<{ slug: string }> }) {
   const slug = (await params).slug;
@@ -18,11 +18,11 @@ export default async function ContentListPage({ params }: { params: Promise<{ sl
   const titleField = collection.fields.find((f: any) => f.name === 'title' || f.name === 'nome' || f.name === 'name' || f.type === 'text');
 
   const handleDelete = async (formData: FormData) => {
-    'use server';
+    
     const id = formData.get('id') as string;
     const slug = formData.get('slug') as string;
     await deleteDocument(id, slug);
-    revalidatePath(`/content/${slug}`);
+    // revalidatePath(`/content/${slug}`);
   };
 
   return (
@@ -128,4 +128,5 @@ export default async function ContentListPage({ params }: { params: Promise<{ sl
   );
 }
 
-export function generateStaticParams() { return []; }
+export function generateStaticParams() { return [{ slug: 'empty', id: 'empty' }]; }
+

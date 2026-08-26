@@ -18,4 +18,5 @@ export default async function EditContentPage({ params }: { params: Promise<{ sl
   return <ContentForm collection={collection} initialData={document.data} documentId={document.id} />;
 }
 
-export function generateStaticParams() { return []; }
+export function generateStaticParams() { return [{ slug: 'empty', id: 'empty' }]; }
+

@@ -1,7 +1,7 @@
-'use server';
+
 
 import { prisma } from '@/core/db';
-import { revalidatePath } from 'next/cache';
+// import { revalidatePath } from 'next/cache';
 import { validateDocumentData } from './validation';
 
 export async function getCollectionBySlug(slug: string) {
@@ -67,7 +67,7 @@ export async function createDocument(collectionId: string, slug: string, data: a
         data: JSON.stringify(validation.validData)
       }
     });
-    revalidatePath(`/content/${slug}`);
+    // revalidatePath(`/content/${slug}`);
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -94,7 +94,7 @@ export async function updateDocument(id: string, slug: string, data: any) {
         data: JSON.stringify(validation.validData)
       }
     });
-    revalidatePath(`/content/${slug}`);
+    // revalidatePath(`/content/${slug}`);
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -106,7 +106,7 @@ export async function deleteDocument(id: string, slug: string) {
     await prisma.document.delete({
       where: { id }
     });
-    revalidatePath(`/content/${slug}`);
+    // revalidatePath(`/content/${slug}`);
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };

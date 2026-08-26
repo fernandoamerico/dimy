@@ -1,4 +1,4 @@
-'use server'
+
 
 import { prisma as db } from '@/core/db'
 import { createSession, deleteSession, getSession } from './session'

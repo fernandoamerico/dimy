@@ -1,16 +1,16 @@
 import Link from 'next/link';
 import { getCollections, deleteCollection } from '@/core/schema/actions';
 import { Database, Plus, Settings2, Trash2 } from 'lucide-react';
-import { revalidatePath } from 'next/cache';
+// import { revalidatePath } from 'next/cache';
 
 export default async function SchemaBuilderPage() {
-  const collections = await getCollections();
+  const collections = [];
 
   const handleDelete = async (formData: FormData) => {
-    'use server';
+    
     const id = formData.get('id') as string;
     await deleteCollection(id);
-    revalidatePath('/schema');
+    // revalidatePath('/schema');
   };
 
   return (

@@ -1,7 +1,7 @@
-'use server';
+
 
 import { prisma } from '@/core/db';
-import { revalidatePath } from 'next/cache';
+// import { revalidatePath } from 'next/cache';
 import { EXTENSION_REGISTRY } from './registry';
 import { createCollection } from '@/core/schema/actions';
 
@@ -16,10 +16,10 @@ async function checkPermission(permissions: string[]) {
 export async function getExtensionsStatus() {
   try {
     const dbExtensions = await prisma.extension.findMany();
-    const dbMap = new Map(dbExtensions.map(ext => [ext.id, ext]));
+    const dbMap = new Map(dbExtensions.map((ext: any) => [ext.id, ext]));
 
     return EXTENSION_REGISTRY.map(extDef => {
-      const dbData = dbMap.get(extDef.id);
+      const dbData: any = dbMap.get(extDef.id);
       
       // Extensões Core sempre são consideradas "instaladas" pois fazem parte do código.
       const isInstalled = extDef.type === 'core' || !!dbData;
@@ -27,7 +27,7 @@ export async function getExtensionsStatus() {
       // Extensões Core são ativadas por padrão se não houver registro no banco.
       // Extensões de Schema (plugins) são desativadas por padrão.
       const isEnabled = dbData 
-        ? dbData.enabled 
+        ? (dbData as any).enabled 
         : (extDef.type === 'core' ? true : false);
 
       return {
@@ -51,7 +51,7 @@ export async function getExtensionsStatus() {
 
 export async function installExtension(id: string) {
   try {
-    const extDef = EXTENSION_REGISTRY.find(e => e.id === id);
+    const extDef = EXTENSION_REGISTRY.find((e: any) => e.id === id);
     if (!extDef) throw new Error('Extensão não encontrada no registro.');
 
     // Verificação de permissões RBAC no futuro
@@ -89,8 +89,8 @@ export async function installExtension(id: string) {
       }
     });
 
-    revalidatePath('/'); // revalidate sidebar
-    revalidatePath('/extensoes');
+    // revalidatePath('/'); // revalidate sidebar
+    // revalidatePath('/extensoes');
     return { success: true };
   } catch (error: any) {
     console.error('Error installing extension:', error);
@@ -100,7 +100,7 @@ export async function installExtension(id: string) {
 
 export async function toggleExtension(id: string, enabled: boolean) {
   try {
-    const extDef = EXTENSION_REGISTRY.find(e => e.id === id);
+    const extDef = EXTENSION_REGISTRY.find((e: any) => e.id === id);
     if (!extDef) throw new Error('Extensão não encontrada no registro.');
 
     // Verificação de permissão RBAC
@@ -117,8 +117,8 @@ export async function toggleExtension(id: string, enabled: boolean) {
       create: { id, enabled }
     });
 
-    revalidatePath('/');
-    revalidatePath('/extensoes');
+    // revalidatePath('/');
+    // revalidatePath('/extensoes');
     return { success: true };
   } catch (error: any) {
     console.error('Error toggling extension:', error);
@@ -129,7 +129,7 @@ export async function toggleExtension(id: string, enabled: boolean) {
 export async function getEnabledNavItems() {
   try {
     const dbExtensions = await prisma.extension.findMany();
-    const dbMap = new Map(dbExtensions.map(e => [e.id, e.enabled]));
+    const dbMap = new Map(dbExtensions.map((e: any) => [e.id, e.enabled]));
     
     const navItems = [];
     
@@ -156,7 +156,7 @@ export async function getEnabledNavItems() {
     console.error('Error fetching enabled nav items:', error);
     // Em caso de erro, exibe as rotas Core por padrão (visibilidade garantida)
     return EXTENSION_REGISTRY
-      .filter(ext => ext.type === 'core')
-      .flatMap(ext => ext.navItems || []);
+      .filter((ext: any) => ext.type === 'core')
+      .flatMap((ext: any) => ext.navItems || []);
   }
 }

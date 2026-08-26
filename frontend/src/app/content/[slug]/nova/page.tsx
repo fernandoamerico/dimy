@@ -13,4 +13,5 @@ export default async function NovaContentPage({ params }: { params: Promise<{ sl
   return <ContentForm collection={collection} />;
 }
 
-export function generateStaticParams() { return []; }
+export function generateStaticParams() { return [{ slug: 'empty', id: 'empty' }]; }
+
