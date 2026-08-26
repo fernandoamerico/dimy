@@ -1,16 +1,7 @@
-import { prisma as db } from '@/core/db'
-import { redirect } from 'next/navigation'
-import { setupAdmin } from '@/core/auth/actions'
 import { Rocket, ShieldCheck } from 'lucide-react'
 import { SetupForm } from './SetupForm'
 
-export default async function SetupPage() {
-  const userCount = await db.user.count()
-  
-  if (userCount > 0) {
-    redirect('/login')
-  }
-
+export default function SetupPage() {
   return (
     <div className="min-h-screen bg-neutral-950 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl bg-neutral-900 border border-neutral-800 rounded-2xl p-8 shadow-2xl relative overflow-hidden flex flex-col md:flex-row gap-8">

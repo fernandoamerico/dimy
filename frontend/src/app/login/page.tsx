@@ -1,16 +1,7 @@
-import { prisma as db } from '@/core/db'
-import { redirect } from 'next/navigation'
-import { login } from '@/core/auth/actions'
 import { LoginForm } from './LoginForm'
-import { Box, Lock } from 'lucide-react'
+import { Lock } from 'lucide-react'
 
-export default async function LoginPage() {
-  const userCount = await db.user.count()
-  
-  if (userCount === 0) {
-    redirect('/setup')
-  }
-
+export default function LoginPage() {
   return (
     <div className="min-h-screen bg-neutral-950 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-xl p-8 shadow-2xl relative overflow-hidden">

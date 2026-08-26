@@ -25,37 +25,37 @@ func RunMigrations(db *sql.DB, driver string) error {
 			email TEXT UNIQUE NOT NULL,
 			password TEXT NOT NULL,
 			role TEXT DEFAULT 'admin',
-			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		);`,
 		`CREATE TABLE IF NOT EXISTS system_configs (
 			key TEXT PRIMARY KEY,
 			value TEXT NOT NULL,
-			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		);`,
 		`CREATE TABLE IF NOT EXISTS api_keys (
 			id TEXT PRIMARY KEY,
 			name TEXT NOT NULL,
 			key TEXT UNIQUE NOT NULL,
 			role TEXT DEFAULT 'read',
-			active BOOLEAN DEFAULT 1,
-			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+			active BOOLEAN DEFAULT true,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		);`,
 		`CREATE TABLE IF NOT EXISTS schema_collections (
 			id TEXT PRIMARY KEY,
 			name TEXT NOT NULL,
 			slug TEXT UNIQUE NOT NULL,
 			icon TEXT,
-			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		);`,
 		`CREATE TABLE IF NOT EXISTS schema_fields (
 			id TEXT PRIMARY KEY,
 			name TEXT NOT NULL,
 			label TEXT NOT NULL,
 			type TEXT NOT NULL,
-			required BOOLEAN DEFAULT 0,
+			required BOOLEAN DEFAULT false,
 			collection_id TEXT NOT NULL,
 			order_int INTEGER DEFAULT 0,
 			relation_to TEXT,
@@ -65,15 +65,15 @@ func RunMigrations(db *sql.DB, driver string) error {
 			id TEXT PRIMARY KEY,
 			collection_id TEXT NOT NULL,
 			data %s NOT NULL,
-			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY(collection_id) REFERENCES schema_collections(id) ON DELETE CASCADE
 		);`, dataColumnType),
 		`CREATE TABLE IF NOT EXISTS extensions (
 			id TEXT PRIMARY KEY,
-			enabled BOOLEAN DEFAULT 1,
-			installed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+			enabled BOOLEAN DEFAULT true,
+			installed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		);`,
 	}
 

@@ -1,23 +1,36 @@
 'use client'
 
-import { useActionState } from 'react'
-import { setupAdmin } from '@/core/auth/actions'
+import { useState } from 'react'
+import { setupAdmin } from '@/core/api'
 
 export function SetupForm() {
-  // @ts-ignore - useActionState expects (state, payload) signature in Next 15+ but our action only takes formData
-  const [state, formAction, isPending] = useActionState(
-    async (prevState: any, formData: FormData) => {
-      return await setupAdmin(formData)
-    },
-    null
-  )
+  const [error, setError] = useState<string | null>(null)
+  const [isPending, setIsPending] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setIsPending(true)
+    setError(null)
+    
+    const formData = new FormData(e.currentTarget)
+    const data = Object.fromEntries(formData.entries())
+    
+    const result = await setupAdmin(data)
+    
+    if (result.error) {
+      setError(result.error)
+      setIsPending(false)
+    } else {
+      window.location.href = '/'
+    }
+  }
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       
-      {state?.error && (
+      {error && (
         <div className="bg-red-500/10 border border-red-500/50 text-red-500 px-4 py-3 rounded-lg text-sm">
-          {state.error}
+          {error}
         </div>
       )}
 

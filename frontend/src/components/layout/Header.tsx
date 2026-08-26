@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Bell, Search, Settings, LogOut, Menu, User } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { logout } from '@/core/auth/actions';
+import { logout } from '@/core/api';
 
 export function Header({ 
   isSidebarCollapsed,
@@ -100,7 +100,7 @@ export function Header({
               
               <div className="h-px bg-gray-100 dark:bg-neutral-800 my-1"></div>
               
-              <form action={logout}>
+              <form onSubmit={async (e) => { e.preventDefault(); await logout(); window.location.href = '/login'; }}>
                 <button 
                   type="submit"
                   onClick={() => setIsDropdownOpen(false)}

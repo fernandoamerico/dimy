@@ -1,35 +1,40 @@
 'use client'
 
-import { useActionState, useEffect, useState } from 'react'
-import { updateProfile } from '@/core/auth/actions'
+import { useState } from 'react'
 import { User, Mail, Lock, ShieldCheck, CheckCircle2, AlertCircle } from 'lucide-react'
 
 export function ProfileForm({ initialData }: { initialData: { name: string, email: string } }) {
-  const [state, formAction, isPending] = useActionState(updateProfile, null)
-  const [showSuccess, setShowSuccess] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+  const [isPending, setIsPending] = useState(false)
 
-  useEffect(() => {
-    if (state?.success) {
-      setShowSuccess(true)
-      const t = setTimeout(() => setShowSuccess(false), 5000)
-      return () => clearTimeout(t)
-    }
-  }, [state])
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setIsPending(true)
+    setError(null)
+    setSuccess(null)
+    
+    // Simulating API call for now, since the Go backend hasn't implemented PUT /api/auth/me yet.
+    setTimeout(() => {
+      setError("A atualização de perfil ainda está sendo implementada no novo motor Go.")
+      setIsPending(false)
+    }, 1000)
+  }
 
   return (
-    <form action={formAction} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       
-      {state?.error && (
+      {error && (
         <div className="p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-red-600 dark:text-red-400 text-sm flex items-center gap-3">
           <AlertCircle className="w-5 h-5 shrink-0" />
-          {state.error}
+          {error}
         </div>
       )}
 
-      {showSuccess && (
+      {success && (
         <div className="p-4 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-xl text-emerald-600 dark:text-emerald-400 text-sm flex items-center gap-3">
           <CheckCircle2 className="w-5 h-5 shrink-0" />
-          {state?.success}
+          {success}
         </div>
       )}
 

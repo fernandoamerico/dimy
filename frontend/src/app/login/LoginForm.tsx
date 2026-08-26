@@ -1,20 +1,37 @@
 'use client'
 
-import { useActionState } from 'react'
-import { login } from '@/core/auth/actions'
+import { useState } from 'react'
+import { login } from '@/core/api'
 import { AlertCircle } from 'lucide-react'
 
-const initialState = { error: '' }
-
 export function LoginForm() {
-  const [state, formAction, isPending] = useActionState(login, initialState)
+  const [error, setError] = useState<string | null>(null)
+  const [isPending, setIsPending] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setIsPending(true)
+    setError(null)
+    
+    const formData = new FormData(e.currentTarget)
+    const data = Object.fromEntries(formData.entries())
+    
+    const result = await login(data)
+    
+    if (result.error) {
+      setError(result.error)
+      setIsPending(false)
+    } else {
+      window.location.href = '/'
+    }
+  }
 
   return (
-    <form action={formAction} className="space-y-4">
-      {state?.error && (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {error && (
         <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-lg flex items-center gap-2 text-sm">
           <AlertCircle className="w-4 h-4" />
-          {state.error}
+          {error}
         </div>
       )}
 
