@@ -76,5 +76,27 @@ export const EXTENSION_REGISTRY: ExtensionDef[] = [
         { name: 'inStock', label: 'Em Estoque', type: 'boolean', required: true, order: 5 },
       ]
     }
+  },
+  {
+    id: 'schema_sliders',
+    name: 'Banners & Carrosséis',
+    description: 'Crie e gerencie slides e banners para qualquer parte do site.',
+    type: 'schema',
+    isEssential: false,
+    schema: {
+      name: 'Banners',
+      slug: 'banners',
+      iconName: 'Images',
+      fields: [
+        { name: 'group', label: 'Grupo (Ex: home-hero)', type: 'text', required: true, order: 0 },
+        { name: 'title', label: 'Título do Slide', type: 'text', required: true, order: 1 },
+        { name: 'subtitle', label: 'Subtítulo', type: 'text', required: false, order: 2 },
+        { name: 'imageUrl', label: 'URL da Imagem', type: 'image', required: true, order: 3 },
+        { name: 'buttonText', label: 'Texto do Botão', type: 'text', required: false, order: 4 },
+        { name: 'buttonUrl', label: 'Link do Botão', type: 'text', required: false, order: 5 },
+        { name: 'order', label: 'Ordem (1, 2, 3...)', type: 'number', required: true, order: 6 },
+        { name: 'active', label: 'Ativo', type: 'boolean', required: true, order: 7 },
+      ]
+    }
   }
 ];

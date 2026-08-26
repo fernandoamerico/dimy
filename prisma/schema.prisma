@@ -40,6 +40,7 @@ model SchemaField {
   collection   SchemaCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
   
   order        Int              @default(0) // Para ordenar na UI
+  relationTo   String?          // Slug da coleção relacionada (usado apenas se type === 'relation')
 }
 
 // ------------------------------------------------------
@@ -76,6 +77,16 @@ model User {
 model SystemConfig {
   key       String   @id // e.g. "projectName"
   value     String
+  updatedAt DateTime @updatedAt
+}
+
+model ApiKey {
+  id        String   @id @default(cuid())
+  name      String   // Nome para identificar a chave (ex: "Front-end Principal")
+  key       String   @unique // O token gerado (hasheado ou texto plano dependendo do nível de segurança, vamos manter texto plano para facilitar o uso no MVP)
+  role      String   @default("read") // "read" ou "write"
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 

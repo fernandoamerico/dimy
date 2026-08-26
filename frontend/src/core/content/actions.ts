@@ -2,6 +2,7 @@
 
 import { prisma } from '@/core/db';
 import { revalidatePath } from 'next/cache';
+import { validateDocumentData } from './validation';
 
 export async function getCollectionBySlug(slug: string) {
   return await prisma.schemaCollection.findUnique({
@@ -48,10 +49,22 @@ export async function getDocument(id: string) {
 
 export async function createDocument(collectionId: string, slug: string, data: any) {
   try {
+    const collection = await prisma.schemaCollection.findUnique({
+      where: { id: collectionId },
+      include: { fields: true }
+    });
+
+    if (!collection) throw new Error('Coleção não encontrada.');
+
+    const validation = validateDocumentData(collection, data);
+    if (!validation.success) {
+      return { success: false, error: validation.error };
+    }
+
     await prisma.document.create({
       data: {
         collectionId,
-        data: JSON.stringify(data)
+        data: JSON.stringify(validation.validData)
       }
     });
     revalidatePath(`/content/${slug}`);
@@ -63,10 +76,22 @@ export async function createDocument(collectionId: string, slug: string, data: a
 
 export async function updateDocument(id: string, slug: string, data: any) {
   try {
+    const document = await prisma.document.findUnique({
+      where: { id },
+      include: { collection: { include: { fields: true } } }
+    });
+
+    if (!document) throw new Error('Documento não encontrado.');
+
+    const validation = validateDocumentData(document.collection, data);
+    if (!validation.success) {
+      return { success: false, error: validation.error };
+    }
+
     await prisma.document.update({
       where: { id },
       data: {
-        data: JSON.stringify(data)
+        data: JSON.stringify(validation.validData)
       }
     });
     revalidatePath(`/content/${slug}`);
