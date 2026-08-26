@@ -1,83 +1,79 @@
 <div align="center">
-  <h1>Dimy</h1>
-  <p><strong>Um CMS Moderno, Rápido e Descomplicado</strong></p>
+  <h1>Dimy CMS</h1>
+  <p><strong>Um CMS Moderno, Rápido, Auto-hospedável e Distribuído em um Único Binário</strong></p>
 </div>
 
-O **Dimy** é um Sistema de Gerenciamento de Conteúdo (CMS) focado em performance, design moderno e facilidade de configuração inicial. Inspirado em soluções como Payload CMS, ele foi projetado para rodar onde você quiser — desde uma VPS modesta até arquiteturas Serverless/Edge na Vercel — graças à sua base construída sobre as tecnologias web mais modernas.
+O **Dimy** é um Sistema de Gerenciamento de Conteúdo focado em performance extrema, design moderno e arquitetura distribuída. Abandonamos dependências complexas (como Node.js, `node_modules` e ORMs pesados em produção) para entregar o CMS inteiro em um **único arquivo executável Go**.
 
 ## 🚀 Principais Tecnologias
-- **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
-- **UI/UX**: [React 19](https://react.dev/), [Tailwind CSS v4](https://tailwindcss.com/) & [Lucide Icons](https://lucide.dev/)
-- **Banco de Dados**: [Prisma ORM](https://www.prisma.io/) (Configurado com SQLite por padrão, pronto para migrar para PostgreSQL/Supabase)
-- **Autenticação**: Stateless JWT via [jose](https://github.com/panva/jose) (Edge-ready e super seguro)
-- **Design**: Glassmorphism moderno com sistema de temas nativo (Claro / Assistente Dark Mode)
+- **Core (Backend):** [Go 1.22+](https://go.dev/) (Roteamento nativo super rápido).
+- **Frontend (Painel Administrativo):** SPA feita em [Next.js 15](https://nextjs.org/) estático embutida diretamente no binário via `//go:embed`.
+- **Banco de Dados Híbrido:** Suporte nativo e automático para **SQLite** (dev/local) ou **PostgreSQL** (produção/Supabase) usando drivers nativos do Go (`pgx` e `go-sqlite3`).
+- **Sistema de Plugins (Sandbox):** Extensões de usuário escritas em JavaScript moderno (ES6+/TS) executadas de forma isolada dentro do Go via **Goja** e transpiladas em runtime pelo **esbuild**.
+- **Autenticação:** Stateless JWT seguro (`HS256`) com cookies `HttpOnly` e senhas protegidas com `Bcrypt`.
+- **Auto-Update:** Sistema de atualização via 1 clique conectado diretamente ao GitHub Releases.
 
 ---
 
-## ✨ Funcionalidades em Destaque
-- **Instalação Descomplicada (Wizard):** Assim que você roda o projeto pela primeira vez e acessa o sistema, uma tela guiada maravilhosa (Wizard) ajuda a criar a sua primeira conta de administrador e definir o nome do projeto. Sem a necessidade de rodar comandos de seeds complicados.
-- **Autenticação Stateless (Zero Banco de Dados para Sessões):** Usamos JWT via cookies HttpOnly. Isso significa que as verificações de sessão não sobrecarregam o seu banco de dados, deixando o Dimy extremamente rápido.
-- **Sistema de Temas Avançado:** Suporte imediato a modo claro e escuro, com transições fluídas graças à integração nativa com o `next-themes` e Tailwind v4.
+## 🛠️ Como Desenvolver e Rodar Localmente
 
----
-
-## 🛠️ Como Instalar e Rodar Localmente
-
-Siga os passos abaixo para testar ou desenvolver usando o **Dimy** na sua máquina.
+O código fonte é dividido em duas partes: o motor Go e o painel Next.js.
 
 ### Pré-requisitos
-- [Node.js](https://nodejs.org/en/) (Versão 18.17 ou superior)
-- NPM, Yarn ou pnpm (Usamos npm como padrão)
+- [Go](https://go.dev/dl/) (1.22 ou superior)
+- [Node.js](https://nodejs.org/) (Versão 20+ apenas para compilar a UI)
 
 ### Passo a Passo
 
 1. **Clone o repositório:**
    ```bash
-   git clone https://github.com/SEU_USUARIO/dimy.git
+   git clone https://github.com/fernandoamerico/dimy.git
    cd dimy
    ```
 
-2. **Instale as dependências:**
+2. **Gere a Interface de Usuário (Painel):**
    ```bash
+   cd frontend
    npm install
+   npm run build
+   cd ..
    ```
+   *Isso criará a pasta `frontend/out` que será embutida no Go.*
 
-3. **Configure as Variáveis de Ambiente:**
-   Crie um arquivo `.env` na raiz do projeto com o seguinte conteúdo (ou use o `.env.example` se houver):
-   ```env
-   # URL de Conexão com o Banco de Dados (Por padrão SQLite para facilidade)
-   DATABASE_URL="file:./dev.db"
+3. **Inicie o Servidor Localmente:**
+   Na raiz do projeto, instale as dependências do Go e rode o projeto:
+   ```bash
+   go mod tidy
+   go run main.go
+   ```
    
-   # Segredo forte para criptografia dos Cookies e JWT (Gere uma chave complexa!)
-   SESSION_SECRET="uma-senha-secreta-de-pelo-menos-32-caracteres-muito-segura"
-   ```
-
-4. **Prepare o Banco de Dados:**
-   Como estamos usando o Prisma com SQLite por padrão, basta rodar o comando abaixo para criar as tabelas e o arquivo local do banco:
-   ```bash
-   npx prisma db push
-   ```
-
-5. **Inicie o Servidor:**
-   ```bash
-   npm run dev
-   ```
-
-6. **Inicie a Configuração:**
-   Abra seu navegador em [http://localhost:3000](http://localhost:3000). 
-   Você será redirecionado para a tela de `/setup`. Preencha os dados do formulário para criar seu superusuário e aproveitar o Dimy!
+4. **Pronto!** Acesse `http://localhost:8080`. Se for o primeiro acesso, o banco SQLite `dev.db` será criado automaticamente e você entrará na tela de setup.
 
 ---
 
-## ☁️ Colocando em Produção e Mudando de Banco (PostgreSQL / Supabase)
+## ☁️ Como Compilar e Colocar em Produção
 
-O Dimy usa o `SQLite` para facilitar a vida de quem está testando ou construindo um projeto simples localmente. Porém, para produção, recomendamos usar um banco de dados robusto como **PostgreSQL**, hospedado em serviços como [Supabase](https://supabase.com/), Neon ou Railway.
+O Dimy usa **GoReleaser** para gerar builds multiplataforma facilmente. Se você for rodar no servidor, não precisa instalar Node nem NPM. Basta pegar o executável!
 
-Para realizar a mudança, leia o guia de arquitetura e documentação para migração que preparamos em: 
-📄 `/.agents/rules/database-installation.md`
+1. **Baixar a Release Oficial:** 
+   Vá na aba "Releases" do GitHub e baixe o binário para o seu servidor (Linux, Windows ou Mac).
+2. **Rodar o Executável:**
+   ```bash
+   ./dimy
+   ```
+3. **Mudar de SQLite para PostgreSQL:**
+   Para usar um banco robusto em produção (como Supabase), basta exportar a URL do Postgres antes de iniciar o servidor:
+   ```bash
+   export DATABASE_URL="postgres://usuario:senha@servidor.com:5432/dimy"
+   export SESSION_SECRET="sua-chave-secreta-muito-forte"
+   ./dimy
+   ```
+   O Dimy fará as *migrations* (criação de tabelas) de forma 100% automática ao iniciar!
+
+Veja as diretrizes completas de banco na documentação: `/.agents/rules/database-installation.md`
 
 ## 🤝 Contribuindo
-Sinta-se livre para abrir issues e enviar Pull Requests! Toda ajuda para tornar o Dimy ainda mais rápido, seguro e modular é bem-vinda.
+Toda ajuda para tornar o Dimy o CMS em Go mais rápido e extensível do mercado é bem-vinda!
 
 ## 📄 Licença
 Distribuído sob a licença MIT. Consulte `LICENSE` para mais informações.

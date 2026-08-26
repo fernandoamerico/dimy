@@ -12,3 +12,5 @@ export default async function EditSchemaPage({ params }: { params: Promise<{ id:
 
   return <EditCollectionForm collection={collection} />;
 }
+
+export function generateStaticParams() { return []; }

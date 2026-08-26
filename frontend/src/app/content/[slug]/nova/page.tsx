@@ -12,3 +12,5 @@ export default async function NovaContentPage({ params }: { params: Promise<{ sl
 
   return <ContentForm collection={collection} />;
 }
+
+export function generateStaticParams() { return []; }

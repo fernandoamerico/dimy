@@ -127,3 +127,5 @@ export default async function ContentListPage({ params }: { params: Promise<{ sl
     </div>
   );
 }
+
+export function generateStaticParams() { return []; }
