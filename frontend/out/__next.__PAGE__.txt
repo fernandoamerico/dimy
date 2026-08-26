@@ -1,6 +1,0 @@
-1:"$Sreact.fragment"
-2:I[46447,["/_next/static/chunks/11njlngp6k-6w.js","/_next/static/chunks/21p-i82-2u343.js","/_next/static/chunks/3_svp19jtgo8c.js","/_next/static/chunks/20-ou4zbrbv9m.js"],"DashboardLayout"]
-3:I[64381,["/_next/static/chunks/11njlngp6k-6w.js","/_next/static/chunks/21p-i82-2u343.js"],"OutletBoundary"]
-4:"$Sreact.suspense"
-0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"children":["$","div",null,{"className":"max-w-6xl mx-auto","children":["$","div",null,{"className":"mb-8","children":[["$","h2",null,{"className":"text-2xl font-bold text-slate-800 dark:text-white","children":"Bem-vindo ao Dimy!"}],["$","p",null,{"className":"text-slate-500 dark:text-neutral-400 mt-2","children":"Este é o painel inicial do seu novo projeto, preservando toda a estrutura visual da Owwwly."}]]}]}]}],[["$","script","script-0",{"src":"/_next/static/chunks/3_svp19jtgo8c.js","async":true}],["$","script","script-1",{"src":"/_next/static/chunks/20-ou4zbrbv9m.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"7q6Xm-BNKTccYwXOR-FFb"}
-5:null
