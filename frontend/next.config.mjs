@@ -8,6 +8,7 @@ const nextConfig = {
   },
   reactStrictMode: true,
   output: process.env.BUILD_FOR_GO === 'true' ? 'export' : undefined,
+  trailingSlash: true, // Fix routing for Go http.FileServer
   devIndicators: {
     position: 'bottom-right',
   },

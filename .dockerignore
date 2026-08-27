@@ -1,0 +1,47 @@
+# Version Control
+.git
+.github
+.gitignore
+
+# Go output
+/dimy
+*.exe
+*.test
+*.prof
+
+# Node & Next.js
+node_modules/
+frontend/node_modules/
+.next/
+frontend/.next/
+frontend/out/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Databases (Security & Performance)
+*.db
+*.db-shm
+*.db-wal
+dev.db*
+/db/dev.db*
+
+# Env files (Security)
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# IDEs & Editor folders
+.vscode/
+.idea/
+.claude/
+.windsurf/
+.agents/
+.cursorrules
+
+# Temp & Agent folders
+scratch/
+sandbox/
+*.log
