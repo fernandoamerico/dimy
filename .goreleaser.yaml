@@ -10,11 +10,8 @@ builds:
       - CGO_ENABLED=0 # Keep CGO disabled to allow easy cross-compilation
     goos:
       - linux
-      - windows
-      - darwin
     goarch:
       - amd64
-      - arm64
     main: ./main.go
     binary: dimy
 
