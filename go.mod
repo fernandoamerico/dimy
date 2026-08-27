@@ -6,19 +6,17 @@ require (
 	github.com/dop251/goja v0.0.0-20260822123354-58e940e0d230
 	github.com/evanw/esbuild v0.28.2
 	github.com/golang-jwt/jwt/v5 v5.3.1
+	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.10.0
-	github.com/minio/selfupdate v0.6.0
 	golang.org/x/crypto v0.55.0
 	modernc.org/sqlite v1.57.0
 )
 
 require (
-	aead.dev/minisign v0.2.0 // indirect
 	github.com/dlclark/regexp2/v2 v2.5.2 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
 	github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect

@@ -11,7 +11,7 @@ O **Dimy** é um Sistema de Gerenciamento de Conteúdo focado em performance ext
 - **Banco de Dados Híbrido:** Suporte nativo e automático para **SQLite** (dev/local) ou **PostgreSQL** (produção/Supabase) usando drivers nativos do Go (`pgx` e `go-sqlite3`).
 - **Sistema de Plugins (Sandbox):** Extensões de usuário escritas em JavaScript moderno (ES6+/TS) executadas de forma isolada dentro do Go via **Goja** e transpiladas em runtime pelo **esbuild**.
 - **Autenticação:** Stateless JWT seguro (`HS256`) com cookies `HttpOnly` e senhas protegidas com `Bcrypt`.
-- **Auto-Update:** Sistema de atualização via 1 clique conectado diretamente ao GitHub Releases.
+- **Deploy Profissional:** Fluxo de distribuição otimizado via GitHub Actions (Docker/Bare Metal) sem atualizações automáticas inseguras.
 
 ---
 
@@ -51,24 +51,33 @@ O código fonte é dividido em duas partes: o motor Go e o painel Next.js.
 
 ---
 
-## ☁️ Como Compilar e Colocar em Produção
+## ☁️ Como Instalar e Atualizar em Produção (Para Clientes)
 
-O Dimy usa **GoReleaser** para gerar builds multiplataforma facilmente. Se você for rodar no servidor, não precisa instalar Node nem NPM. Basta pegar o executável!
+O Dimy utiliza o GitHub Actions para compilar automaticamente toda a aplicação em executáveis fechados a cada nova versão (Tag) lançada.
 
-1. **Baixar a Release Oficial:** 
-   Vá na aba "Releases" do GitHub e baixe o binário para o seu servidor (Linux, Windows ou Mac).
-2. **Rodar o Executável:**
-   ```bash
-   ./dimy
-   ```
-3. **Mudar de SQLite para PostgreSQL:**
-   Para usar um banco robusto em produção (como Supabase), basta exportar a URL do Postgres antes de iniciar o servidor:
-   ```bash
-   export DATABASE_URL="postgres://usuario:senha@servidor.com:5432/dimy"
-   export SESSION_SECRET="sua-chave-secreta-muito-forte"
-   ./dimy
-   ```
-   O Dimy fará as *migrations* (criação de tabelas) de forma 100% automática ao iniciar!
+### Opção 1: Via Docker (Recomendado)
+A forma mais segura e fácil de rodar e manter o sistema. O banco de dados e os binários ficam isolados.
+- **Instalação:** Basta criar um arquivo `docker-compose.yml` (disponível na nossa documentação oficial) apontando para a nossa imagem hospedada no Docker Hub / GHCR e rodar `docker compose up -d`.
+- **Como Atualizar:** Quando houver uma nova versão, o painel apenas notificará a disponibilidade. Para aplicar, entre na VPS e rode:
+  ```bash
+  docker compose pull && docker compose up -d
+  ```
+
+### Opção 2: Binário Puro (Bare Metal Linux)
+Para ambientes que não usam Docker, fornecemos binários pré-compilados e autossuficientes na aba **Releases**.
+- **Instalação:** 
+  Vá na aba "Releases" do GitHub e baixe o binário para o seu servidor (Linux, Windows ou Mac).
+- **Como Atualizar:**
+  Baixe o arquivo `.zip` ou `.tar.gz` mais recente na página de Releases, descompacte-o e substitua o executável `dimy` antigo pelo novo no seu servidor. Recomendamos o uso de um gerenciador de processos (como **Systemd** ou **PM2**) para reiniciar o sistema instantaneamente após a substituição.
+
+> **💡 Sobre Banco de Dados (Produção):**
+> O Dimy cria bancos SQLite locais por padrão. Para usar um banco robusto (como PostgreSQL), exporte as variáveis no ambiente/Docker antes de iniciar:
+> ```bash
+> export DATABASE_URL="postgres://usuario:senha@servidor.com:5432/dimy"
+> export SESSION_SECRET="sua-chave-secreta-muito-forte"
+> ./dimy
+> ```
+> O sistema roda as *migrations* automaticamente na inicialização.
 
 Veja as diretrizes completas de banco na documentação: `/.agents/rules/database-installation.md`
 
