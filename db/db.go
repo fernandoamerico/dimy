@@ -8,7 +8,7 @@ import (
 	"sync"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 var (
@@ -30,7 +30,7 @@ func Connect() error {
 		if strings.HasPrefix(dbURL, "postgres://") || strings.HasPrefix(dbURL, "postgresql://") {
 			driverName = "pgx"
 		} else {
-			driverName = "sqlite3"
+			driverName = "sqlite"
 			// Ensure WAL mode and busy timeout are set for SQLite by default
 			if !strings.Contains(dbURL, "?") && strings.HasPrefix(dbURL, "file:") {
 				dbURL += "?_journal=WAL&_busy_timeout=5000"
