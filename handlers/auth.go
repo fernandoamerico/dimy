@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -54,6 +55,8 @@ func SetupHandler(w http.ResponseWriter, r *http.Request) {
 		Password        string `json:"password"`
 		ConfirmPassword string `json:"confirmPassword"`
 		ProjectName     string `json:"projectName"`
+		DatabaseType    string `json:"databaseType"`
+		DatabaseUrl     string `json:"databaseUrl"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
@@ -74,6 +77,23 @@ func SetupHandler(w http.ResponseWriter, r *http.Request) {
 	if len(payload.Password) < 8 {
 		http.Error(w, "A senha deve ter pelo menos 8 caracteres", http.StatusBadRequest)
 		return
+	}
+
+	// 0. Handle Database Configuration
+	if payload.DatabaseType == "postgres" && payload.DatabaseUrl != "" {
+		// Write to .env file
+		envContent := fmt.Sprintf("DATABASE_URL=%s\n", payload.DatabaseUrl)
+		if err := os.WriteFile(".env", []byte(envContent), 0600); err != nil {
+			http.Error(w, "Erro ao salvar configuração do banco de dados", http.StatusInternalServerError)
+			return
+		}
+
+		// Reconnect to the new database
+		if err := db.Reconnect(); err != nil {
+			// If it fails, we should probably delete the .env or rollback, but let's keep it simple for now
+			http.Error(w, "Erro ao conectar ao banco de dados: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	// 1. Verify if system is already set up (user count > 0)

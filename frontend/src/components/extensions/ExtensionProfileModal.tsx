@@ -13,7 +13,7 @@ interface ExtensionProfileModalProps {
 }
 
 export function ExtensionProfileModal({ extension, localStatus, onClose, onRefresh }: ExtensionProfileModalProps) {
-  const [activeTab, setActiveTab] = useState<'details' | 'reviews'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'reviews' | 'configure'>('details');
   const [isWorking, setIsWorking] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   
@@ -130,7 +130,7 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-3 mt-2">
+              <div className="flex flex-wrap items-center gap-3 mt-2">
                 {localStatus?.isInstalled ? (
                   <>
                     <button
@@ -145,6 +145,14 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
                       <Power className="w-4 h-4" />
                       {localStatus.isEnabled ? 'Desativar' : 'Ativar'}
                     </button>
+                    {extension.id === 'cloudflare_r2' && (
+                      <button
+                        onClick={() => setActiveTab('configure')}
+                        className="px-6 py-2.5 rounded-xl font-medium text-sm transition-colors flex items-center gap-2 bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-500/20 dark:text-blue-400 dark:hover:bg-blue-500/30"
+                      >
+                        <Settings className="w-4 h-4" /> Configurar
+                      </button>
+                    )}
                     {!localStatus.isEssential && (
                       <button
                         onClick={() => setShowUninstallConfirm(true)}
@@ -308,6 +316,69 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
                     </div>
                   ))
                 )}
+              </div>
+            )}
+            {activeTab === 'configure' && extension.id === 'cloudflare_r2' && (
+              <div className="space-y-6">
+                <div className="bg-blue-50 dark:bg-blue-500/10 text-blue-800 dark:text-blue-400 p-4 rounded-xl text-sm border border-blue-200 dark:border-blue-900/50">
+                  <p className="font-bold mb-1">Configuração do Cloudflare R2</p>
+                  <p>Insira as credenciais do seu bucket R2 para habilitar o upload direto na nuvem. As chaves serão salvas de forma segura no banco de dados.</p>
+                </div>
+                
+                <form 
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    setIsWorking(true);
+                    const formData = new FormData(e.currentTarget);
+                    try {
+                      for (let [key, value] of formData.entries()) {
+                        await fetch('/api/system/config', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ key, value })
+                        });
+                      }
+                      alert('Configurações salvas com sucesso!');
+                    } catch (err) {
+                      alert('Erro ao salvar as configurações.');
+                    }
+                    setIsWorking(false);
+                  }}
+                  className="space-y-4"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Account ID</label>
+                      <input name="r2_account_id" type="text" required placeholder="Ex: 8a7c2..." className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-blue-500/50 outline-none text-gray-900 dark:text-white" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Bucket Name</label>
+                      <input name="r2_bucket" type="text" required placeholder="Ex: meu-cms-assets" className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-blue-500/50 outline-none text-gray-900 dark:text-white" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Access Key ID</label>
+                      <input name="r2_access_key" type="text" required className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-blue-500/50 outline-none text-gray-900 dark:text-white" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Secret Access Key</label>
+                      <input name="r2_secret_key" type="password" required className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-blue-500/50 outline-none text-gray-900 dark:text-white" />
+                    </div>
+                    <div className="space-y-1 md:col-span-2">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Domínio Público (Public Dev Domain ou Custom Domain)</label>
+                      <input name="r2_public_domain" type="url" required placeholder="Ex: https://pub-xxxxxx.r2.dev" className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-blue-500/50 outline-none text-gray-900 dark:text-white" />
+                    </div>
+                  </div>
+                  
+                  <div className="pt-4 flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={isWorking}
+                      className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white rounded-xl font-medium text-sm transition-colors flex items-center gap-2"
+                    >
+                      {isWorking ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Salvar Credenciais'}
+                    </button>
+                  </div>
+                </form>
               </div>
             )}
           </div>

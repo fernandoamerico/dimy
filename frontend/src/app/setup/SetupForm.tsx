@@ -7,6 +7,8 @@ export function SetupForm() {
   const [error, setError] = useState<string | null>(null)
   const [isPending, setIsPending] = useState(false)
 
+  const [databaseType, setDatabaseType] = useState('sqlite')
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsPending(true)
@@ -43,6 +45,50 @@ export function SetupForm() {
           required
           className="w-full bg-slate-50 dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
         />
+      </div>
+
+      <hr className="border-slate-200 dark:border-neutral-800 my-4 transition-colors" />
+
+      <div className="space-y-3">
+        <label className="text-sm font-medium text-slate-600 dark:text-neutral-300 ml-1 transition-colors">Banco de Dados</label>
+        
+        <div className="flex gap-4">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input 
+              type="radio" 
+              name="databaseType" 
+              value="sqlite" 
+              checked={databaseType === 'sqlite'}
+              onChange={(e) => setDatabaseType(e.target.value)}
+              className="accent-emerald-500"
+            />
+            <span className="text-sm text-slate-700 dark:text-neutral-300">SQLite (Local)</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input 
+              type="radio" 
+              name="databaseType" 
+              value="postgres" 
+              checked={databaseType === 'postgres'}
+              onChange={(e) => setDatabaseType(e.target.value)}
+              className="accent-emerald-500"
+            />
+            <span className="text-sm text-slate-700 dark:text-neutral-300">Supabase (PostgreSQL)</span>
+          </label>
+        </div>
+
+        {databaseType === 'postgres' && (
+          <div className="space-y-1 mt-3">
+            <label className="text-xs font-medium text-slate-500 dark:text-neutral-400 ml-1">DATABASE_URL (Connection String)</label>
+            <input 
+              type="text" 
+              name="databaseUrl"
+              placeholder="postgres://postgres:senha@aws-0...pooler.supabase.com:6543/postgres"
+              required={databaseType === 'postgres'}
+              className="w-full bg-slate-50 dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all text-sm font-mono"
+            />
+          </div>
+        )}
       </div>
 
       <hr className="border-slate-200 dark:border-neutral-800 my-4 transition-colors" />

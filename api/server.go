@@ -45,6 +45,9 @@ func StartServer(port string, frontendFS fs.FS) error {
 	mux.HandleFunc("POST /api/content/documents", handlers.RequireAuth(handlers.CreateDocumentHandler))
 	mux.HandleFunc("PUT /api/content/documents/{id}", handlers.RequireAuth(handlers.UpdateDocumentHandler))
 	mux.HandleFunc("DELETE /api/content/documents/{id}", handlers.RequireAuth(handlers.DeleteDocumentHandler))
+	
+	// Upload API
+	mux.HandleFunc("POST /api/upload", handlers.RequireAuth(handlers.UploadHandler))
 
 	// Embed Static Frontend SPA
 	staticDir, err := fs.Sub(frontendFS, "frontend/out")

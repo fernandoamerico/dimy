@@ -81,5 +81,24 @@ export const STORE_MOCK_DATA: StoreExtension[] = [
     screenshots: [],
     reviews: [],
     createdAt: '2026-03-20'
+  },
+  {
+    id: 'cloudflare_r2',
+    name: 'Cloudflare R2 (Armazenamento)',
+    description: 'Armazene todas as imagens e mídias do seu CMS na nuvem da Cloudflare sem taxa de egress.',
+    longDescription: `
+      Conecte o seu Dimy ao Cloudflare R2, uma alternativa S3-compatible rápida e barata.
+      - Upload direto para a nuvem.
+      - Zero taxas de saída de dados (egress).
+      - Carregamento rápido de imagens para todos os seus clientes globais.
+    `,
+    iconName: 'Settings',
+    author: 'Equipe Dimy',
+    rating: 5.0,
+    downloads: 5000,
+    price: 'free',
+    screenshots: [],
+    reviews: [],
+    createdAt: '2026-08-27'
   }
 ];
