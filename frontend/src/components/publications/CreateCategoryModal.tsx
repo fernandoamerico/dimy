@@ -45,14 +45,8 @@ export default function CreateCategoryModal({
       description: formData.description,
     });
 
-    // Default fields for a publication
-    const fields = [
-      { name: 'title', label: 'Título', type: 'text', required: true, order: 0 },
-      { name: 'slug', label: 'Slug', type: 'text', required: true, order: 1 },
-      { name: 'coverImage', label: 'Imagem de Capa', type: 'image', required: false, order: 2 },
-      { name: 'excerpt', label: 'Resumo', type: 'text', required: false, order: 3 },
-      { name: 'content', label: 'Conteúdo', type: 'richText', required: true, order: 4 },
-    ];
+    // Start with empty fields. The user will configure them in CategoryBuilder.
+    const fields: any[] = [];
 
     try {
       const res = await createCollection({

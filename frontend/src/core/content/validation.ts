@@ -1,11 +1,13 @@
 export function validateDocumentData(collection: any, data: any) {
   const validData: Record<string, any> = {};
   
-  if (!collection || !collection.fields) {
+  if (!collection) {
     return { success: false, error: 'Coleção inválida.' };
   }
 
-  for (const field of collection.fields) {
+  const fields = collection.fields || [];
+
+  for (const field of fields) {
     const value = data[field.name];
 
     // Checa se é required
@@ -27,6 +29,13 @@ export function validateDocumentData(collection: any, data: any) {
         // text, richText, image, relation (treat all as strings mostly)
         validData[field.name] = String(value);
       }
+    }
+  }
+
+  // Keep all system fields (starting with _)
+  for (const key in data) {
+    if (key.startsWith('_')) {
+      validData[key] = data[key];
     }
   }
 
