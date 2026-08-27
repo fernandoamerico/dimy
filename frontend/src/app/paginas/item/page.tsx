@@ -1,14 +1,15 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { getCollectionBySlug, getDocuments, createDocument } from '@/core/content/actions';
-import { notFound, useRouter } from 'next/navigation';
+import { notFound, useRouter, useSearchParams } from 'next/navigation';
 import { PageBuilder } from '@/components/pages/PageBuilder';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 
-export default function PageBuilderPage({ params }: { params: Promise<{ slug: string }> }) {
-  const p = use(params);
+function PageBuilderContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const slug = searchParams.get('slug') as string;
   const [collection, setCollection] = useState<any>(null);
   const [document, setDocument] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -16,7 +17,7 @@ export default function PageBuilderPage({ params }: { params: Promise<{ slug: st
   useEffect(() => {
     async function loadData() {
       try {
-        const col = await getCollectionBySlug(p.slug);
+        const col = await getCollectionBySlug(slug);
         if (!col) {
           router.push('/404');
           return;
@@ -53,7 +54,7 @@ export default function PageBuilderPage({ params }: { params: Promise<{ slug: st
     }
 
     loadData();
-  }, [p.slug, router]);
+  }, [slug, router]);
 
   if (loading) {
     return (
@@ -75,4 +76,12 @@ export default function PageBuilderPage({ params }: { params: Promise<{ slug: st
       />
     </DashboardLayout>
   );
+}
+
+export default function PageBuilderPage() {
+  return (
+    <Suspense fallback={<DashboardLayout><div>Carregando...</div></DashboardLayout>}>
+      <PageBuilderContent />
+    </Suspense>
+  )
 }

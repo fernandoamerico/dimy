@@ -72,7 +72,7 @@ export function PostEditor({
       const res = await createDocument(collection.id, collection.slug, dataToSave);
       if (res.success) {
         toast.success('Publicação criada!');
-        router.push(`/publicacoes/${collection.slug}`);
+        router.push(`/publicacoes/list?slug=${collection.slug}`);
         router.refresh();
       } else {
         toast.error(res.error || 'Erro ao criar publicação.');
@@ -201,7 +201,7 @@ export function PostEditor({
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Link href={`/publicacoes/${collection.slug}`} className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors">
+          <Link href={`/publicacoes/list?slug=${collection.slug}`} className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>

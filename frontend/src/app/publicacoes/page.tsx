@@ -126,7 +126,7 @@ export default function PublicationsPage() {
                 </div>
                 <div className="p-4 bg-gray-50 dark:bg-neutral-950 border-t border-slate-100 dark:border-neutral-800 flex justify-end">
                   <Link 
-                    href={`/publicacoes/${cat.slug}`}
+                    href={`/publicacoes/list?slug=${cat.slug}`}
                     className="text-sm font-medium text-blue-600 dark:text-emerald-400 hover:text-blue-700 dark:hover:text-emerald-300 flex items-center gap-1"
                   >
                     Gerenciar conteúdo

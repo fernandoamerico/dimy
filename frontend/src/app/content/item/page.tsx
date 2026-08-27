@@ -1,17 +1,19 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { getCollectionBySlug, getDocument } from '@/core/content/actions';
-import { notFound, useRouter } from 'next/navigation';
+import { notFound, useRouter, useSearchParams } from 'next/navigation';
 import { ContentForm } from '@/components/builder/ContentForm';
 
-export default function EditContentPage({ params }: { params: Promise<{ slug: string, id: string }> }) {
+function EditContentContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const slug = searchParams.get('slug') as string;
+  const id = searchParams.get('id') as string;
+  
   const [collection, setCollection] = useState<any>(null);
   const [document, setDocument] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
-  const { slug, id } = use(params);
 
   useEffect(() => {
     async function load() {
@@ -19,7 +21,7 @@ export default function EditContentPage({ params }: { params: Promise<{ slug: st
       if (!col) return router.push('/content');
       
       const doc = await getDocument(id);
-      if (!doc) return router.push(`/content/${slug}`);
+      if (!doc) return router.push(`/content/list?slug=${slug}`);
 
       setCollection(col);
       setDocument(doc);
@@ -31,4 +33,12 @@ export default function EditContentPage({ params }: { params: Promise<{ slug: st
   if (loading) return null;
 
   return <ContentForm collection={collection} initialData={document.data} documentId={document.id} />;
+}
+
+export default function EditContentPage() {
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <EditContentContent />
+    </Suspense>
+  )
 }

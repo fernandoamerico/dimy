@@ -1,20 +1,22 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { getCollectionById } from '@/core/schema/actions';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { EditCollectionForm } from './EditCollectionForm';
 
-export default function EditSchemaPage({ params }: { params: Promise<{ id: string }> }) {
+function EditSchemaContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const id = searchParams.get('id');
+
   const [collection, setCollection] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const { id } = use(params);
-
   useEffect(() => {
+    if (!id) return;
     async function load() {
-      const col = await getCollectionById(id);
+      const col = await getCollectionById(id as string);
       if (!col) return router.push('/schema');
       
       setCollection(col);
@@ -26,4 +28,12 @@ export default function EditSchemaPage({ params }: { params: Promise<{ id: strin
   if (loading) return null;
 
   return <EditCollectionForm collection={collection} />;
+}
+
+export default function EditSchemaPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <EditSchemaContent />
+    </Suspense>
+  )
 }

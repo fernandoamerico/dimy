@@ -1,18 +1,20 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { getCollectionBySlug, getDocument } from '@/core/content/actions';
 import { PostEditor } from '@/components/publications/PostEditor';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function PublicationEditorPage({ params }: { params: Promise<{ slug: string; id: string }> }) {
+function PublicationEditorContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const slug = searchParams.get('slug') as string;
+  const id = searchParams.get('id') as string;
   const [collection, setCollection] = useState<any>(null);
   const [document, setDocument] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const { slug, id } = use(params);
   const isNew = id === 'nova';
 
   useEffect(() => {
@@ -41,7 +43,7 @@ export default function PublicationEditorPage({ params }: { params: Promise<{ sl
       if (!isNew) {
         const doc = await getDocument(id);
         if (!doc || doc.collectionId !== col.id) {
-          router.push(`/publicacoes/${slug}`);
+          router.push(`/publicacoes/list?slug=${slug}`);
           return;
         }
         setDocument(doc);
@@ -72,4 +74,12 @@ export default function PublicationEditorPage({ params }: { params: Promise<{ sl
       />
     </DashboardLayout>
   );
+}
+
+export default function PublicationEditorPage() {
+  return (
+    <Suspense fallback={<DashboardLayout><div>Carregando...</div></DashboardLayout>}>
+      <PublicationEditorContent />
+    </Suspense>
+  )
 }

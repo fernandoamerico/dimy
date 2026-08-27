@@ -35,7 +35,7 @@ export function ContentForm({
     }
 
     if (result.success) {
-      router.push(`/content/${collection.slug}`);
+      router.push(`/content/list?slug=${collection.slug}`);
     } else {
       alert('Erro ao salvar: ' + result.error);
       setIsSubmitting(false);
@@ -45,7 +45,7 @@ export function ContentForm({
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
-        <Link href={`/content/${collection.slug}`} className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors">
+        <Link href={`/content/list?slug=${collection.slug}`} className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
@@ -134,7 +134,7 @@ export function ContentForm({
 
         <div className="flex justify-end gap-3 pt-2">
           <Link 
-            href={`/content/${collection.slug}`}
+            href={`/content/list?slug=${collection.slug}`}
             className="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 font-medium transition-colors shadow-sm"
           >
             Cancelar

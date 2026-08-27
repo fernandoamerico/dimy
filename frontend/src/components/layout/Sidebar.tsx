@@ -61,7 +61,7 @@ export function Sidebar({
         return true;
       });
       
-      const formattedCols = visibleCols.map((c: any) => ({ ...c, id: `/content/${c.slug}`, href: `/content/${c.slug}`, label: c.name, iconName: 'Layers', type: 'col' }));
+      const formattedCols = visibleCols.map((c: any) => ({ ...c, id: `/content/list?slug=${c.slug}`, href: `/content/list?slug=${c.slug}`, label: c.name, iconName: 'Layers', type: 'col' }));
       
       const combined = [...formattedNavs, ...formattedCols];
 

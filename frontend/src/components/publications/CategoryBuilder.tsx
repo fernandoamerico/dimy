@@ -320,7 +320,7 @@ export function CategoryBuilder({
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <button onClick={() => router.push(`/publicacoes/${collection.slug}`)} className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors">
+          <button onClick={() => router.push(`/publicacoes/list?slug=${collection.slug}`)} className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>

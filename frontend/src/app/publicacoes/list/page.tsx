@@ -1,21 +1,21 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { getCollectionBySlug, getDocuments, createDocument, deleteDocument } from '@/core/content/actions';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Plus, Settings, FileText, ArrowLeft, Trash2, Edit2 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
-export default function PublicationItemsPage({ params }: { params: Promise<{ slug: string }> }) {
+function PublicationItemsContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const slug = searchParams.get('slug') as string;
   const [collection, setCollection] = useState<any>(null);
   const [documents, setDocuments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
-
-  const { slug } = use(params);
 
   const fetchContent = async () => {
     setLoading(true);
@@ -38,15 +38,10 @@ export default function PublicationItemsPage({ params }: { params: Promise<{ slu
     setIsCreating(true);
     // Create an empty document. The editor will handle filling it out.
     // We add a basic _title for internal display if none exists
-    const res = await createDocument(collection.id, collection.slug, { _title: 'Nova Publicação' });
-    if (res.success && res.id) { // Wait, createDocument in actions.ts doesn't return ID! Let's check.
-      // Ah! CreateDocument API returns success:true but the action might not return the ID. Let's fix that later, or just redirect.
-      // Actually, if it doesn't return ID, we have a problem. Let's redirect to a special "nova" route.
-      router.push(`/publicacoes/${collection.slug}/nova`);
+    if (res.success && res.id) { 
+      router.push(`/publicacoes/item?slug=${collection.slug}&id=${res.id}`);
     } else if (res.success) {
-      // If no ID is returned, we can't redirect directly to the edit page if the backend doesn't provide it.
-      // We will just fetch documents again and go to the first one, or better yet, use a /nova route!
-      router.push(`/publicacoes/${collection.slug}/nova`);
+      router.push(`/content/nova?slug=${collection.slug}`);
     } else {
       toast.error('Erro ao criar publicação.');
       setIsCreating(false);
@@ -96,19 +91,20 @@ export default function PublicationItemsPage({ params }: { params: Promise<{ slu
           
           <div className="flex items-center gap-3">
             <Link 
-              href={`/publicacoes/${collection.slug}/configuracoes`}
+              href={`/publicacoes/configuracoes?slug=${collection?.slug}`}
               className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-800 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-xl transition-colors shadow-sm"
             >
               <Settings className="w-4 h-4" />
               Configurações
             </Link>
-            <Link
-              href={`/publicacoes/${collection.slug}/nova`}
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-sm font-medium rounded-xl transition-colors shadow-sm shadow-blue-500/20"
+            <button
+              onClick={handleCreatePost}
+              disabled={isCreating}
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-sm font-medium rounded-xl transition-colors shadow-sm shadow-blue-500/20 disabled:opacity-50"
             >
               <Plus className="w-4 h-4" />
               Nova Publicação
-            </Link>
+            </button>
           </div>
         </div>
 
@@ -124,13 +120,14 @@ export default function PublicationItemsPage({ params }: { params: Promise<{ slu
             <p className="text-gray-500 dark:text-gray-400 max-w-md mb-8">
               Você ainda não criou nenhum item para {collection?.name}. Clique no botão abaixo para começar.
             </p>
-            <Link
-              href={`/publicacoes/${collection.slug}/nova`}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white font-medium rounded-xl transition-all shadow-sm shadow-blue-500/20 hover:shadow-blue-500/40"
+            <button
+              onClick={handleCreatePost}
+              disabled={isCreating}
+              className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white font-medium rounded-xl transition-all shadow-sm shadow-blue-500/20 hover:shadow-blue-500/40 disabled:opacity-50"
             >
               <Plus className="w-5 h-5" />
               Criar Primeira Publicação
-            </Link>
+            </button>
           </div>
         ) : (
           <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-slate-200 dark:border-neutral-800 overflow-hidden">
@@ -168,7 +165,7 @@ export default function PublicationItemsPage({ params }: { params: Promise<{ slu
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Link href={`/publicacoes/${collection.slug}/${doc.id}`}
+                          <Link href={`/publicacoes/item?slug=${collection.slug}&id=${doc.id}`}
                             className="p-2 text-blue-600 hover:bg-blue-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10 rounded-lg transition-colors">
                             <Edit2 className="w-4 h-4" />
                           </Link>
@@ -188,4 +185,12 @@ export default function PublicationItemsPage({ params }: { params: Promise<{ slu
       </div>
     </DashboardLayout>
   );
+}
+
+export default function PublicationItemsPage() {
+  return (
+    <Suspense fallback={<DashboardLayout><div>Carregando...</div></DashboardLayout>}>
+      <PublicationItemsContent />
+    </Suspense>
+  )
 }

@@ -1,17 +1,17 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { getCollectionBySlug } from '@/core/content/actions';
 import { CategoryBuilder } from '@/components/publications/CategoryBuilder';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function CategoryConfigPage({ params }: { params: Promise<{ slug: string }> }) {
+function CategoryConfigContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const slug = searchParams.get('slug') as string;
   const [collection, setCollection] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
-  const { slug } = use(params);
 
   useEffect(() => {
     async function loadData() {
@@ -57,4 +57,12 @@ export default function CategoryConfigPage({ params }: { params: Promise<{ slug:
       <CategoryBuilder collection={collection} />
     </DashboardLayout>
   );
+}
+
+export default function CategoryConfigPage() {
+  return (
+    <Suspense fallback={<DashboardLayout><div>Carregando...</div></DashboardLayout>}>
+      <CategoryConfigContent />
+    </Suspense>
+  )
 }

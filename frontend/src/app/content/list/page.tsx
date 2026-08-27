@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { getCollectionBySlug, getDocuments, deleteDocument } from '@/core/content/actions';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Layers, Plus, Edit2, Trash2 } from 'lucide-react';
 
-export default function ContentListPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = use(params);
+function ContentListContent() {
+  const searchParams = useSearchParams();
+  const slug = searchParams.get('slug') as string;
   const router = useRouter();
   const [collection, setCollection] = useState<any>(null);
   const [documents, setDocuments] = useState<any[]>([]);
@@ -30,7 +31,7 @@ export default function ContentListPage({ params }: { params: Promise<{ slug: st
         } catch (e) {}
 
         if (isPage) {
-          router.push(`/paginas/${slug}`);
+          router.push(`/paginas/item?slug=${slug}`);
           return;
         }
 
@@ -80,7 +81,7 @@ export default function ContentListPage({ params }: { params: Promise<{ slug: st
         </div>
         
         <Link 
-          href={`/content/${collection.slug}/nova`}
+          href={`/content/nova?slug=${collection.slug}`}
           className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 dark:bg-emerald-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-emerald-600 transition-colors shadow-sm font-medium"
         >
           <Plus className="w-4 h-4" />
@@ -99,7 +100,7 @@ export default function ContentListPage({ params }: { params: Promise<{ slug: st
               Esta coleção está vazia. Comece adicionando um novo registro.
             </p>
             <Link 
-              href={`/content/${collection.slug}/nova`}
+              href={`/content/nova?slug=${collection.slug}`}
               className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors shadow-sm font-medium"
             >
               <Plus className="w-4 h-4" />
@@ -136,7 +137,7 @@ export default function ContentListPage({ params }: { params: Promise<{ slug: st
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Link 
-                            href={`/content/${collection.slug}/${doc.id}`}
+                            href={`/content/item?slug=${collection.slug}&id=${doc.id}`}
                             className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-emerald-400 hover:bg-blue-50 dark:hover:bg-emerald-500/10 rounded-md transition-colors"
                             title="Editar"
                           >
@@ -162,4 +163,12 @@ export default function ContentListPage({ params }: { params: Promise<{ slug: st
       </div>
     </div>
   );
+}
+
+export default function ContentListPage() {
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <ContentListContent />
+    </Suspense>
+  )
 }

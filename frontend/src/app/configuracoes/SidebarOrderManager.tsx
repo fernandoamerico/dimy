@@ -20,7 +20,7 @@ export function SidebarOrderManager() {
       ]);
 
       const formattedNavs = navs.map((n: any) => ({ id: n.href, label: n.label, type: 'nav' }));
-      const formattedCols = cols.map((c: any) => ({ id: `/content/${c.slug}`, label: c.name, type: 'col' }));
+      const formattedCols = cols.map((c: any) => ({ id: `/content/list?slug=${c.slug}`, label: c.name, type: 'col' }));
       
       const combined = [...formattedNavs, ...formattedCols];
 
