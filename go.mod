@@ -1,6 +1,6 @@
 module github.com/fernandoamerico/dimy
 
-go 1.22.0
+go 1.25.0
 
 require (
 	github.com/dop251/goja v0.0.0-20260822123354-58e940e0d230

@@ -19,7 +19,7 @@ RUN cd frontend && npx prisma db push --schema=../prisma/schema.prisma --accept-
 # ==========================================
 # Stage 2: Build the Go Backend
 # ==========================================
-FROM golang:1.22-alpine AS backend-builder
+FROM golang:1.25-alpine AS backend-builder
 WORKDIR /app
 
 # Install C dependencies if CGO is needed (currently disabled)
