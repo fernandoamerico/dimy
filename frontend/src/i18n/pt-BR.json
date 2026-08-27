@@ -1,0 +1,15 @@
+{
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "apps": "Aplicativos",
+    "schemas": "Tipos de Dados",
+    "settings": "Configurações"
+  },
+  "header": {
+    "search_placeholder": "Pesquisar (Ctrl+K)",
+    "profile": "Perfil",
+    "logout": "Sair",
+    "theme_light": "Claro",
+    "theme_dark": "Escuro"
+  }
+}

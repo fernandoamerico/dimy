@@ -1,0 +1,15 @@
+{
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "apps": "Apps",
+    "schemas": "Content Types",
+    "settings": "Settings"
+  },
+  "header": {
+    "search_placeholder": "Search (Ctrl+K)",
+    "profile": "Profile",
+    "logout": "Logout",
+    "theme_light": "Light",
+    "theme_dark": "Dark"
+  }
+}

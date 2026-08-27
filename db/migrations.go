@@ -47,6 +47,7 @@ func RunMigrations(db *sql.DB, driver string) error {
 			name TEXT NOT NULL,
 			slug TEXT UNIQUE NOT NULL,
 			icon TEXT,
+			metadata TEXT,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		);`,
@@ -82,5 +83,9 @@ func RunMigrations(db *sql.DB, driver string) error {
 			return fmt.Errorf("migration failed for query: %s | error: %w", q, err)
 		}
 	}
+	
+	// Add column metadata for existing tables (ignore error if column already exists)
+	db.Exec(`ALTER TABLE schema_collections ADD COLUMN metadata TEXT;`)
+	
 	return nil
 }

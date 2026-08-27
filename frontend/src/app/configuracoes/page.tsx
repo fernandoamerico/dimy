@@ -1,6 +1,7 @@
 import { Settings } from 'lucide-react'
 import { ThemeToggle } from './ThemeToggle'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
+import { SidebarOrderManager } from './SidebarOrderManager'
 
 export default function SettingsPage() {
   return (
@@ -34,6 +35,20 @@ export default function SettingsPage() {
             <hr className="border-gray-100 dark:border-neutral-800" />
 
             <ThemeToggle />
+          </div>
+        </section>
+
+        {/* Seção de Organização do Menu */}
+        <section className="bg-white dark:bg-neutral-900 rounded-3xl p-6 lg:p-8 dark:border dark:border-neutral-800 mt-8 relative overflow-hidden">
+          <div className="relative z-10">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Organização do Menu</h2>
+            <p className="text-gray-500 dark:text-neutral-400 text-sm mt-1 mb-6">
+              Reordene os itens do menu principal e as coleções dinâmicas de acordo com a sua preferência.
+            </p>
+
+            <hr className="border-gray-100 dark:border-neutral-800 mb-6" />
+
+            <SidebarOrderManager />
           </div>
         </section>
 

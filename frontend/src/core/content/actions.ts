@@ -1,59 +1,61 @@
+'use client';
 
-
-import { prisma } from '@/core/db';
-// import { revalidatePath } from 'next/cache';
 import { validateDocumentData } from './validation';
 
+const API_BASE = '/api/content';
+
 export async function getCollectionBySlug(slug: string) {
-  return await prisma.schemaCollection.findUnique({
-    where: { slug },
-    include: {
-      fields: {
-        orderBy: { order: 'asc' }
-      }
-    }
-  });
+  try {
+    const res = await fetch(`${API_BASE}/collections/${slug}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (error) {
+    console.error('Error fetching collection by slug:', error);
+    return null;
+  }
 }
 
 export async function getDocuments(collectionId: string, options?: { limit?: number; page?: number }) {
-  const skip = options?.page && options?.limit ? (options.page - 1) * options.limit : undefined;
-  const take = options?.limit;
+  try {
+    const params = new URLSearchParams();
+    params.append('collectionId', collectionId);
+    if (options?.limit) params.append('limit', options.limit.toString());
+    if (options?.page) params.append('page', options.page.toString());
 
-  const docs = await prisma.document.findMany({
-    where: { collectionId },
-    orderBy: { createdAt: 'desc' },
-    ...(skip !== undefined ? { skip } : {}),
-    ...(take !== undefined ? { take } : {}),
-  });
-  
-  return docs.map((doc: any) => ({
-    id: doc.id,
-    collectionId: doc.collectionId,
-    createdAt: doc.createdAt,
-    updatedAt: doc.updatedAt,
-    data: JSON.parse(doc.data)
-  }));
+    const res = await fetch(`${API_BASE}/documents?${params.toString()}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) throw new Error('API failed');
+    const data = await res.json();
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching documents:', error);
+    return [];
+  }
 }
 
 export async function getDocument(id: string) {
-  const doc = await prisma.document.findUnique({
-    where: { id }
-  });
-  if (!doc) return null;
-  
-  return {
-    ...doc,
-    data: JSON.parse(doc.data)
-  };
+  try {
+    const res = await fetch(`${API_BASE}/documents/${id}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (error) {
+    console.error('Error fetching document:', error);
+    return null;
+  }
 }
 
 export async function createDocument(collectionId: string, slug: string, data: any) {
   try {
-    const collection = await prisma.schemaCollection.findUnique({
-      where: { id: collectionId },
-      include: { fields: true }
-    });
-
+    // We need to fetch collection for validation first if validation remains on client
+    const collection = await getCollectionBySlug(slug);
     if (!collection) throw new Error('Coleção não encontrada.');
 
     const validation = validateDocumentData(collection, data);
@@ -61,52 +63,75 @@ export async function createDocument(collectionId: string, slug: string, data: a
       return { success: false, error: validation.error };
     }
 
-    await prisma.document.create({
-      data: {
+    const res = await fetch(`${API_BASE}/documents`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         collectionId,
-        data: JSON.stringify(validation.validData)
-      }
+        data: validation.validData
+      })
     });
-    // revalidatePath(`/content/${slug}`);
+    
+    const contentType = res.headers.get('content-type');
+    const respData = contentType && contentType.includes('application/json') ? await res.json() : {};
+    
+    if (!res.ok) {
+      throw new Error(respData.error || await res.text().catch(() => 'Erro na API'));
+    }
+    
     return { success: true };
   } catch (error: any) {
+    console.error('Error creating document:', error);
     return { success: false, error: error.message };
   }
 }
 
 export async function updateDocument(id: string, slug: string, data: any) {
   try {
-    const document = await prisma.document.findUnique({
-      where: { id },
-      include: { collection: { include: { fields: true } } }
-    });
+    const collection = await getCollectionBySlug(slug);
+    if (!collection) throw new Error('Coleção não encontrada.');
 
-    if (!document) throw new Error('Documento não encontrado.');
-
-    const validation = validateDocumentData(document.collection, data);
+    const validation = validateDocumentData(collection, data);
     if (!validation.success) {
       return { success: false, error: validation.error };
     }
 
-    await prisma.document.update({
-      where: { id },
-      data: {
-        data: JSON.stringify(validation.validData)
-      }
+    const res = await fetch(`${API_BASE}/documents/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        collectionId: collection.id,
+        data: validation.validData
+      })
     });
-    // revalidatePath(`/content/${slug}`);
+    
+    const contentType = res.headers.get('content-type');
+    const respData = contentType && contentType.includes('application/json') ? await res.json() : {};
+    
+    if (!res.ok) {
+      throw new Error(respData.error || await res.text().catch(() => 'Erro na API'));
+    }
+    
     return { success: true };
   } catch (error: any) {
+    console.error('Error updating document:', error);
     return { success: false, error: error.message };
   }
 }
 
 export async function deleteDocument(id: string, slug: string) {
   try {
-    await prisma.document.delete({
-      where: { id }
+    const res = await fetch(`${API_BASE}/documents/${id}`, {
+      method: 'DELETE',
     });
-    // revalidatePath(`/content/${slug}`);
+    
+    const contentType = res.headers.get('content-type');
+    const respData = contentType && contentType.includes('application/json') ? await res.json() : {};
+    
+    if (!res.ok) {
+      throw new Error(respData.error || await res.text().catch(() => 'Erro na API'));
+    }
+    
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };

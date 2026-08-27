@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,59 +7,38 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ------------------------------------------------------
-// SCHEMA BUILDER (Meta-schema para as Coleções)
-// ------------------------------------------------------
-
-// Representa uma Coleção criada pelo usuário (ex: "Posts", "Produtos")
 model SchemaCollection {
-  id        String   @id @default(cuid())
-  name      String   // "Artigos"
-  slug      String   @unique // "artigos" (usado na API: /api/dimy/artigos)
-  icon      String?  // Ícone Lucide opcional
-  
-  fields    SchemaField[]
+  id        String        @id @default(cuid())
+  name      String
+  slug      String        @unique
+  icon      String?
+  metadata  String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
   documents Document[]
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  fields    SchemaField[]
 }
 
-// Representa um Campo dentro de uma Coleção (ex: "Título", "Conteúdo")
 model SchemaField {
   id           String           @id @default(cuid())
-  name         String           // "title" (chave do JSON)
-  label        String           // "Título da Postagem" (Nome exibido)
-  type         String           // "text", "richText", "image", "number", "boolean", "relation"
+  name         String
+  label        String
+  type         String
   required     Boolean          @default(false)
-  
   collectionId String
+  order        Int              @default(0)
+  relationTo   String?
   collection   SchemaCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
-  
-  order        Int              @default(0) // Para ordenar na UI
-  relationTo   String?          // Slug da coleção relacionada (usado apenas se type === 'relation')
 }
 
-// ------------------------------------------------------
-// DATA STORE (Armazenamento flexível dos conteúdos)
-// ------------------------------------------------------
-
-// Armazena os registros (linhas) de qualquer Coleção no formato JSON
 model Document {
   id           String           @id @default(cuid())
-  
   collectionId String
-  collection   SchemaCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
-  
-  data         String           // O payload JSON com os dados do registro
-  
+  data         String
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
+  collection   SchemaCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
 }
-
-// ------------------------------------------------------
-// SYSTEM & AUTHENTICATION
-// ------------------------------------------------------
 
 model User {
   id        String   @id @default(cuid())
@@ -75,28 +51,24 @@ model User {
 }
 
 model SystemConfig {
-  key       String   @id // e.g. "projectName"
+  key       String   @id
   value     String
   updatedAt DateTime @updatedAt
 }
 
 model ApiKey {
   id        String   @id @default(cuid())
-  name      String   // Nome para identificar a chave (ex: "Front-end Principal")
-  key       String   @unique // O token gerado (hasheado ou texto plano dependendo do nível de segurança, vamos manter texto plano para facilitar o uso no MVP)
-  role      String   @default("read") // "read" ou "write"
+  name      String
+  key       String   @unique
+  role      String   @default("read")
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-// ------------------------------------------------------
-// EXTENSIONS (Marketplace & Core Modules)
-// ------------------------------------------------------
-
 model Extension {
-  id        String   @id // ex: 'core_dashboard', 'schema_publications'
-  enabled   Boolean  @default(true)
+  id          String   @id
+  enabled     Boolean  @default(true)
   installedAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt   DateTime @updatedAt
 }

@@ -14,11 +14,34 @@ export function ProfileForm({ initialData }: { initialData: { name: string, emai
     setError(null)
     setSuccess(null)
     
-    // Simulating API call for now, since the Go backend hasn't implemented PUT /api/auth/me yet.
-    setTimeout(() => {
-      setError("A atualização de perfil ainda está sendo implementada no novo motor Go.")
+    const formData = new FormData(e.currentTarget)
+    const name = formData.get('name') as string
+    const email = formData.get('email') as string
+    const oldPassword = formData.get('oldPassword') as string
+    const newPassword = formData.get('newPassword') as string
+
+    try {
+      const response = await fetch('/api/auth/me', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, oldPassword, newPassword })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.message || 'Erro ao atualizar perfil')
+      } else {
+        setSuccess('Perfil atualizado com sucesso!')
+        const form = e.target as HTMLFormElement
+        form.oldPassword.value = ''
+        form.newPassword.value = ''
+      }
+    } catch (err) {
+      setError('Erro de conexão ao tentar atualizar o perfil.')
+    } finally {
       setIsPending(false)
-    }, 1000)
+    }
   }
 
   return (

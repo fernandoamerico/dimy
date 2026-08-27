@@ -5,6 +5,7 @@ import { Bell, Search, Settings, LogOut, Menu, User } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { logout } from '@/core/api';
+import { useTranslation } from 'react-i18next';
 
 export function Header({ 
   isSidebarCollapsed,
@@ -16,13 +17,14 @@ export function Header({
   const pathname = usePathname();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { t, i18n } = useTranslation();
   
   const getTitle = () => {
-    if (pathname === '/') return 'Visão Geral';
+    if (pathname === '/') return t('sidebar.dashboard');
     if (pathname?.startsWith('/modulo')) return 'Módulo';
     if (pathname?.startsWith('/equipe')) return 'Equipe';
-    if (pathname?.startsWith('/configuracoes')) return 'Configurações';
-    return 'Dashboard';
+    if (pathname?.startsWith('/configuracoes')) return t('sidebar.settings');
+    return t('sidebar.dashboard');
   };
 
   useEffect(() => {
@@ -34,6 +36,12 @@ export function Header({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const toggleLanguage = () => {
+    const nextLang = i18n.language === 'pt-BR' ? 'en-US' : 'pt-BR';
+    i18n.changeLanguage(nextLang);
+    localStorage.setItem('i18nextLng', nextLang);
+  };
 
   return (
     <header className={`h-16 bg-white/60 dark:bg-neutral-900/60 backdrop-blur-md flex items-center justify-between px-4 lg:px-8 ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'} sticky top-0 z-30 transition-all duration-300 ease-in-out border-b border-slate-200/50 dark:border-neutral-800`}>
@@ -58,11 +66,21 @@ export function Header({
 
       {/* Actions (Right) */}
       <div className="flex items-center justify-end gap-3 lg:gap-4 flex-none">
+        
+        {/* Language Toggle */}
+        <button 
+          onClick={toggleLanguage}
+          className="text-xs font-bold px-2 py-1 bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-300 rounded hover:bg-gray-200 dark:hover:bg-neutral-700 transition-colors"
+          title="Change Language"
+        >
+          {i18n.language === 'pt-BR' ? 'PT' : 'EN'}
+        </button>
+
         <div className="hidden md:flex relative">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input 
             type="text" 
-            placeholder="Buscar..." 
+            placeholder={t('header.search_placeholder')}
             className="pl-9 pr-4 py-2 bg-gray-50/50 dark:bg-neutral-800/50 backdrop-blur-sm border border-gray-200/50 dark:border-neutral-700/50 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 focus:bg-white dark:focus:bg-neutral-900 transition-all w-64"
           />
         </div>
@@ -95,7 +113,7 @@ export function Header({
                 className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
               >
                 <User className="w-4 h-4 text-gray-400 dark:text-neutral-500" />
-                Meu Perfil
+                {t('header.profile')}
               </Link>
               
               <div className="h-px bg-gray-100 dark:bg-neutral-800 my-1"></div>
@@ -107,7 +125,7 @@ export function Header({
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-left"
                 >
                   <LogOut className="w-4 h-4" />
-                  Sair
+                  {t('header.logout')}
                 </button>
               </form>
             </div>

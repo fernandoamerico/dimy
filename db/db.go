@@ -43,6 +43,14 @@ func Connect() error {
 			return
 		}
 
+		if driverName == "sqlite" {
+			_, err = Instance.Exec("PRAGMA foreign_keys = ON;")
+			if err != nil {
+				err = fmt.Errorf("failed to enable foreign keys: %w", err)
+				return
+			}
+		}
+
 		if errPing := Instance.Ping(); errPing != nil {
 			err = fmt.Errorf("failed to ping database: %w", errPing)
 			return

@@ -7,11 +7,19 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   reactStrictMode: true,
-  output: 'export',
+  output: process.env.BUILD_FOR_GO === 'true' ? 'export' : undefined,
   devIndicators: {
     position: 'bottom-right',
   },
-  serverExternalPackages: ['sharp']
+  serverExternalPackages: ['sharp'],
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://127.0.0.1:8080/api/:path*',
+      },
+    ];
+  },
 };
 
 export default nextConfig;

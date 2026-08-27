@@ -6,3 +6,4 @@ node_modules/
 *.db
 frontend/out/
 dimy
+dev.db*

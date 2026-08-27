@@ -36,7 +36,7 @@
 
 @layer base {
   html, body {
-    @apply bg-slate-50 text-slate-900 dark:bg-neutral-950 dark:text-neutral-200 antialiased selection:bg-brand-blue/20 selection:text-brand-blue;
+    @apply text-slate-900 dark:text-neutral-200 antialiased selection:bg-brand-blue/20 selection:text-brand-blue;
     transition: background-color 0.3s ease, color 0.3s ease;
   }
   

@@ -19,8 +19,31 @@ func StartServer(port string, frontendFS fs.FS) error {
 	mux.HandleFunc("POST /api/auth/logout", handlers.LogoutHandler)
 	mux.HandleFunc("POST /api/auth/setup", handlers.SetupHandler)
 	mux.HandleFunc("GET /api/auth/me", handlers.RequireAuth(handlers.MeHandler))
+	mux.HandleFunc("PUT /api/auth/me", handlers.RequireAuth(handlers.UpdateMeHandler))
 	
-	mux.HandleFunc("GET /api/system/config", handlers.GetConfigHandler)
+	mux.HandleFunc("GET /api/config", handlers.GetConfigHandler)
+	mux.HandleFunc("GET /api/system/config", handlers.RequireAuth(handlers.GetSystemConfigHandler))
+	mux.HandleFunc("POST /api/system/config", handlers.RequireAuth(handlers.SetSystemConfigHandler))
+
+	// Extensions API
+	mux.HandleFunc("GET /api/extensions", handlers.RequireAuth(handlers.GetExtensionsHandler))
+	mux.HandleFunc("POST /api/extensions/install", handlers.RequireAuth(handlers.InstallExtensionHandler))
+	mux.HandleFunc("POST /api/extensions/toggle/{id}", handlers.RequireAuth(handlers.ToggleExtensionHandler))
+	mux.HandleFunc("POST /api/extensions/uninstall/{id}", handlers.RequireAuth(handlers.UninstallExtensionHandler))
+	// Schema API
+	mux.HandleFunc("GET /api/schema/collections", handlers.RequireAuth(handlers.GetCollectionsHandler))
+	mux.HandleFunc("GET /api/schema/collections/{id}", handlers.RequireAuth(handlers.GetCollectionByIdHandler))
+	mux.HandleFunc("POST /api/schema/collections", handlers.RequireAuth(handlers.CreateCollectionHandler))
+	mux.HandleFunc("PUT /api/schema/collections/{id}", handlers.RequireAuth(handlers.UpdateCollectionHandler))
+	mux.HandleFunc("DELETE /api/schema/collections/{id}", handlers.RequireAuth(handlers.DeleteCollectionHandler))
+
+	// Content API
+	mux.HandleFunc("GET /api/content/collections/{slug}", handlers.RequireAuth(handlers.GetCollectionBySlugHandler))
+	mux.HandleFunc("GET /api/content/documents", handlers.RequireAuth(handlers.GetDocumentsHandler))
+	mux.HandleFunc("GET /api/content/documents/{id}", handlers.RequireAuth(handlers.GetDocumentHandler))
+	mux.HandleFunc("POST /api/content/documents", handlers.RequireAuth(handlers.CreateDocumentHandler))
+	mux.HandleFunc("PUT /api/content/documents/{id}", handlers.RequireAuth(handlers.UpdateDocumentHandler))
+	mux.HandleFunc("DELETE /api/content/documents/{id}", handlers.RequireAuth(handlers.DeleteDocumentHandler))
 
 	// Embed Static Frontend SPA
 	staticDir, err := fs.Sub(frontendFS, "frontend/out")

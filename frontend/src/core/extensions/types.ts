@@ -1,4 +1,4 @@
-export type ExtensionType = 'core' | 'schema';
+export type ExtensionType = 'core' | 'schema' | 'module';
 
 export interface ExtensionNavItem {
   label: string;
@@ -36,4 +36,7 @@ export interface ExtensionDef {
   
   // If type === 'schema', the database structure it requires
   schema?: ExtensionSchemaDef;
+  
+  // Price model (defaults to 'free' if undefined)
+  price?: 'free' | 'paid';
 }

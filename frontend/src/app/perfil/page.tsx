@@ -1,24 +1,41 @@
+'use client';
+
 import { User } from 'lucide-react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { ProfileForm } from './ProfileForm'
-import { getSession } from '@/core/auth/session'
-import { prisma as db } from '@/core/db'
-import { redirect } from 'next/navigation'
+import { ThemeToggle } from '@/app/configuracoes/ThemeToggle'
+import { useEffect, useState } from 'react'
 
-export default async function ProfilePage() {
-  const session = await getSession()
-  
-  if (!session) {
-    redirect('/login')
-  }
+export default function ProfilePage() {
+  const [user, setUser] = useState<{ name: string, email: string } | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
-  const user = await db.user.findUnique({
-    where: { id: session.userId },
-    select: { name: true, email: true }
-  })
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(res => {
+        if (!res.ok) {
+          window.location.href = '/login'
+          throw new Error('Não autorizado')
+        }
+        return res.json()
+      })
+      .then(data => {
+        setUser({ name: data.name, email: data.email })
+        setIsLoading(false)
+      })
+      .catch(() => {
+        window.location.href = '/login'
+      })
+  }, [])
 
-  if (!user) {
-    redirect('/login')
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </DashboardLayout>
+    )
   }
 
   return (
@@ -39,12 +56,23 @@ export default async function ProfilePage() {
         </div>
 
         {/* Formulário de Perfil */}
-        <section className="bg-white dark:bg-neutral-900 rounded-3xl p-6 lg:p-8 dark:border dark:border-neutral-800 relative overflow-hidden">
+        <section className="bg-white dark:bg-neutral-900 rounded-3xl p-6 lg:p-8 dark:border dark:border-neutral-800 relative overflow-hidden mb-8">
           {/* Glow de fundo */}
           <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-emerald-500/5 rounded-full blur-[80px] pointer-events-none hidden dark:block" />
           
           <div className="relative z-10">
-            <ProfileForm initialData={user} />
+            {user && <ProfileForm initialData={user} />}
+          </div>
+        </section>
+
+        {/* Preferências de Aparência */}
+        <section className="bg-white dark:bg-neutral-900 rounded-3xl p-6 lg:p-8 dark:border dark:border-neutral-800 relative overflow-hidden">
+          <div className="relative z-10">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Aparência</h2>
+            <p className="text-gray-500 dark:text-neutral-400 mb-6">
+              Personalize a aparência do sistema de acordo com sua preferência.
+            </p>
+            <ThemeToggle />
           </div>
         </section>
 

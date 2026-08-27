@@ -26,12 +26,12 @@ export const EXTENSION_REGISTRY: ExtensionDef[] = [
   },
   {
     id: 'core_extensions',
-    name: 'Extensões',
+    name: 'Aplicativos',
     description: 'Gerencie e instale novos módulos e funcionalidades no CMS.',
     type: 'core',
     isEssential: true,
     navItems: [
-      { label: 'Extensões', href: '/extensoes', iconName: 'Blocks', requiredPermissions: ['manage:extensions'] }
+      { label: 'Aplicativos', href: '/aplicativos', iconName: 'Blocks', requiredPermissions: ['manage:extensions'] }
     ]
   },
 
@@ -39,23 +39,14 @@ export const EXTENSION_REGISTRY: ExtensionDef[] = [
   // SCHEMA EXTENSIONS (MARKETPLACE PLUGINS)
   // ---------------------------------------------------------
   {
-    id: 'schema_publications',
+    id: 'core_publications',
     name: 'Publicações',
-    description: 'Crie e gerencie artigos, notícias ou posts de blog.',
-    type: 'schema',
+    description: 'Crie e gerencie categorias de conteúdo como Blog, Serviços e Portfólio.',
+    type: 'module',
     isEssential: false,
-    schema: {
-      name: 'Publicações',
-      slug: 'publicacoes',
-      iconName: 'FileText',
-      fields: [
-        { name: 'title', label: 'Título', type: 'text', required: true, order: 0 },
-        { name: 'slug', label: 'Slug', type: 'text', required: true, order: 1 },
-        { name: 'coverImage', label: 'Imagem de Capa', type: 'image', required: false, order: 2 },
-        { name: 'excerpt', label: 'Resumo', type: 'text', required: false, order: 3 },
-        { name: 'content', label: 'Conteúdo', type: 'richText', required: true, order: 4 },
-      ]
-    }
+    navItems: [
+      { label: 'Publicações', href: '/publicacoes', iconName: 'Newspaper', requiredPermissions: ['manage:publications'] }
+    ]
   },
   {
     id: 'schema_products',

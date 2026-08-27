@@ -226,3 +226,85 @@ func MeHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(user)
 }
+
+// UpdateMeHandler updates the current user's profile
+func UpdateMeHandler(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("user_id").(string)
+	if !ok || userID == "" {
+		http.Error(w, "Não autorizado", http.StatusUnauthorized)
+		return
+	}
+
+	var payload struct {
+		Name        string `json:"name"`
+		Email       string `json:"email"`
+		OldPassword string `json:"oldPassword,omitempty"`
+		NewPassword string `json:"newPassword,omitempty"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		http.Error(w, "JSON inválido", http.StatusBadRequest)
+		return
+	}
+
+	if payload.Name == "" || payload.Email == "" {
+		http.Error(w, "Nome e Email são obrigatórios", http.StatusBadRequest)
+		return
+	}
+
+	// Fetch current user
+	var currentPassword string
+	err := db.Instance.QueryRow("SELECT password FROM users WHERE id = $1", userID).Scan(&currentPassword)
+	if err != nil {
+		http.Error(w, "Erro ao buscar usuário", http.StatusInternalServerError)
+		return
+	}
+
+	// Update password if requested
+	updatePassword := false
+	var finalPassword string
+	if payload.NewPassword != "" {
+		if payload.OldPassword == "" {
+			http.Error(w, "Senha atual é obrigatória para alterar a senha", http.StatusBadRequest)
+			return
+		}
+		if len(payload.NewPassword) < 8 {
+			http.Error(w, "A nova senha deve ter pelo menos 8 caracteres", http.StatusBadRequest)
+			return
+		}
+
+		err = bcrypt.CompareHashAndPassword([]byte(currentPassword), []byte(payload.OldPassword))
+		if err != nil {
+			http.Error(w, "Senha atual incorreta", http.StatusUnauthorized)
+			return
+		}
+
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(payload.NewPassword), bcrypt.DefaultCost)
+		if err != nil {
+			http.Error(w, "Erro ao criptografar nova senha", http.StatusInternalServerError)
+			return
+		}
+		finalPassword = string(hashedPassword)
+		updatePassword = true
+	}
+
+	if updatePassword {
+		_, err = db.Instance.Exec(
+			"UPDATE users SET name = $1, email = $2, password = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4",
+			payload.Name, payload.Email, finalPassword, userID,
+		)
+	} else {
+		_, err = db.Instance.Exec(
+			"UPDATE users SET name = $1, email = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3",
+			payload.Name, payload.Email, userID,
+		)
+	}
+
+	if err != nil {
+		http.Error(w, "Erro ao atualizar perfil", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Perfil atualizado com sucesso"})
+}

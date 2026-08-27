@@ -5,7 +5,8 @@ import {
   Globe,
   Hash,
   CalendarDays,
-  Users
+  Users,
+  Newspaper
 } from 'lucide-react';
 
 /**
@@ -18,6 +19,7 @@ export const dimyConfig = {
   // Static Navigation Items that appear in the sidebar above Dynamic Collections
   navItems: [
     { name: 'Visão Geral', href: '/', icon: LayoutDashboard },
+    { name: 'Publicações', href: '/publicacoes', icon: Newspaper },
     { name: 'Configurações', href: '/configuracoes', icon: Settings },
   ],
   

@@ -37,6 +37,7 @@ type SchemaCollection struct {
 	Name      string         `json:"name"`
 	Slug      string         `json:"slug"`
 	Icon      *string        `json:"icon"` // pointer since it can be null
+	Metadata  *string        `json:"metadata"` // JSON string for extension settings (e.g., publications)
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	Fields    []*SchemaField `json:"fields,omitempty"` // For API responses

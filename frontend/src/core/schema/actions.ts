@@ -1,12 +1,12 @@
+'use client';
 
-
-import { prisma } from '@/core/db';
-// import { revalidatePath } from 'next/cache';
+const API_BASE = '/api/schema/collections';
 
 export type CreateCollectionInput = {
   name: string;
   slug: string;
   icon?: string;
+  metadata?: string;
   fields: Array<{
     name: string;
     label: string;
@@ -17,37 +17,36 @@ export type CreateCollectionInput = {
 };
 
 export async function getCollections() {
-  return await prisma.schemaCollection.findMany({
-    include: {
-      fields: {
-        orderBy: { order: 'asc' }
-      }
-    },
-    orderBy: { createdAt: 'desc' }
-  });
+  try {
+    const res = await fetch(API_BASE, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) throw new Error('API failed');
+    const data = await res.json();
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching collections:', error);
+    return [];
+  }
 }
 
 export async function createCollection(data: CreateCollectionInput) {
   try {
-    const newCollection = await prisma.schemaCollection.create({
-      data: {
-        name: data.name,
-        slug: data.slug,
-        icon: data.icon || null,
-        fields: {
-          create: data.fields.map(f => ({
-            name: f.name,
-            label: f.label,
-            type: f.type,
-            required: f.required,
-            order: f.order
-          }))
-        }
-      },
+    const res = await fetch(API_BASE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
     });
     
-    // revalidatePath('/'); // revalidate sidebar and routes
-    return { success: true, collection: newCollection };
+    const contentType = res.headers.get('content-type');
+    const respData = contentType && contentType.includes('application/json') ? await res.json() : {};
+    
+    if (!res.ok) {
+      throw new Error(respData.error || await res.text().catch(() => 'Erro na API'));
+    }
+    
+    return { success: true, collection: respData };
   } catch (error: any) {
     console.error('Error creating collection:', error);
     return { success: false, error: error.message };
@@ -56,10 +55,17 @@ export async function createCollection(data: CreateCollectionInput) {
 
 export async function deleteCollection(id: string) {
   try {
-    await prisma.schemaCollection.delete({
-      where: { id }
+    const res = await fetch(`${API_BASE}/${id}`, {
+      method: 'DELETE',
     });
-    // revalidatePath('/');
+    
+    const contentType = res.headers.get('content-type');
+    const respData = contentType && contentType.includes('application/json') ? await res.json() : {};
+    
+    if (!res.ok) {
+      throw new Error(respData.error || await res.text().catch(() => 'Erro na API'));
+    }
+    
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -67,54 +73,35 @@ export async function deleteCollection(id: string) {
 }
 
 export async function getCollectionById(id: string) {
-  return await prisma.schemaCollection.findUnique({
-    where: { id },
-    include: {
-      fields: {
-        orderBy: { order: 'asc' }
-      }
-    }
-  });
+  try {
+    const res = await fetch(`${API_BASE}/${id}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (error) {
+    console.error('Error fetching collection:', error);
+    return null;
+  }
 }
 
 export async function updateCollection(id: string, data: CreateCollectionInput) {
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      // 1. Update the collection itself
-      const updatedCollection = await tx.schemaCollection.update({
-        where: { id },
-        data: {
-          name: data.name,
-          slug: data.slug,
-          icon: data.icon || null,
-        }
-      });
-
-      // 2. Delete all existing fields of this collection
-      await tx.schemaField.deleteMany({
-        where: { collectionId: id }
-      });
-
-      // 3. Create the new fields
-      if (data.fields && data.fields.length > 0) {
-        await tx.schemaField.createMany({
-          data: data.fields.map((f) => ({
-            name: f.name,
-            label: f.label,
-            type: f.type,
-            required: f.required,
-            order: f.order,
-            collectionId: id,
-          })),
-        });
-      }
-
-      return updatedCollection;
+    const res = await fetch(`${API_BASE}/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
     });
-
-    // revalidatePath('/'); // revalidate sidebar and routes
-    // revalidatePath('/schema');
-    return { success: true, collection: result };
+    
+    const contentType = res.headers.get('content-type');
+    const respData = contentType && contentType.includes('application/json') ? await res.json() : {};
+    
+    if (!res.ok) {
+      throw new Error(respData.error || await res.text().catch(() => 'Erro na API'));
+    }
+    
+    return { success: true, collection: respData };
   } catch (error: any) {
     console.error('Error updating collection:', error);
     return { success: false, error: error.message };

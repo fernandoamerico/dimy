@@ -1,45 +1,46 @@
+'use client';
 
-
-import { prisma } from '@/core/db';
-// import { revalidatePath } from 'next/cache';
 import { EXTENSION_REGISTRY } from './registry';
-import { createCollection } from '@/core/schema/actions';
 
-// Helper fictício para futuras validações de RBAC (Controle de Acesso)
-async function checkPermission(permissions: string[]) {
-  // Atualmente retorna true, mas no futuro você pode integrar com o sistema de sessão:
-  // const user = await getCurrentUser();
-  // return permissions.every(p => user.permissions.includes(p));
-  return true;
-}
+// Since this is statically exported, we must use fetch to the API
+const API_BASE = '/api';
 
 export async function getExtensionsStatus() {
   try {
-    const dbExtensions = await prisma.extension.findMany();
+    const res = await fetch(`${API_BASE}/extensions`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!res.ok) {
+      throw new Error('Failed to fetch extensions from API');
+    }
+
+    const contentType = res.headers.get('content-type');
+    let dbExtensions = contentType && contentType.includes('application/json') ? await res.json() : [];
+    if (!dbExtensions) dbExtensions = [];
     const dbMap = new Map(dbExtensions.map((ext: any) => [ext.id, ext]));
 
     return EXTENSION_REGISTRY.map(extDef => {
       const dbData: any = dbMap.get(extDef.id);
       
-      // Extensões Core sempre são consideradas "instaladas" pois fazem parte do código.
       const isInstalled = extDef.type === 'core' || !!dbData;
       
-      // Extensões Core são ativadas por padrão se não houver registro no banco.
-      // Extensões de Schema (plugins) são desativadas por padrão.
       const isEnabled = dbData 
-        ? (dbData as any).enabled 
+        ? dbData.enabled 
         : (extDef.type === 'core' ? true : false);
 
       return {
         ...extDef,
         isInstalled,
         isEnabled,
-        installedAt: dbData?.installedAt
+        installedAt: dbData?.installed_at || dbData?.installedAt
       };
     });
   } catch (error) {
     console.error('Error fetching extensions status:', error);
-    // Fallback caso o banco esteja inacessível
     return EXTENSION_REGISTRY.map(extDef => ({
       ...extDef,
       isInstalled: extDef.type === 'core',
@@ -51,46 +52,21 @@ export async function getExtensionsStatus() {
 
 export async function installExtension(id: string) {
   try {
-    const extDef = EXTENSION_REGISTRY.find((e: any) => e.id === id);
-    if (!extDef) throw new Error('Extensão não encontrada no registro.');
-
-    // Verificação de permissões RBAC no futuro
-    const hasPermission = await checkPermission(extDef.type === 'core' ? ['manage:extensions'] : ['install:extensions']);
-    if (!hasPermission) throw new Error('Sem permissão para instalar esta extensão.');
-
-    const existing = await prisma.extension.findUnique({ where: { id } });
-    if (existing) throw new Error('Extensão já está instalada.');
-
-    // Se for do tipo Schema, cria as tabelas dinâmicas (SchemaCollection)
-    if (extDef.type === 'schema' && extDef.schema) {
-      // Verifica se já existe uma coleção com este slug por segurança
-      const slugExists = await prisma.schemaCollection.findUnique({
-        where: { slug: extDef.schema.slug }
-      });
-      
-      if (!slugExists) {
-        const result = await createCollection({
-          name: extDef.schema.name,
-          slug: extDef.schema.slug,
-          icon: extDef.schema.iconName,
-          fields: extDef.schema.fields
-        });
-        if (!result.success) {
-          throw new Error('Falha ao criar o schema para a extensão: ' + result.error);
-        }
-      }
-    }
-
-    // Registra a extensão no banco
-    await prisma.extension.create({
-      data: {
-        id,
-        enabled: true
-      }
+    const res = await fetch(`${API_BASE}/extensions/install`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ id })
     });
 
-    // revalidatePath('/'); // revalidate sidebar
-    // revalidatePath('/extensoes');
+    const contentType = res.headers.get('content-type');
+    const data = contentType && contentType.includes('application/json') ? await res.json() : {};
+    if (!res.ok) {
+      const errorMsg = data.error || await res.text().catch(() => 'Erro na API');
+      throw new Error(errorMsg);
+    }
+
     return { success: true };
   } catch (error: any) {
     console.error('Error installing extension:', error);
@@ -100,25 +76,21 @@ export async function installExtension(id: string) {
 
 export async function toggleExtension(id: string, enabled: boolean) {
   try {
-    const extDef = EXTENSION_REGISTRY.find((e: any) => e.id === id);
-    if (!extDef) throw new Error('Extensão não encontrada no registro.');
-
-    // Verificação de permissão RBAC
-    const hasPermission = await checkPermission(['manage:extensions']);
-    if (!hasPermission) throw new Error('Sem permissão para alterar o estado desta extensão.');
-
-    if (!enabled && extDef.isEssential) {
-      throw new Error('Extensões essenciais não podem ser desativadas.');
-    }
-
-    await prisma.extension.upsert({
-      where: { id },
-      update: { enabled },
-      create: { id, enabled }
+    const res = await fetch(`${API_BASE}/extensions/toggle/${id}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ enabled })
     });
 
-    // revalidatePath('/');
-    // revalidatePath('/extensoes');
+    const contentType = res.headers.get('content-type');
+    const data = contentType && contentType.includes('application/json') ? await res.json() : {};
+    if (!res.ok) {
+      const errorMsg = data.error || await res.text().catch(() => 'Erro na API');
+      throw new Error(errorMsg);
+    }
+
     return { success: true };
   } catch (error: any) {
     console.error('Error toggling extension:', error);
@@ -126,9 +98,43 @@ export async function toggleExtension(id: string, enabled: boolean) {
   }
 }
 
+export async function uninstallExtension(id: string, password: string) {
+  try {
+    const res = await fetch(`${API_BASE}/extensions/uninstall/${id}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ password })
+    });
+
+    const contentType = res.headers.get('content-type');
+    const data = contentType && contentType.includes('application/json') ? await res.json() : {};
+    if (!res.ok) {
+      const errorMsg = data.error || await res.text().catch(() => 'Erro na API');
+      throw new Error(errorMsg);
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error uninstalling extension:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 export async function getEnabledNavItems() {
   try {
-    const dbExtensions = await prisma.extension.findMany();
+    const res = await fetch(`${API_BASE}/extensions`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!res.ok) throw new Error('API failed');
+    const contentType = res.headers.get('content-type');
+    let dbExtensions = contentType && contentType.includes('application/json') ? await res.json() : [];
+    if (!dbExtensions) dbExtensions = [];
     const dbMap = new Map(dbExtensions.map((e: any) => [e.id, e.enabled]));
     
     const navItems = [];
@@ -136,17 +142,11 @@ export async function getEnabledNavItems() {
     for (const ext of EXTENSION_REGISTRY) {
       const dbEnabled = dbMap.get(ext.id);
       
-      // Se estiver no banco, respeita o valor. Se não, core é ativado por padrão.
       const isEnabled = dbEnabled !== undefined 
         ? dbEnabled 
         : (ext.type === 'core' ? true : false);
       
-      // Verifica se o usuário tem a permissão necessária para ver o item de menu
-      const hasPermission = ext.navItems 
-        ? await checkPermission(ext.navItems.flatMap(n => n.requiredPermissions))
-        : true;
-        
-      if (isEnabled && hasPermission && ext.navItems) {
+      if (isEnabled && ext.navItems) {
         navItems.push(...ext.navItems);
       }
     }
@@ -154,9 +154,46 @@ export async function getEnabledNavItems() {
     return navItems;
   } catch (error) {
     console.error('Error fetching enabled nav items:', error);
-    // Em caso de erro, exibe as rotas Core por padrão (visibilidade garantida)
     return EXTENSION_REGISTRY
       .filter((ext: any) => ext.type === 'core')
       .flatMap((ext: any) => ext.navItems || []);
+  }
+}
+
+export async function getSidebarOrder() {
+  try {
+    const res = await fetch(`${API_BASE}/system/config?key=sidebar_order`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (res.ok) {
+        const config = await res.json();
+        if (config && config.value) {
+            return JSON.parse(config.value);
+        }
+    }
+    return [];
+  } catch (error) {
+    return [];
+  }
+}
+
+export async function saveSidebarOrder(order: string[]) {
+  try {
+    const res = await fetch(`${API_BASE}/system/config`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        key: 'sidebar_order',
+        value: JSON.stringify(order)
+      })
+    });
+    
+    if (res.ok) {
+      return { success: true };
+    }
+    return { success: false, error: 'Falha ao salvar ordem' };
+  } catch (error: any) {
+    return { success: false, error: error.message };
   }
 }

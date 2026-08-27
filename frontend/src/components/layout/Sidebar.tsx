@@ -17,9 +17,12 @@ import {
   Users,
   X,
   Database,
-  Layers
+  Layers,
+  Newspaper
 } from 'lucide-react';
 import { dimyConfig } from '@/dimy.config';
+
+import { useTranslation } from 'react-i18next';
 
 export function Sidebar({
   isSidebarCollapsed,
@@ -33,19 +36,36 @@ export function Sidebar({
   setIsMobileSidebarOpen: (v: boolean) => void;
 }) {
   const pathname = usePathname();
-  const [dynamicCollections, setDynamicCollections] = useState<any[]>([]);
-  const [extensionNavItems, setExtensionNavItems] = useState<any[]>([]);
+  const [combinedNavItems, setCombinedNavItems] = useState<any[]>([]);
+  const { t } = useTranslation();
 
   useEffect(() => {
     async function fetchData() {
       // Import here to avoid circular dependency issues if any
-      const { getEnabledNavItems } = await import('@/core/extensions/actions');
-      const [cols, navs] = await Promise.all([
+      const { getEnabledNavItems, getSidebarOrder } = await import('@/core/extensions/actions');
+      const [cols, navs, order] = await Promise.all([
         getCollections(),
-        getEnabledNavItems()
+        getEnabledNavItems(),
+        getSidebarOrder()
       ]);
-      setDynamicCollections(cols);
-      setExtensionNavItems(navs);
+      
+      const formattedNavs = navs.map((n: any) => ({ ...n, id: n.href, type: 'nav' }));
+      const formattedCols = cols.map((c: any) => ({ ...c, id: `/content/${c.slug}`, href: `/content/${c.slug}`, label: c.name, iconName: 'Layers', type: 'col' }));
+      
+      const combined = [...formattedNavs, ...formattedCols];
+
+      if (order && order.length > 0) {
+        combined.sort((a, b) => {
+          const indexA = order.indexOf(a.id);
+          const indexB = order.indexOf(b.id);
+          if (indexA === -1 && indexB === -1) return 0;
+          if (indexA === -1) return 1;
+          if (indexB === -1) return -1;
+          return indexA - indexB;
+        });
+      }
+
+      setCombinedNavItems(combined);
     }
     fetchData();
   }, []);
@@ -91,16 +111,21 @@ export function Sidebar({
         {/* Navigation */}
         <nav className="flex-1 py-6 pl-3 pr-0 overflow-visible">
           {!isSidebarCollapsed && <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">Menu Principal</div>}
-          {extensionNavItems.map((item) => {
+          {combinedNavItems.map((item) => {
             const isActive = item.href === '/' ? pathname === '/' : pathname?.startsWith(item.href);
             
             // Map icon string to Lucide component
-            const iconsMap: any = { LayoutDashboard, Settings, Blocks: Layers }; // Fallback Blocks to Layers if not imported properly
+            const iconsMap: any = { LayoutDashboard, Settings, Blocks: Layers, Newspaper, Layers };
             const IconComponent = iconsMap[item.iconName] || Folder;
             
+            let displayLabel = item.label;
+            if (item.href === '/') displayLabel = t('sidebar.dashboard');
+            else if (item.href === '/aplicativos') displayLabel = t('sidebar.apps');
+            else if (item.href === '/configuracoes') displayLabel = t('sidebar.settings');
+
             return (
               <Link
-                key={item.label}
+                key={item.id}
                 href={item.href}
                 onClick={() => setIsMobileSidebarOpen(false)}
                 className={`group relative flex items-center gap-2 pl-3 pr-4 py-2 rounded-l-xl rounded-r-none text-[16px] font-normal transition-all mb-0.5 ${
@@ -110,48 +135,17 @@ export function Sidebar({
                 } ${isSidebarCollapsed ? 'justify-center pr-3 rounded-xl mr-3' : ''}`}
               >
                 <IconComponent strokeWidth={1.5} className={`w-5 h-5 transition-colors shrink-0 ${isActive ? 'text-blue-600 dark:text-emerald-400' : 'text-gray-900 dark:text-neutral-500 group-hover:text-blue-600 dark:group-hover:text-white'}`} />
-                {!isSidebarCollapsed && <span className="truncate">{item.label}</span>}
+                {!isSidebarCollapsed && <span className="truncate">{displayLabel}</span>}
                 
                 {/* Custom Tooltip */}
                 {isSidebarCollapsed && (
                   <div className="absolute left-full ml-2 px-3 py-1.5 bg-gray-900 text-white text-[13px] font-medium rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 shadow-lg border border-gray-800 before:content-[''] before:absolute before:top-1/2 before:-translate-y-1/2 before:-left-1 before:border-4 before:border-transparent before:border-r-gray-900">
-                    {item.label}
+                    {displayLabel}
                   </div>
                 )}
               </Link>
             );
           })}
-
-          {dynamicCollections.length > 0 && (
-            <>
-              {!isSidebarCollapsed && <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-6 px-3">Conteúdo Dinâmico</div>}
-              {dynamicCollections.map((col) => {
-                const href = `/content/${col.slug}`;
-                const isActive = pathname?.startsWith(href);
-                return (
-                  <Link
-                    key={col.id}
-                    href={href}
-                    onClick={() => setIsMobileSidebarOpen(false)}
-                    className={`group relative flex items-center gap-2 pl-3 pr-4 py-2 rounded-l-xl rounded-r-none text-[16px] font-normal transition-all mb-0.5 ${
-                      isActive 
-                        ? 'bg-blue-600/10 dark:bg-emerald-500/10 text-blue-600 dark:text-emerald-400' 
-                        : 'text-gray-900 dark:text-neutral-400 hover:text-blue-600 dark:hover:text-white hover:bg-gray-50/50 dark:hover:bg-neutral-800'
-                    } ${isSidebarCollapsed ? 'justify-center pr-3 rounded-xl mr-3' : ''}`}
-                  >
-                    <Layers strokeWidth={1.5} className={`w-5 h-5 transition-colors shrink-0 ${isActive ? 'text-blue-600 dark:text-emerald-400' : 'text-gray-900 dark:text-neutral-500 group-hover:text-blue-600 dark:group-hover:text-white'}`} />
-                    {!isSidebarCollapsed && <span className="truncate">{col.name}</span>}
-                    
-                    {isSidebarCollapsed && (
-                      <div className="absolute left-full ml-2 px-3 py-1.5 bg-gray-900 text-white text-[13px] font-medium rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 shadow-lg border border-gray-800 before:content-[''] before:absolute before:top-1/2 before:-translate-y-1/2 before:-left-1 before:border-4 before:border-transparent before:border-r-gray-900">
-                        {col.name}
-                      </div>
-                    )}
-                  </Link>
-                );
-              })}
-            </>
-          )}
         </nav>
 
 
