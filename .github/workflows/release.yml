@@ -34,6 +34,7 @@ jobs:
       - name: Install Frontend Dependencies & Build Static Files
         env:
           DATABASE_URL: "file:./dev.db"
+          BUILD_FOR_GO: "true"
         run: |
           cd frontend
           npm ci
