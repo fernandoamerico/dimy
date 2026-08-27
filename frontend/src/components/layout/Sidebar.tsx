@@ -50,7 +50,18 @@ export function Sidebar({
       ]);
       
       const formattedNavs = navs.map((n: any) => ({ ...n, id: n.href, type: 'nav' }));
-      const formattedCols = cols.map((c: any) => ({ ...c, id: `/content/${c.slug}`, href: `/content/${c.slug}`, label: c.name, iconName: 'Layers', type: 'col' }));
+      
+      // Filter out page collections that don't have show_in_sidebar enabled
+      const visibleCols = cols.filter((c: any) => {
+        if (!c.metadata) return true;
+        try {
+          const meta = JSON.parse(c.metadata);
+          if (meta.is_page && !meta.show_in_sidebar) return false;
+        } catch (e) {}
+        return true;
+      });
+      
+      const formattedCols = visibleCols.map((c: any) => ({ ...c, id: `/content/${c.slug}`, href: `/content/${c.slug}`, label: c.name, iconName: 'Layers', type: 'col' }));
       
       const combined = [...formattedNavs, ...formattedCols];
 

@@ -2,14 +2,15 @@ import { Settings } from 'lucide-react'
 import { ThemeToggle } from './ThemeToggle'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { SidebarOrderManager } from './SidebarOrderManager'
+import { PageContainer } from '@/components/layout/PageContainer'
 
 export default function SettingsPage() {
   return (
     <DashboardLayout>
-      <div className="max-w-5xl mx-auto w-full animate-in fade-in duration-500">
+      <PageContainer>
         
         {/* Header da Página */}
-        <div className="mb-8 flex items-center gap-4">
+        <div className="flex items-center gap-4">
           <div className="p-3 bg-blue-100 dark:bg-emerald-500/10 rounded-2xl border border-blue-200 dark:border-emerald-500/20 text-blue-600 dark:text-emerald-400">
             <Settings className="w-6 h-6" />
           </div>
@@ -39,7 +40,7 @@ export default function SettingsPage() {
         </section>
 
         {/* Seção de Organização do Menu */}
-        <section className="bg-white dark:bg-neutral-900 rounded-3xl p-6 lg:p-8 dark:border dark:border-neutral-800 mt-8 relative overflow-hidden">
+        <section className="bg-white dark:bg-neutral-900 rounded-3xl p-6 lg:p-8 dark:border dark:border-neutral-800 relative overflow-hidden">
           <div className="relative z-10">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Organização do Menu</h2>
             <p className="text-gray-500 dark:text-neutral-400 text-sm mt-1 mb-6">
@@ -53,7 +54,7 @@ export default function SettingsPage() {
         </section>
 
         {/* Outras Seções Futuras */}
-        <section className="bg-white dark:bg-neutral-900 rounded-3xl p-6 lg:p-8 dark:border dark:border-neutral-800 mt-8 opacity-50 select-none">
+        <section className="bg-white dark:bg-neutral-900 rounded-3xl p-6 lg:p-8 dark:border dark:border-neutral-800 opacity-50 select-none">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-3">
             Mais configurações 
             <span className="text-xs bg-gray-100 dark:bg-neutral-800 px-2 py-1 rounded-md text-gray-500 dark:text-neutral-400 font-medium">
@@ -65,7 +66,7 @@ export default function SettingsPage() {
           </p>
         </section>
 
-      </div>
+      </PageContainer>
     </DashboardLayout>
   )
 }

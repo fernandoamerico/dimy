@@ -5,6 +5,7 @@ import { getCollections } from '@/core/schema/actions';
 import { Newspaper, Plus, Layers, Folder, Search } from 'lucide-react';
 import CreateCategoryModal from '@/components/publications/CreateCategoryModal';
 import Link from 'next/link';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
 
 export default function PublicationsPage() {
   const [categories, setCategories] = useState<any[]>([]);
@@ -41,15 +42,18 @@ export default function PublicationsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-emerald-500"></div>
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-full min-h-[400px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-emerald-500"></div>
+        </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <DashboardLayout>
+      <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Newspaper className="w-6 h-6 text-blue-600 dark:text-emerald-400" />
@@ -140,6 +144,7 @@ export default function PublicationsPage() {
         onClose={() => setIsModalOpen(false)} 
         onSuccess={fetchCategories} 
       />
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }

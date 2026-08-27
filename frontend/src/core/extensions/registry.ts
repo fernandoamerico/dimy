@@ -49,6 +49,16 @@ export const EXTENSION_REGISTRY: ExtensionDef[] = [
     ]
   },
   {
+    id: 'core_pages',
+    name: 'Páginas',
+    description: 'Crie páginas únicas com estrutura dinâmica (Ex: Sobre Nós, Home).',
+    type: 'module',
+    isEssential: false,
+    navItems: [
+      { label: 'Páginas', href: '/paginas', iconName: 'FileText', requiredPermissions: ['manage:pages'] }
+    ]
+  },
+  {
     id: 'schema_products',
     name: 'Produtos',
     description: 'Catálogo de produtos com preços e estoque.',

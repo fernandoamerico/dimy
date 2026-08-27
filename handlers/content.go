@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
+
 	"github.com/fernandoamerico/dimy/db"
 	"github.com/fernandoamerico/dimy/models"
 	"github.com/google/uuid"
@@ -41,6 +43,37 @@ func GetCollectionBySlugHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if metadata.Valid {
 		col.Metadata = &metadata.String
+
+		var meta struct {
+			IsActive *bool `json:"is_active"`
+			IsPublic *bool `json:"is_public"`
+		}
+		if err := json.Unmarshal([]byte(metadata.String), &meta); err == nil {
+			if meta.IsActive != nil && !*meta.IsActive {
+				http.Error(w, "Página desativada", http.StatusNotFound)
+				return
+			}
+			if meta.IsPublic != nil && !*meta.IsPublic {
+				cookie, err := r.Cookie("dimy_session")
+				if err != nil || cookie.Value == "" {
+					http.Error(w, "Autenticação necessária", http.StatusUnauthorized)
+					return
+				}
+
+				claims := &Claims{}
+				token, err := jwt.ParseWithClaims(cookie.Value, claims, func(token *jwt.Token) (interface{}, error) {
+					if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+						return nil, jwt.ErrSignatureInvalid
+					}
+					return jwtSecretKey, nil
+				})
+
+				if err != nil || !token.Valid {
+					http.Error(w, "Sessão inválida ou expirada", http.StatusUnauthorized)
+					return
+				}
+			}
+		}
 	}
 	t, _ := time.Parse("2006-01-02 15:04:05", createdAt)
 	col.CreatedAt = t
