@@ -3,6 +3,7 @@ import { ThemeToggle } from './ThemeToggle'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { SidebarOrderManager } from './SidebarOrderManager'
 import { PageContainer } from '@/components/layout/PageContainer'
+import { UpdateNotifier } from './UpdateNotifier'
 
 export default function SettingsPage() {
   return (
@@ -21,6 +22,15 @@ export default function SettingsPage() {
             </p>
           </div>
         </div>
+
+        {/* Seção de Atualizações */}
+        <section className="bg-white dark:bg-neutral-900 rounded-3xl p-6 lg:p-8 dark:border dark:border-neutral-800 relative overflow-hidden">
+          <div className="relative z-10">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Atualizações do Sistema</h2>
+            <hr className="border-gray-100 dark:border-neutral-800 my-6" />
+            <UpdateNotifier />
+          </div>
+        </section>
 
         {/* Seção de Aparência */}
         <section className="bg-white dark:bg-neutral-900 rounded-3xl p-6 lg:p-8 dark:border dark:border-neutral-800 relative overflow-hidden">
