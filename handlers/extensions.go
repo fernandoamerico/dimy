@@ -8,6 +8,7 @@ import (
 
 	"github.com/fernandoamerico/dimy/db"
 	"github.com/fernandoamerico/dimy/models"
+	"strings"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -69,7 +70,7 @@ func InstallExtensionHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		// Verify if it's unique constraint violation
-		if err.Error() == "UNIQUE constraint failed: extensions.id" {
+		if strings.Contains(err.Error(), "UNIQUE constraint failed: extensions.id") {
 			http.Error(w, "Extensão já está instalada", http.StatusConflict)
 			return
 		}
