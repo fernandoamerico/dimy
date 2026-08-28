@@ -17,6 +17,7 @@ export interface StoreExtension {
   rating: number;
   downloads: number;
   price: 'free' | 'paid';
+  isRecommended: boolean;
   screenshots: string[];
   reviews: StoreReview[];
   createdAt: string;
@@ -41,9 +42,48 @@ export const STORE_MOCK_DATA: StoreExtension[] = [
     rating: 5.0,
     downloads: 12500,
     price: 'free',
+    isRecommended: true,
     screenshots: [],
     reviews: [],
     createdAt: '2026-01-10'
+  },
+  {
+    id: 'core_pages',
+    name: 'Páginas',
+    description: 'Crie páginas únicas com estrutura dinâmica (Ex: Sobre Nós, Home).',
+    longDescription: `
+      Com o aplicativo de Páginas, você cria e gerencia páginas únicas do seu site com total flexibilidade.
+      - Crie páginas como "Sobre Nós", "Home" ou "Contato".
+      - Monte blocos de conteúdo ricos com texto, imagens e outros componentes.
+      - Ideal para conteúdo estático e institucional do seu site.
+    `,
+    iconName: 'FileText',
+    author: 'Equipe Dimy',
+    rating: 5.0,
+    downloads: 10800,
+    price: 'free',
+    isRecommended: true,
+    screenshots: [],
+    reviews: [],
+    createdAt: '2026-01-15'
+  },
+  {
+    id: 'business_info',
+    name: 'Meu Negócio',
+    description: 'Gerencie informações centrais do seu negócio (Nome, Logo, CNPJ, Contatos, Redes Sociais).',
+    longDescription: `
+      O aplicativo "Meu Negócio" centraliza os dados públicos da sua empresa.
+      Configurando os dados aqui, seu site pode puxar automaticamente logo, nome, links sociais, telefone de contato e endereço, facilitando a manutenção.
+    `,
+    iconName: 'Briefcase',
+    author: 'Equipe Dimy',
+    rating: 5.0,
+    downloads: 9000,
+    price: 'free',
+    isRecommended: true,
+    screenshots: [],
+    reviews: [],
+    createdAt: '2026-08-27'
   },
   {
     id: 'schema_products',
@@ -60,6 +100,7 @@ export const STORE_MOCK_DATA: StoreExtension[] = [
     rating: 5.0,
     downloads: 8300,
     price: 'free',
+    isRecommended: true,
     screenshots: [],
     reviews: [],
     createdAt: '2026-02-15'
@@ -78,6 +119,7 @@ export const STORE_MOCK_DATA: StoreExtension[] = [
     rating: 5.0,
     downloads: 18200,
     price: 'free',
+    isRecommended: true,
     screenshots: [],
     reviews: [],
     createdAt: '2026-03-20'
@@ -92,30 +134,32 @@ export const STORE_MOCK_DATA: StoreExtension[] = [
       - Zero taxas de saída de dados (egress).
       - Carregamento rápido de imagens para todos os seus clientes globais.
     `,
-    iconName: 'Settings',
+    iconName: 'Cloud',
     author: 'Equipe Dimy',
     rating: 5.0,
     downloads: 5000,
     price: 'free',
+    isRecommended: false,
     screenshots: [],
     reviews: [],
     createdAt: '2026-08-27'
   },
   {
-    id: 'business_info',
-    name: 'Meu Negócio',
-    description: 'Gerencie informações centrais do seu negócio (Nome, Logo, CNPJ, Contatos, Redes Sociais).',
+    id: 'supabase_config',
+    name: 'Supabase (Banco de Dados)',
+    description: 'Conecte o Dimy ao Supabase para garantir a persistência dos seus dados na nuvem.',
     longDescription: `
-      O aplicativo "Meu Negócio" centraliza os dados públicos da sua empresa.
-      Configurando os dados aqui, seu site pode puxar automaticamente logo, nome, links sociais, telefone de contato e endereço, facilitando a manutenção.
+      Sem o Supabase, seus dados são armazenados localmente no SQLite, o que não é persistente entre atualizações de container.
+      Configurando o Supabase, você garante que os dados estarão seguros em um banco PostgreSQL hospedado.
     `,
-    iconName: 'Settings',
+    iconName: 'Database',
     author: 'Equipe Dimy',
     rating: 5.0,
-    downloads: 9000,
+    downloads: 15000,
     price: 'free',
+    isRecommended: true,
     screenshots: [],
     reviews: [],
-    createdAt: '2026-08-27'
+    createdAt: '2026-08-28'
   }
 ];

@@ -18,7 +18,11 @@ import {
   X,
   Database,
   Layers,
-  Newspaper
+  Newspaper,
+  Briefcase,
+  FileText,
+  Package,
+  Images
 } from 'lucide-react';
 import { dimyConfig } from '@/dimy.config';
 
@@ -126,7 +130,7 @@ export function Sidebar({
             const isActive = item.href === '/' ? pathname === '/' : pathname?.startsWith(item.href);
             
             // Map icon string to Lucide component
-            const iconsMap: any = { LayoutDashboard, Settings, Blocks: Layers, Newspaper, Layers };
+            const iconsMap: any = { LayoutDashboard, Settings, Blocks: Layers, Newspaper, Layers, Briefcase, FileText, Package, Images };
             const IconComponent = iconsMap[item.iconName] || Folder;
             
             let displayLabel = item.label;

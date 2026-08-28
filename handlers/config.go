@@ -83,3 +83,24 @@ func SetSystemConfigHandler(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(map[string]interface{}{"success": true})
 }
+
+// GetBusinessInfoHandler returns all system configs that start with 'business_'
+func GetBusinessInfoHandler(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.Instance.Query("SELECT key, value FROM system_configs WHERE key LIKE 'business_%'")
+	if err != nil {
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	businessInfo := make(map[string]string)
+	for rows.Next() {
+		var key, value string
+		if err := rows.Scan(&key, &value); err == nil {
+			businessInfo[key] = value
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(businessInfo)
+}

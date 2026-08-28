@@ -62,7 +62,7 @@ func InstallExtensionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Inserir a extensão
+	// Inserir a extensão (desativada por padrão, o usuário ativa manualmente)
 	_, err := db.Instance.Exec(
 		"INSERT INTO extensions (id, enabled, installed_at, updated_at) VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
 		payload.ID, false,

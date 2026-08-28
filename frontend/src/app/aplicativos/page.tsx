@@ -125,14 +125,24 @@ export default function AplicativosPage() {
       }
     };
 
+    const isInactive = ext.isInstalled && !ext.isEnabled && !ext.isEssential;
+
     return (
       <div 
         key={ext.id} 
         onClick={handleCardClick}
-        className="group bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-gray-200 dark:border-neutral-700/80 rounded-2xl p-6 flex flex-col h-full transition-all duration-300 hover:bg-white dark:hover:bg-neutral-900 shadow-sm hover:shadow-lg hover:border-gray-300 dark:hover:border-neutral-600 hover:-translate-y-1 cursor-pointer"
+        className={`group backdrop-blur-xl border rounded-2xl p-6 flex flex-col h-full transition-all duration-300 shadow-sm hover:shadow-lg hover:-translate-y-1 cursor-pointer ${
+          isInactive
+            ? 'bg-gray-50/80 dark:bg-neutral-900/40 border-gray-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-900/60 hover:border-gray-300 dark:hover:border-neutral-700'
+            : 'bg-white/80 dark:bg-neutral-900/80 border-gray-200 dark:border-neutral-700/80 hover:bg-white dark:hover:bg-neutral-900 hover:border-gray-300 dark:hover:border-neutral-600'
+        }`}
       >
         <div className="flex items-start justify-between mb-4">
-          <div className="p-3 bg-blue-50 dark:bg-emerald-500/10 text-blue-600 dark:text-emerald-400 rounded-xl">
+          <div className={`p-3 rounded-xl ${
+            isInactive
+              ? 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500'
+              : 'bg-blue-50 dark:bg-emerald-500/10 text-blue-600 dark:text-emerald-400'
+          }`}>
             <Icon strokeWidth={1.5} className="w-6 h-6" />
           </div>
           
@@ -154,8 +164,21 @@ export default function AplicativosPage() {
           </div>
         </div>
         
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-emerald-400 transition-colors">{ext.name}</h3>
-        <p className="text-sm text-gray-500 dark:text-neutral-400 flex-1 mb-6 leading-relaxed">{ext.description}</p>
+        <h3 className={`text-lg font-semibold mb-2 transition-colors flex items-center gap-2 ${
+          isInactive
+            ? 'text-gray-400 dark:text-neutral-500 group-hover:text-gray-600 dark:group-hover:text-neutral-400'
+            : 'text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-emerald-400'
+        }`}>
+          {ext.name}
+          {isInactive && (
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-200 dark:bg-neutral-700 text-gray-500 dark:text-neutral-400 uppercase tracking-wider">
+              Inativo
+            </span>
+          )}
+        </h3>
+        <p className={`text-sm flex-1 mb-6 leading-relaxed ${
+          isInactive ? 'text-gray-400 dark:text-neutral-600' : 'text-gray-500 dark:text-neutral-400'
+        }`}>{ext.description}</p>
         
         <div className="mt-auto pt-4 border-t border-gray-100 dark:border-neutral-800 flex items-center justify-between" onClick={(e) => e.stopPropagation()}>
           {!ext.isInstalled ? (
@@ -165,7 +188,7 @@ export default function AplicativosPage() {
               className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <Download className="w-4 h-4" /> 
-              {isWorking ? 'Instalando...' : 'Instalar'}
+              {isWorking ? 'Baixando...' : 'Baixar'}
             </button>
           ) : (
             <div className="flex items-center justify-between w-full">
@@ -223,7 +246,7 @@ export default function AplicativosPage() {
   });
 
   const coreExtensions = filteredExtensions.filter(e => e.type === 'core');
-  const nonCoreExtensions = filteredExtensions.filter(e => e.type !== 'core');
+  const nonCoreExtensions = filteredExtensions.filter(e => e.type !== 'core' && e.isInstalled);
 
   return (
     <DashboardLayout>
@@ -297,11 +320,20 @@ export default function AplicativosPage() {
             {nonCoreExtensions.length > 0 && (
               <div>
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                  Módulos de Conteúdo e Extras
+                  Aplicativos Instalados
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {nonCoreExtensions.map(renderCard)}
                 </div>
+              </div>
+            )}
+
+            {nonCoreExtensions.length === 0 && coreExtensions.length > 0 && currentFilter === 'all' && (
+              <div className="py-10 text-center border-2 border-dashed border-gray-300 dark:border-neutral-600 rounded-2xl flex flex-col items-center gap-3">
+                <p className="text-gray-500 dark:text-neutral-400 text-sm">Você ainda não instalou nenhum aplicativo adicional.</p>
+                <Link href="/loja" className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors">
+                  <Store className="w-4 h-4" /> Explorar a Loja
+                </Link>
               </div>
             )}
             

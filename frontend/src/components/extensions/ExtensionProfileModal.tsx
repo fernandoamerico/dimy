@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Star, Download, ChevronRight, ShieldAlert, User, Clock, CheckCircle2, MessageSquare, Loader2, Power, Trash2, Image as ImageIcon } from 'lucide-react';
+import Link from 'next/link';
+import { X, Star, Download, ChevronRight, ShieldAlert, User, Clock, CheckCircle2, MessageSquare, Loader2, Power, Trash2, Image as ImageIcon, Settings } from 'lucide-react';
 import { StoreExtension } from '@/core/extensions/storeMock';
 import { getExtensionsStatus, installExtension, toggleExtension, uninstallExtension } from '@/core/extensions/actions';
 import { ImageUploader } from '@/components/ui/ImageUploader';
@@ -135,36 +136,53 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
               <div className="flex flex-wrap items-center gap-3 mt-2">
                 {localStatus?.isInstalled ? (
                   <>
-                    <button
-                      onClick={handleToggle}
-                      disabled={isWorking || localStatus.isEssential}
-                      className={`px-6 py-2.5 rounded-xl font-medium text-sm transition-colors flex items-center gap-2 ${
-                        localStatus.isEnabled
-                          ? 'bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-500/20 dark:text-amber-400 dark:hover:bg-amber-500/30'
-                          : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:hover:bg-emerald-500/30'
-                      } ${localStatus.isEssential ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      <Power className="w-4 h-4" />
-                      {localStatus.isEnabled ? 'Desativar' : 'Ativar'}
-                    </button>
-                    {(extension.id === 'cloudflare_r2' || extension.id === 'business_info') && (
-                      <button
-                        onClick={() => setActiveTab('configure')}
-                        className="px-6 py-2.5 rounded-xl font-medium text-sm transition-colors flex items-center gap-2 bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-500/20 dark:text-blue-400 dark:hover:bg-blue-500/30"
-                      >
-                        <Settings className="w-4 h-4" /> Configurar
-                      </button>
-                    )}
-                    {!localStatus.isEssential && (
-                      <button
-                        onClick={() => setShowUninstallConfirm(true)}
-                        disabled={isWorking}
-                        className="px-4 py-2.5 rounded-xl text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 transition-colors"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                    {localStatus.isEssential ? (
+                      <span className="text-sm text-gray-400 dark:text-neutral-500 italic">
+                        Aplicativos essenciais não podem ser desativados ou excluídos.
+                      </span>
+                    ) : (
+                      <>
+                        {extension.id === 'business_info' && (
+                          <Link
+                            href="/meu-negocio"
+                            onClick={onClose}
+                            className="px-6 py-2.5 rounded-xl font-medium text-sm transition-colors flex items-center gap-2 bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-500/20 dark:text-blue-400 dark:hover:bg-blue-500/30"
+                          >
+                            <Settings className="w-4 h-4" /> Configurar
+                          </Link>
+                        )}
+                        {extension.id === 'cloudflare_r2' && (
+                          <button
+                            onClick={() => setActiveTab('configure')}
+                            className="px-6 py-2.5 rounded-xl font-medium text-sm transition-colors flex items-center gap-2 bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-500/20 dark:text-blue-400 dark:hover:bg-blue-500/30"
+                          >
+                            <Settings className="w-4 h-4" /> Configurar
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setShowUninstallConfirm(true)}
+                          disabled={isWorking}
+                          className="px-4 py-2.5 rounded-xl text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 transition-colors"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                        {extension.id === 'supabase_config' && (
+                          <Link
+                            href="/supabase"
+                            onClick={onClose}
+                            className="px-6 py-2.5 rounded-xl font-medium text-sm transition-colors flex items-center gap-2 bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-500/20 dark:text-blue-400 dark:hover:bg-blue-500/30"
+                          >
+                            <Settings className="w-4 h-4" /> Configurar
+                          </Link>
+                        )}
+                      </>
                     )}
                   </>
+                ) : localStatus?.isInstalled ? (
+                  <span className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-medium text-sm">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Já instalado
+                  </span>
                 ) : (
                   <button
                     onClick={handleInstall}
@@ -172,7 +190,7 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
                     className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white rounded-xl font-medium text-sm transition-colors flex items-center gap-2"
                   >
                     {isWorking ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                    Instalar
+                    Baixar
                   </button>
                 )}
               </div>

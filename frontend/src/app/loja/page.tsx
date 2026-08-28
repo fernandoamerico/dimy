@@ -2,22 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Store, Search, Download, Star, Filter, TrendingUp } from 'lucide-react';
+import { Store, Search, Download, Star, Filter, Sparkles } from 'lucide-react';
 import { STORE_MOCK_DATA, StoreExtension } from '@/core/extensions/storeMock';
 import { getExtensionsStatus } from '@/core/extensions/actions';
 import { ExtensionProfileModal } from '@/components/extensions/ExtensionProfileModal';
 import Link from 'next/link';
 
-type SortOption = 'downloads' | 'rating' | 'newest';
+type SortOption = 'recommended' | 'downloads' | 'rating' | 'newest';
 
 export default function StorePage() {
-  const [extensions, setExtensions] = useState<StoreExtension[]>(STORE_MOCK_DATA);
   const [localStatuses, setLocalStatuses] = useState<any[]>([]);
-  
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPrice, setFilterPrice] = useState<'all' | 'free' | 'paid'>('all');
-  const [sortBy, setSortBy] = useState<SortOption>('downloads');
-  
+  const [sortBy, setSortBy] = useState<SortOption>('recommended');
   const [selectedExtension, setSelectedExtension] = useState<StoreExtension | null>(null);
 
   const loadLocalStatuses = async () => {
@@ -31,13 +28,17 @@ export default function StorePage() {
 
   // Filter and Sort Logic
   const processedExtensions = STORE_MOCK_DATA.filter(ext => {
-    const matchesSearch = ext.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const matchesSearch = ext.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           ext.description.toLowerCase().includes(searchQuery.toLowerCase());
-    
     const matchesPrice = filterPrice === 'all' || ext.price === filterPrice;
-    
     return matchesSearch && matchesPrice;
   }).sort((a, b) => {
+    if (sortBy === 'recommended') {
+      // Recommended first, then by downloads
+      if (a.isRecommended && !b.isRecommended) return -1;
+      if (!a.isRecommended && b.isRecommended) return 1;
+      return b.downloads - a.downloads;
+    }
     if (sortBy === 'downloads') return b.downloads - a.downloads;
     if (sortBy === 'rating') return b.rating - a.rating;
     if (sortBy === 'newest') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
@@ -113,6 +114,7 @@ export default function StorePage() {
                 onChange={(e) => setSortBy(e.target.value as SortOption)}
                 className="appearance-none pl-10 pr-8 py-3 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-sm font-medium text-gray-700 dark:text-gray-200 cursor-pointer"
               >
+                <option value="recommended">Recomendados</option>
                 <option value="downloads">Mais Baixados</option>
                 <option value="rating">Melhor Avaliação</option>
                 <option value="newest">Mais Recentes</option>
@@ -136,10 +138,24 @@ export default function StorePage() {
                 <div 
                   key={ext.id}
                   onClick={() => setSelectedExtension(ext)}
-                  className="group bg-white dark:bg-neutral-900 rounded-3xl p-6 border border-gray-100 dark:border-neutral-800 shadow-sm hover:shadow-xl hover:border-purple-200 dark:hover:border-purple-500/30 transition-all duration-300 cursor-pointer flex flex-col h-full hover:-translate-y-1"
+                  className="group relative bg-white dark:bg-neutral-900 rounded-3xl p-6 border border-gray-100 dark:border-neutral-800 shadow-sm hover:shadow-xl hover:border-purple-200 dark:hover:border-purple-500/30 transition-all duration-300 cursor-pointer flex flex-col h-full hover:-translate-y-1"
                 >
-                  <div className="flex items-start justify-between mb-5">
-                    {/* Placeholder Icon as there is no dynamic loading yet for all lucide icons in the mock without full map */}
+                  {/* Recommended Badge */}
+                  {ext.isRecommended && (
+                    <div className="absolute top-4 left-4 flex items-center gap-1 bg-amber-50 dark:bg-amber-400/10 text-amber-600 dark:text-amber-400 text-[10px] font-bold px-2 py-1 rounded-full">
+                      <Sparkles className="w-3 h-3" />
+                      Recomendado
+                    </div>
+                  )}
+
+                  {/* Installed Badge */}
+                  {status?.isInstalled && (
+                    <div className="absolute top-4 right-4 bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">
+                      Instalado
+                    </div>
+                  )}
+
+                  <div className={`flex items-start justify-between mb-5 ${ext.isRecommended ? 'mt-7' : ''}`}>
                     <div className="w-16 h-16 rounded-2xl bg-gray-50 dark:bg-neutral-950 border border-gray-100 dark:border-neutral-800 flex items-center justify-center p-3 group-hover:scale-105 transition-transform">
                       <div className="w-full h-full bg-purple-100 dark:bg-purple-500/20 rounded-xl flex items-center justify-center">
                         <Store className="w-5 h-5 text-purple-600 dark:text-purple-400" />
@@ -174,12 +190,6 @@ export default function StorePage() {
                       {ext.downloads > 1000 ? (ext.downloads/1000).toFixed(1) + 'k' : ext.downloads}
                     </div>
                   </div>
-                  
-                  {status?.isInstalled && (
-                    <div className="absolute top-4 right-4 bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">
-                      Instalado
-                    </div>
-                  )}
                 </div>
               );
             })}

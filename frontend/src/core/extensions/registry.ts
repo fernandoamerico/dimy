@@ -2,7 +2,7 @@ import type { ExtensionDef } from './types';
 
 export const EXTENSION_REGISTRY: ExtensionDef[] = [
   // ---------------------------------------------------------
-  // CORE EXTENSIONS
+  // CORE EXTENSIONS — sempre instalados, não podem ser removidos
   // ---------------------------------------------------------
   {
     id: 'core_dashboard',
@@ -36,7 +36,7 @@ export const EXTENSION_REGISTRY: ExtensionDef[] = [
   },
 
   // ---------------------------------------------------------
-  // SCHEMA EXTENSIONS (MARKETPLACE PLUGINS)
+  // MODULES — instalados via loja
   // ---------------------------------------------------------
   {
     id: 'core_publications',
@@ -99,5 +99,31 @@ export const EXTENSION_REGISTRY: ExtensionDef[] = [
         { name: 'active', label: 'Ativo', type: 'boolean', required: true, order: 7 },
       ]
     }
+  },
+  {
+    id: 'cloudflare_r2',
+    name: 'Cloudflare R2',
+    description: 'Armazene todas as imagens e mídias do seu CMS na nuvem da Cloudflare.',
+    type: 'module',
+    isEssential: false,
+    navItems: []
+  },
+  {
+    id: 'business_info',
+    name: 'Meu Negócio',
+    description: 'Gerencie informações centrais do seu negócio.',
+    type: 'module',
+    isEssential: false,
+    navItems: [
+      { label: 'Meu Negócio', href: '/meu-negocio', iconName: 'Briefcase', requiredPermissions: ['manage:settings'] }
+    ]
+  },
+  {
+    id: 'supabase_config',
+    name: 'Supabase',
+    description: 'Conecte o Dimy ao Supabase para garantir a persistência dos seus dados na nuvem.',
+    type: 'module',
+    isEssential: false,
+    navItems: []
   }
 ];

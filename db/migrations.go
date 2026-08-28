@@ -86,6 +86,21 @@ func RunMigrations(db *sql.DB, driver string) error {
 	
 	// Add column metadata for existing tables (ignore error if column already exists)
 	db.Exec(`ALTER TABLE schema_collections ADD COLUMN metadata TEXT;`)
-	
+
+	// Pre-install default modules
+	preInstalledModules := []string{
+		"business_info",
+		"supabase_config",
+		"schema_sliders",
+		"core_publications",
+		"core_pages",
+	}
+
+	for _, moduleID := range preInstalledModules {
+		// Use ON CONFLICT DO NOTHING to support both PostgreSQL and SQLite 3.24+
+		query := fmt.Sprintf(`INSERT INTO extensions (id, enabled) VALUES ('%s', true) ON CONFLICT(id) DO NOTHING;`, moduleID)
+		db.Exec(query)
+	}
+
 	return nil
 }
