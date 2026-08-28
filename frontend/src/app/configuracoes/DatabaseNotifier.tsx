@@ -48,7 +48,8 @@ export function DatabaseNotifier() {
             </h5>
             <p className="text-xs text-gray-600 dark:text-neutral-400">
               Para ambientes de produção, o CMS possui suporte oficial out-of-the-box focado **exclusivamente no Supabase (PostgreSQL)**. 
-              Caso deseje utilizar outros provedores ou bancos de dados relacionais, a adaptação da infraestrutura deverá ser feita de forma independente pela sua equipe.
+              Caso deseje utilizar outros provedores ou bancos de dados relacionais, a adaptação da infraestrutura deverá ser feita de forma independente pela sua equipe.<br/><br/>
+              <strong>Importante:</strong> Se optar por manter o SQLite usando Docker, lembre-se de <strong>mapear os volumes da pasta de dados</strong> no seu <code className="bg-orange-100 dark:bg-orange-900/50 px-1 rounded">docker-compose.yml</code>. Caso contrário, todos os dados e uploads serão apagados sempre que a imagem for atualizada ou o container recriado.
             </p>
           </div>
         </div>
