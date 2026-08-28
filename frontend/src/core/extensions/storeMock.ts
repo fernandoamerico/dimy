@@ -100,5 +100,22 @@ export const STORE_MOCK_DATA: StoreExtension[] = [
     screenshots: [],
     reviews: [],
     createdAt: '2026-08-27'
+  },
+  {
+    id: 'business_info',
+    name: 'Meu Negócio',
+    description: 'Gerencie informações centrais do seu negócio (Nome, Logo, CNPJ, Contatos, Redes Sociais).',
+    longDescription: `
+      O aplicativo "Meu Negócio" centraliza os dados públicos da sua empresa.
+      Configurando os dados aqui, seu site pode puxar automaticamente logo, nome, links sociais, telefone de contato e endereço, facilitando a manutenção.
+    `,
+    iconName: 'Settings',
+    author: 'Equipe Dimy',
+    rating: 5.0,
+    downloads: 9000,
+    price: 'free',
+    screenshots: [],
+    reviews: [],
+    createdAt: '2026-08-27'
   }
 ];

@@ -16,16 +16,24 @@ export function UpdateNotifier() {
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
-  const currentVersion = "v0.1.0" // This should ideally come from an environment variable or config API
+  const [currentVersion, setCurrentVersion] = useState<string>("v0.1.0")
 
   useEffect(() => {
-    fetch('/api/system/update')
-      .then(res => {
+    Promise.all([
+      fetch('/api/system/update').then(res => {
         if (!res.ok) throw new Error('Failed to fetch update info')
         return res.json()
+      }),
+      fetch('/api/system/version').then(res => {
+        if (!res.ok) throw new Error('Failed to fetch version')
+        return res.json()
       })
-      .then(data => {
-        setUpdateInfo(data)
+    ])
+      .then(([updateData, versionData]) => {
+        setUpdateInfo(updateData)
+        if (versionData && versionData.version) {
+          setCurrentVersion(versionData.version)
+        }
         setLoading(false)
       })
       .catch(err => {

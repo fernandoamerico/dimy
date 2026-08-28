@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateDocument, createDocument } from '@/core/content/actions';
 import { PageContainer } from '@/components/layout/PageContainer';
-import { toast } from 'sonner';
+import { ImageUploader } from '@/components/ui/ImageUploader';
 import { 
   ArrowLeft, Type, Image as ImageIcon, 
   List, MousePointerClick, Save, Trash2, Plus, Settings
@@ -109,15 +109,18 @@ export function PostEditor({
       case 'image':
         return (
           <div className="flex flex-col gap-3">
-            <input type="url" placeholder="URL da Imagem (Ex: https://...)" value={formData[field.name] || ''}
-              onChange={e => handleChange(field.name, e.target.value)} className={inputClass} />
+            <ImageUploader 
+              value={formData[field.name] || ''}
+              onChange={url => handleChange(field.name, url)} 
+              placeholder="URL ou Upload da Imagem"
+            />
             {formData[field.name] ? (
               <div className="w-full h-48 rounded-xl border border-gray-200 dark:border-neutral-800 overflow-hidden bg-gray-50 dark:bg-neutral-950">
                 <img src={formData[field.name]} alt="Preview" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} />
               </div>
             ) : (
               <div className="w-full h-24 rounded-xl border border-dashed border-gray-300 dark:border-neutral-700 bg-gray-50/50 dark:bg-neutral-950/50 flex flex-col items-center justify-center text-gray-400">
-                <ImageIcon className="w-6 h-6 mb-2 opacity-50" /><span className="text-xs">Insira uma URL acima</span>
+                <ImageIcon className="w-6 h-6 mb-2 opacity-50" /><span className="text-xs">Insira uma URL ou faça upload</span>
               </div>
             )}
           </div>
@@ -129,9 +132,12 @@ export function PostEditor({
           <div className="space-y-3">
             {galleryVal.map((url: string, i: number) => (
               <div key={i} className="flex items-center gap-2">
-                <input type="url" value={url} placeholder={`Imagem ${i + 1}...`}
-                  onChange={e => { const arr = [...galleryVal]; arr[i] = e.target.value; handleChange(field.name, arr); }}
-                  className={`${inputClass} flex-1`} />
+                <ImageUploader 
+                  value={url} 
+                  onChange={newUrl => { const arr = [...galleryVal]; arr[i] = newUrl; handleChange(field.name, arr); }}
+                  placeholder={`Imagem ${i + 1}...`}
+                  className="flex-1"
+                />
                 <button onClick={() => { const arr = galleryVal.filter((_: string, j: number) => j !== i); handleChange(field.name, arr); }}
                   className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg"><Trash2 className="w-4 h-4" /></button>
               </div>
@@ -294,8 +300,8 @@ export function PostEditor({
             <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-neutral-800">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><ImageIcon className="w-4 h-4 text-amber-500" /> Capa</h3>
               <div className="space-y-3">
-                <input type="url" value={cover.image} onChange={e => setCover({ ...cover, image: e.target.value })} placeholder="URL da imagem de capa"
-                  className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500" />
+                <label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1">URL ou Arquivo da Capa</label>
+                <ImageUploader value={cover.image} onChange={url => setCover({ ...cover, image: url })} />
                 {cover.image && (
                   <div className="w-full h-32 rounded-lg border border-gray-200 dark:border-neutral-800 overflow-hidden">
                     <img src={cover.image} alt="Cover" className="w-full h-full object-cover" />

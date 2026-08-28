@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { X, Star, Download, ChevronRight, ShieldAlert, User, Clock, CheckCircle2, MessageSquare, Loader2, Power, Trash2, Image as ImageIcon } from 'lucide-react';
 import { StoreExtension } from '@/core/extensions/storeMock';
 import { getExtensionsStatus, installExtension, toggleExtension, uninstallExtension } from '@/core/extensions/actions';
+import { ImageUploader } from '@/components/ui/ImageUploader';
 
 interface ExtensionProfileModalProps {
   extension: StoreExtension;
@@ -21,6 +22,7 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
   const [showUninstallConfirm, setShowUninstallConfirm] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
   const [uninstallError, setUninstallError] = useState('');
+  const [businessLogo, setBusinessLogo] = useState('');
 
   const isFakeStoreExtension = extension.id.startsWith('store_');
 
@@ -145,7 +147,7 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
                       <Power className="w-4 h-4" />
                       {localStatus.isEnabled ? 'Desativar' : 'Ativar'}
                     </button>
-                    {extension.id === 'cloudflare_r2' && (
+                    {(extension.id === 'cloudflare_r2' || extension.id === 'business_info') && (
                       <button
                         onClick={() => setActiveTab('configure')}
                         className="px-6 py-2.5 rounded-xl font-medium text-sm transition-colors flex items-center gap-2 bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-500/20 dark:text-blue-400 dark:hover:bg-blue-500/30"
@@ -376,6 +378,78 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
                       className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white rounded-xl font-medium text-sm transition-colors flex items-center gap-2"
                     >
                       {isWorking ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Salvar Credenciais'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+            {activeTab === 'configure' && extension.id === 'business_info' && (
+              <div className="space-y-6">
+                <div className="bg-blue-50 dark:bg-blue-500/10 text-blue-800 dark:text-blue-400 p-4 rounded-xl text-sm border border-blue-200 dark:border-blue-900/50">
+                  <p className="font-bold mb-1">Configurações do Meu Negócio</p>
+                  <p>Preencha as informações centrais do seu negócio para que sejam exibidas automaticamente no seu site.</p>
+                </div>
+                
+                <form 
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    setIsWorking(true);
+                    const formData = new FormData(e.currentTarget);
+                    try {
+                      for (let [key, value] of formData.entries()) {
+                        await fetch('/api/system/config', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ key, value })
+                        });
+                      }
+                      alert('Configurações salvas com sucesso!');
+                    } catch (err) {
+                      alert('Erro ao salvar as configurações.');
+                    }
+                    setIsWorking(false);
+                  }}
+                  className="space-y-4"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Nome do Negócio</label>
+                      <input name="business_name" type="text" placeholder="Ex: Acme Corp" className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-blue-500/50 outline-none text-gray-900 dark:text-white" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">CNPJ</label>
+                      <input name="business_cnpj" type="text" placeholder="Ex: 00.000.000/0001-00" className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-blue-500/50 outline-none text-gray-900 dark:text-white" />
+                    </div>
+                    <div className="space-y-1 md:col-span-2">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Logo do Negócio</label>
+                      <ImageUploader value={businessLogo} onChange={setBusinessLogo} placeholder="URL ou Upload da Logo" />
+                      <input type="hidden" name="business_logo" value={businessLogo} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Telefone / WhatsApp</label>
+                      <input name="business_phone" type="text" placeholder="Ex: +55 (11) 99999-9999" className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-blue-500/50 outline-none text-gray-900 dark:text-white" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">E-mail Comercial</label>
+                      <input name="business_email" type="email" placeholder="Ex: contato@acme.com" className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-blue-500/50 outline-none text-gray-900 dark:text-white" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Instagram</label>
+                      <input name="business_instagram" type="url" placeholder="Ex: https://instagram.com/acme" className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-blue-500/50 outline-none text-gray-900 dark:text-white" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Facebook</label>
+                      <input name="business_facebook" type="url" placeholder="Ex: https://facebook.com/acme" className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-blue-500/50 outline-none text-gray-900 dark:text-white" />
+                    </div>
+                  </div>
+                  
+                  <div className="pt-4 flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={isWorking}
+                      className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white rounded-xl font-medium text-sm transition-colors flex items-center gap-2"
+                    >
+                      {isWorking ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Salvar Informações'}
                     </button>
                   </div>
                 </form>
