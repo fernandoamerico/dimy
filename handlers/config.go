@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/fernandoamerico/dimy/db"
 )
@@ -23,7 +24,8 @@ func GetConfigHandler(w http.ResponseWriter, r *http.Request) {
 	err = db.Instance.QueryRow("SELECT COUNT(*) FROM users").Scan(&count)
 	isSetup := err == nil && count > 0
 
-	isSupabase := os.Getenv("DATABASE_URL") != ""
+	// Check if DATABASE_URL starts with postgres (Supabase connection)
+	isSupabase := strings.HasPrefix(os.Getenv("DATABASE_URL"), "postgres")
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
