@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { I18nProvider } from '@/components/providers/I18nProvider';
+import { AuthProvider } from '@/components/providers/AuthProvider';
 import { Toaster } from 'sonner';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
@@ -42,7 +43,9 @@ export default function RootLayout({
             </div>
             
             <div className="relative z-10 flex flex-col min-h-screen">
-              {children}
+              <AuthProvider>
+                {children}
+              </AuthProvider>
             </div>
             <Toaster position="top-center" richColors />
           </I18nProvider>

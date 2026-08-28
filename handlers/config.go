@@ -17,9 +17,15 @@ func GetConfigHandler(w http.ResponseWriter, r *http.Request) {
 		projectName = "Dimy"
 	}
 
+	// Check if system is set up (at least 1 user exists)
+	var count int
+	err = db.Instance.QueryRow("SELECT COUNT(*) FROM users").Scan(&count)
+	isSetup := err == nil && count > 0
+
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{
+	json.NewEncoder(w).Encode(map[string]interface{}{
 		"projectName": projectName,
+		"isSetup":     isSetup,
 	})
 }
 
