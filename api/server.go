@@ -24,6 +24,7 @@ func StartServer(port string, frontendFS fs.FS) error {
 	mux.HandleFunc("GET /api/config", handlers.GetConfigHandler)
 	mux.HandleFunc("GET /api/system/config", handlers.RequireAuth(handlers.GetSystemConfigHandler))
 	mux.HandleFunc("POST /api/system/config", handlers.RequireAuth(handlers.SetSystemConfigHandler))
+	mux.HandleFunc("GET /api/system/test-supabase", handlers.RequireAuth(handlers.TestSupabaseConnectionHandler))
 	mux.HandleFunc("GET /api/business", handlers.GetBusinessInfoHandler)
 	mux.HandleFunc("GET /api/system/update", handlers.RequireAuth(handlers.CheckUpdateHandler))
 	mux.HandleFunc("GET /api/system/version", handlers.RequireAuth(handlers.GetSystemVersionHandler))

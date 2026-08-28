@@ -240,3 +240,65 @@ func uploadToSupabase(file io.Reader, filename string, contentType string) (stri
 	
 	return publicUrl, nil
 }
+
+func TestSupabaseConnectionHandler(w http.ResponseWriter, r *http.Request) {
+	var supabaseUrl, supabaseKey, bucketName string
+
+	rows, err := db.Instance.Query(`
+		SELECT key, value FROM system_configs 
+		WHERE key IN ('supabase_storage_url', 'supabase_storage_key', 'supabase_storage_bucket')
+	`)
+	if err != nil {
+		http.Error(w, "Erro ao buscar credenciais no banco", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var k, v string
+		rows.Scan(&k, &v)
+		switch k {
+		case "supabase_storage_url":
+			supabaseUrl = v
+		case "supabase_storage_key":
+			supabaseKey = v
+		case "supabase_storage_bucket":
+			bucketName = v
+		}
+	}
+
+	if supabaseUrl == "" || supabaseKey == "" || bucketName == "" {
+		http.Error(w, "Credenciais incompletas. Preencha todos os campos e salve antes de testar.", http.StatusBadRequest)
+		return
+	}
+
+	supabaseUrl = strings.TrimRight(supabaseUrl, "/")
+	
+	// Test by getting bucket details
+	testUrl := fmt.Sprintf("%s/storage/v1/bucket/%s", supabaseUrl, bucketName)
+
+	req, err := http.NewRequest("GET", testUrl, nil)
+	if err != nil {
+		http.Error(w, "Erro ao criar requisição HTTP", http.StatusInternalServerError)
+		return
+	}
+
+	req.Header.Set("Authorization", "Bearer "+supabaseKey)
+
+	client := &http.Client{Timeout: 15 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		http.Error(w, "Erro de rede ao conectar com o Supabase: "+err.Error(), http.StatusBadGateway)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		body, _ := io.ReadAll(resp.Body)
+		http.Error(w, fmt.Sprintf("Supabase retornou erro %s: %s", resp.Status, string(body)), http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Conexão bem-sucedida!"))
+}

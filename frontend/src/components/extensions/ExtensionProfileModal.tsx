@@ -6,6 +6,7 @@ import { X, Star, Download, ChevronRight, ShieldAlert, User, Clock, CheckCircle2
 import { StoreExtension } from '@/core/extensions/storeMock';
 import { getExtensionsStatus, installExtension, toggleExtension, uninstallExtension } from '@/core/extensions/actions';
 import { ImageUploader } from '@/components/ui/ImageUploader';
+import { toast } from 'sonner';
 
 interface ExtensionProfileModalProps {
   extension: StoreExtension;
@@ -29,7 +30,7 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
 
   const handleInstall = async () => {
     if (isFakeStoreExtension) {
-      alert('Este é um aplicativo fictício de demonstração da Loja. Na versão final, ele seria instalado!');
+      toast.info('Este é um aplicativo fictício de demonstração da Loja. Na versão final, ele seria instalado!');
       return;
     }
     
@@ -38,7 +39,7 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
     if (res.success) {
       onRefresh();
     } else {
-      alert('Erro: ' + res.error);
+      toast.error('Erro: ' + res.error);
     }
     setIsWorking(false);
   };
@@ -46,7 +47,7 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
   const handleToggle = async () => {
     if (!localStatus) return;
     if (localStatus.isEnabled && localStatus.isEssential) {
-      alert('Este aplicativo é essencial e não pode ser desativado.');
+      toast.error('Este aplicativo é essencial e não pode ser desativado.');
       return;
     }
 
@@ -55,7 +56,7 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
     if (res.success) {
       onRefresh();
     } else {
-      alert('Erro: ' + res.error);
+      toast.error(res.error);
     }
     setIsWorking(false);
   };
@@ -374,9 +375,9 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
                           body: JSON.stringify({ key, value })
                         });
                       }
-                      alert('Configurações salvas com sucesso!');
+                      toast.success('Configurações salvas com sucesso!');
                     } catch (err) {
-                      alert('Erro ao salvar as configurações.');
+                      toast.error('Erro ao salvar as configurações.');
                     }
                     setIsWorking(false);
                   }}
@@ -445,9 +446,9 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
                           body: JSON.stringify({ key, value })
                         });
                       }
-                      alert('Configurações salvas com sucesso!');
+                      toast.success('Configurações salvas com sucesso!');
                     } catch (err) {
-                      alert('Erro ao salvar as configurações.');
+                      toast.error('Erro ao salvar as configurações.');
                     }
                     setIsWorking(false);
                   }}
@@ -468,7 +469,29 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
                     </div>
                   </div>
                   
-                  <div className="pt-4 flex justify-end">
+                  
+                  <div className="pt-4 flex gap-3 justify-end">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const loadingToast = toast.loading('Testando conexão com o Supabase...');
+                        try {
+                          const res = await fetch('/api/system/test-supabase');
+                          if (res.ok) {
+                            toast.success('Conexão estabelecida com sucesso!', { id: loadingToast });
+                          } else {
+                            const errData = await res.text();
+                            toast.error('Erro: ' + errData, { id: loadingToast });
+                          }
+                        } catch (err) {
+                          toast.error('Erro de rede ao testar conexão.', { id: loadingToast });
+                        }
+                      }}
+                      disabled={isWorking}
+                      className="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium text-sm transition-colors flex items-center gap-2"
+                    >
+                      Testar Conexão
+                    </button>
                     <button
                       type="submit"
                       disabled={isWorking}
@@ -500,9 +523,9 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
                           body: JSON.stringify({ key, value })
                         });
                       }
-                      alert('Configurações salvas com sucesso!');
+                      toast.success('Configurações salvas com sucesso!');
                     } catch (err) {
-                      alert('Erro ao salvar as configurações.');
+                      toast.error('Erro ao salvar as configurações.');
                     }
                     setIsWorking(false);
                   }}
