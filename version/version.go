@@ -1,4 +1,4 @@
 package version
 
 // Version defines the current version of Dimy CMS
-const Version = "v0.2.11"
+var Version = "dev"

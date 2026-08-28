@@ -22,6 +22,8 @@ RUN cd frontend && npx prisma generate --schema=../prisma/schema.prisma && BUILD
 FROM golang:1.25-alpine AS backend-builder
 WORKDIR /app
 
+ARG APP_VERSION="dev"
+
 # Install C dependencies if CGO is needed (currently disabled)
 RUN apk add --no-cache gcc musl-dev
 
@@ -35,7 +37,7 @@ COPY . .
 COPY --from=frontend-builder /app/frontend/out ./frontend/out
 
 # Build the Go binary (CGO_ENABLED=0 for static binary)
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o dimy main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s -X 'github.com/fernandoamerico/dimy/version.Version=${APP_VERSION}'" -o dimy main.go
 
 # ==========================================
 # Stage 3: Final Production Image
