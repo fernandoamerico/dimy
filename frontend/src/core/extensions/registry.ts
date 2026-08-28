@@ -109,6 +109,14 @@ export const EXTENSION_REGISTRY: ExtensionDef[] = [
     navItems: []
   },
   {
+    id: 'supabase_storage',
+    name: 'Supabase Storage',
+    description: 'Armazene imagens e arquivos do Dimy nos buckets integrados do seu projeto Supabase.',
+    type: 'module',
+    isEssential: false,
+    navItems: []
+  },
+  {
     id: 'business_info',
     name: 'Meu Negócio',
     description: 'Gerencie informações centrais do seu negócio.',

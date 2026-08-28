@@ -142,7 +142,22 @@ export const STORE_MOCK_DATA: StoreExtension[] = [
     isRecommended: false,
     screenshots: [],
     reviews: [],
-    createdAt: '2026-08-27'
+    createdAt: '2026-06-01'
+  },
+  {
+    id: 'supabase_storage',
+    name: 'Supabase Storage',
+    description: 'Armazene imagens e arquivos do Dimy nos buckets integrados do seu projeto Supabase.',
+    longDescription: 'Ative esta extensão para que todos os uploads de imagens (como logos, avatares e mídias do site) sejam enviados diretamente para o Storage do seu projeto Supabase.\n\nEvite sobrecarregar o armazenamento local do seu servidor (SQLite) utilizando uma solução de nuvem profissional de ponta.',
+    iconName: 'Cloud',
+    author: 'Equipe Dimy',
+    rating: 4.8,
+    downloads: 1800,
+    price: 'free',
+    isRecommended: false,
+    screenshots: [],
+    reviews: [],
+    createdAt: '2026-08-28'
   },
   {
     id: 'supabase_config',

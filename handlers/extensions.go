@@ -100,6 +100,25 @@ func ToggleExtensionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Exclusão mútua: Cloudflare R2 vs Supabase Storage
+	if payload.Enabled {
+		if id == "cloudflare_r2" {
+			var supabaseEnabled bool
+			err := db.Instance.QueryRow("SELECT enabled FROM extensions WHERE id = 'supabase_storage'").Scan(&supabaseEnabled)
+			if err == nil && supabaseEnabled {
+				http.Error(w, "Desative o Supabase Storage antes de ativar o Cloudflare R2.", http.StatusConflict)
+				return
+			}
+		} else if id == "supabase_storage" {
+			var r2Enabled bool
+			err := db.Instance.QueryRow("SELECT enabled FROM extensions WHERE id = 'cloudflare_r2'").Scan(&r2Enabled)
+			if err == nil && r2Enabled {
+				http.Error(w, "Desative o Cloudflare R2 antes de ativar o Supabase Storage.", http.StatusConflict)
+				return
+			}
+		}
+	}
+
 	res, err := db.Instance.Exec(
 		"UPDATE extensions SET enabled = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2",
 		payload.Enabled, id,

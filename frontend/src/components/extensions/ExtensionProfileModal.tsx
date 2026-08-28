@@ -159,6 +159,14 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
                             <Settings className="w-4 h-4" /> Configurar
                           </button>
                         )}
+                        {extension.id === 'supabase_storage' && (
+                          <button
+                            onClick={() => setActiveTab('configure')}
+                            className="px-6 py-2.5 rounded-xl font-medium text-sm transition-colors flex items-center gap-2 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:hover:bg-emerald-500/30"
+                          >
+                            <Settings className="w-4 h-4" /> Configurar
+                          </button>
+                        )}
                         <button
                           onClick={() => setShowUninstallConfirm(true)}
                           disabled={isWorking}
@@ -340,6 +348,14 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
             )}
             {activeTab === 'configure' && extension.id === 'cloudflare_r2' && (
               <div className="space-y-6">
+                <div className="bg-red-50 dark:bg-red-500/10 text-red-800 dark:text-red-400 p-4 rounded-xl text-sm border border-red-200 dark:border-red-900/50 flex gap-3">
+                  <ShieldAlert className="w-5 h-5 shrink-0" />
+                  <div>
+                    <p className="font-bold mb-1">Cuidado com a Migração de Dados</p>
+                    <p>Não há migração automática de arquivos. Se você trocar de provedor de Storage, novos envios irão para o novo local. No entanto, se você deletar o bucket antigo ou parar de pagar o serviço anterior, as imagens antigas do site aparecerão quebradas.</p>
+                  </div>
+                </div>
+
                 <div className="bg-blue-50 dark:bg-blue-500/10 text-blue-800 dark:text-blue-400 p-4 rounded-xl text-sm border border-blue-200 dark:border-blue-900/50">
                   <p className="font-bold mb-1">Configuração do Cloudflare R2</p>
                   <p>Insira as credenciais do seu bucket R2 para habilitar o upload direto na nuvem. As chaves serão salvas de forma segura no banco de dados.</p>
@@ -394,6 +410,69 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
                       type="submit"
                       disabled={isWorking}
                       className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white rounded-xl font-medium text-sm transition-colors flex items-center gap-2"
+                    >
+                      {isWorking ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Salvar Credenciais'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+            {activeTab === 'configure' && extension.id === 'supabase_storage' && (
+              <div className="space-y-6">
+                <div className="bg-red-50 dark:bg-red-500/10 text-red-800 dark:text-red-400 p-4 rounded-xl text-sm border border-red-200 dark:border-red-900/50 flex gap-3">
+                  <ShieldAlert className="w-5 h-5 shrink-0" />
+                  <div>
+                    <p className="font-bold mb-1">Cuidado com a Migração de Dados</p>
+                    <p>Não há migração automática de arquivos. Se você trocar de provedor de Storage, novos envios irão para o novo local. No entanto, se você deletar o bucket antigo ou parar de pagar o serviço anterior, as imagens antigas do site aparecerão quebradas.</p>
+                  </div>
+                </div>
+
+                <div className="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 p-4 rounded-xl text-sm border border-emerald-200 dark:border-emerald-900/50">
+                  <p className="font-bold mb-1">Configuração do Supabase Storage</p>
+                  <p>Insira as credenciais do seu projeto Supabase para habilitar o upload direto para seus Buckets.</p>
+                </div>
+                
+                <form 
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    setIsWorking(true);
+                    const formData = new FormData(e.currentTarget);
+                    try {
+                      for (let [key, value] of formData.entries()) {
+                        await fetch('/api/system/config', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ key, value })
+                        });
+                      }
+                      alert('Configurações salvas com sucesso!');
+                    } catch (err) {
+                      alert('Erro ao salvar as configurações.');
+                    }
+                    setIsWorking(false);
+                  }}
+                  className="space-y-4"
+                >
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Supabase URL</label>
+                      <input name="supabase_storage_url" type="url" required placeholder="Ex: https://xxxx.supabase.co" className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-emerald-500/50 outline-none text-gray-900 dark:text-white" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Anon / Service Role Key</label>
+                      <input name="supabase_storage_key" type="password" required className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-emerald-500/50 outline-none text-gray-900 dark:text-white" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Nome do Bucket</label>
+                      <input name="supabase_storage_bucket" type="text" required placeholder="Ex: dimy-images" className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-emerald-500/50 outline-none text-gray-900 dark:text-white" />
+                    </div>
+                  </div>
+                  
+                  <div className="pt-4 flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={isWorking}
+                      className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium text-sm transition-colors flex items-center gap-2"
                     >
                       {isWorking ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Salvar Credenciais'}
                     </button>

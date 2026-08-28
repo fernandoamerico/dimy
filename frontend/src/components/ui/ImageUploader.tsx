@@ -48,7 +48,7 @@ export function ImageUploader({ value, onChange, placeholder = "URL da imagem", 
           <LinkIcon className="h-4 w-4 text-gray-400" />
         </div>
         <input
-          type="url"
+          type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}

@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -43,28 +42,35 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	// 2. Generate a unique filename
 	filename := fmt.Sprintf("%d_%s", time.Now().UnixNano(), strings.ReplaceAll(header.Filename, " ", "_"))
 
-	// 3. Check if Cloudflare R2 extension is enabled
+	// 3. Check if extensions are enabled
 	var r2Enabled bool
-	err = db.Instance.QueryRow("SELECT enabled FROM extensions WHERE id = 'cloudflare_r2'").Scan(&r2Enabled)
-	if err != nil && err != sql.ErrNoRows {
-		http.Error(w, "Database error checking extension", http.StatusInternalServerError)
-		return
-	}
+	db.Instance.QueryRow("SELECT enabled FROM extensions WHERE id = 'cloudflare_r2'").Scan(&r2Enabled)
+
+	var supabaseEnabled bool
+	db.Instance.QueryRow("SELECT enabled FROM extensions WHERE id = 'supabase_storage'").Scan(&supabaseEnabled)
 
 	var fileURL string
+	var errUpload error
 
 	if r2Enabled {
 		// 4a. Upload to Cloudflare R2
-		fileURL, err = uploadToR2(r.Context(), file, filename, header.Header.Get("Content-Type"))
-		if err != nil {
-			http.Error(w, "Failed to upload to R2: "+err.Error(), http.StatusInternalServerError)
+		fileURL, errUpload = uploadToR2(r.Context(), file, filename, header.Header.Get("Content-Type"))
+		if errUpload != nil {
+			http.Error(w, "Failed to upload to R2: "+errUpload.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else if supabaseEnabled {
+		// 4b. Upload to Supabase Storage
+		fileURL, errUpload = uploadToSupabase(file, filename, header.Header.Get("Content-Type"))
+		if errUpload != nil {
+			http.Error(w, "Failed to upload to Supabase: "+errUpload.Error(), http.StatusInternalServerError)
 			return
 		}
 	} else {
-		// 4b. Upload to Local Storage
-		fileURL, err = uploadToLocal(file, filename)
-		if err != nil {
-			http.Error(w, "Failed to save locally: "+err.Error(), http.StatusInternalServerError)
+		// 4c. Upload to Local Storage
+		fileURL, errUpload = uploadToLocal(file, filename)
+		if errUpload != nil {
+			http.Error(w, "Failed to save locally: "+errUpload.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
@@ -169,4 +175,68 @@ func uploadToR2(ctx context.Context, file io.Reader, filename string, contentTyp
 	}
 
 	return fmt.Sprintf("%s/%s", publicDomain, filename), nil
+}
+
+func uploadToSupabase(file io.Reader, filename string, contentType string) (string, error) {
+	var supabaseUrl, supabaseKey, bucketName string
+
+	rows, err := db.Instance.Query(`
+		SELECT key, value FROM system_configs 
+		WHERE key IN ('supabase_storage_url', 'supabase_storage_key', 'supabase_storage_bucket')
+	`)
+	if err != nil {
+		return "", err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var k, v string
+		rows.Scan(&k, &v)
+		switch k {
+		case "supabase_storage_url":
+			supabaseUrl = v
+		case "supabase_storage_key":
+			supabaseKey = v
+		case "supabase_storage_bucket":
+			bucketName = v
+		}
+	}
+
+	if supabaseUrl == "" || supabaseKey == "" || bucketName == "" {
+		return "", fmt.Errorf("Supabase Storage não configurado corretamente")
+	}
+
+	// Remove trailing slash from URL if present
+	supabaseUrl = strings.TrimRight(supabaseUrl, "/")
+
+	uploadUrl := fmt.Sprintf("%s/storage/v1/object/%s/%s", supabaseUrl, bucketName, filename)
+
+	req, err := http.NewRequest("POST", uploadUrl, file)
+	if err != nil {
+		return "", err
+	}
+
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	}
+
+	req.Header.Set("Authorization", "Bearer "+supabaseKey)
+	req.Header.Set("Content-Type", contentType)
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		body, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("Erro no Supabase: %s - %s", resp.Status, string(body))
+	}
+
+	// Supabase public URL format: {supabaseUrl}/storage/v1/object/public/{bucketName}/{filename}
+	publicUrl := fmt.Sprintf("%s/storage/v1/object/public/%s/%s", supabaseUrl, bucketName, filename)
+	
+	return publicUrl, nil
 }
