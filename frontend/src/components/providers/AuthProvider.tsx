@@ -16,9 +16,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const configRes = await fetchAPI('/config')
         
         if (!configRes.isSetup) {
-          // Se não estiver configurado e não estiver na rota de setup, redireciona
-          if (pathname !== '/setup') {
-            router.push('/setup')
+          // Trata barras no final caso trailingSlash esteja ativado
+          if (pathname !== '/setup' && pathname !== '/setup/') {
+            window.location.href = '/setup'
           } else {
             setIsChecking(false)
           }
@@ -30,15 +30,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           await fetchAPI('/auth/me')
           // Se não deu erro, o usuário está logado.
           // Se ele tentar acessar /login ou /setup, joga pro dashboard
-          if (pathname === '/login' || pathname === '/setup') {
-            router.push('/')
+          if (pathname === '/login' || pathname === '/login/' || pathname === '/setup' || pathname === '/setup/') {
+            window.location.href = '/'
           } else {
             setIsChecking(false)
           }
         } catch (authError) {
           // Erro 401: Usuário não está logado
-          if (pathname !== '/login') {
-            router.push('/login')
+          if (pathname !== '/login' && pathname !== '/login/') {
+            window.location.href = '/login'
           } else {
             setIsChecking(false)
           }
