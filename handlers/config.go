@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 
 	"github.com/fernandoamerico/dimy/db"
 )
@@ -22,10 +23,13 @@ func GetConfigHandler(w http.ResponseWriter, r *http.Request) {
 	err = db.Instance.QueryRow("SELECT COUNT(*) FROM users").Scan(&count)
 	isSetup := err == nil && count > 0
 
+	isSupabase := os.Getenv("DATABASE_URL") != ""
+
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"projectName": projectName,
 		"isSetup":     isSetup,
+		"isSupabase":  isSupabase,
 	})
 }
 

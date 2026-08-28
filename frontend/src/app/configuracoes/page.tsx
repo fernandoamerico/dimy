@@ -4,6 +4,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { SidebarOrderManager } from './SidebarOrderManager'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { UpdateNotifier } from './UpdateNotifier'
+import { DatabaseNotifier } from './DatabaseNotifier'
 
 export default function SettingsPage() {
   return (
@@ -29,6 +30,7 @@ export default function SettingsPage() {
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Atualizações do Sistema</h2>
             <hr className="border-gray-100 dark:border-neutral-800 my-6" />
             <UpdateNotifier />
+            <DatabaseNotifier />
           </div>
         </section>
 

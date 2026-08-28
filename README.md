@@ -70,13 +70,17 @@ Para ambientes que não usam Docker, fornecemos binários pré-compilados e auto
 - **Como Atualizar:**
   Baixe o arquivo `.zip` ou `.tar.gz` mais recente na página de Releases, descompacte-o e substitua o executável `dimy` antigo pelo novo no seu servidor. Recomendamos o uso de um gerenciador de processos (como **Systemd** ou **PM2**) para reiniciar o sistema instantaneamente após a substituição.
 
-> **💡 Sobre Banco de Dados (Produção):**
-> O Dimy cria bancos SQLite locais por padrão. Para usar um banco robusto (como PostgreSQL), exporte as variáveis no ambiente/Docker antes de iniciar:
+> **💡 Sobre Banco de Dados (Produção e Supabase):**
+> O Dimy cria bancos SQLite locais por padrão. Para ambientes de produção, atualmente o CMS possui suporte nativo focado no **Supabase (PostgreSQL)**. 
+> 
+> Para conectar, exporte as variáveis no ambiente/Docker apontando para a sua string de conexão do Supabase antes de iniciar:
 > ```bash
-> export DATABASE_URL="postgres://usuario:senha@servidor.com:5432/dimy"
+> export DATABASE_URL="postgres://postgres:[SUA_SENHA]@[SEU_HOST].pooler.supabase.com:6543/postgres"
 > export SESSION_SECRET="sua-chave-secreta-muito-forte"
 > ./dimy
 > ```
+> **⚠️ Aviso:** O suporte oficial out-of-the-box (pronto para uso) atualmente cobre apenas essa configuração via Supabase (e o SQLite para dev). Caso deseje utilizar outros provedores ou tipos de bancos de dados, a adaptação da infraestrutura deverá ser feita de forma independente.
+> 
 > O sistema roda as *migrations* automaticamente na inicialização.
 
 Veja as diretrizes completas de banco na documentação: `/.agents/rules/database-installation.md`
