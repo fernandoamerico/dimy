@@ -61,22 +61,12 @@ export const EXTENSION_REGISTRY: ExtensionDef[] = [
   {
     id: 'schema_products',
     name: 'Produtos',
-    description: 'Catálogo de produtos com preços e estoque.',
-    type: 'schema',
+    description: 'Catálogo de produtos com categorias, SKUs, preços e estoque.',
+    type: 'module',
     isEssential: false,
-    schema: {
-      name: 'Produtos',
-      slug: 'produtos',
-      iconName: 'Package',
-      fields: [
-        { name: 'name', label: 'Nome do Produto', type: 'text', required: true, order: 0 },
-        { name: 'slug', label: 'Slug', type: 'text', required: true, order: 1 },
-        { name: 'price', label: 'Preço', type: 'number', required: true, order: 2 },
-        { name: 'description', label: 'Descrição', type: 'richText', required: true, order: 3 },
-        { name: 'mainImage', label: 'Imagem Principal', type: 'image', required: false, order: 4 },
-        { name: 'inStock', label: 'Em Estoque', type: 'boolean', required: true, order: 5 },
-      ]
-    }
+    navItems: [
+      { label: 'Produtos', href: '/produtos', iconName: 'Package', requiredPermissions: [] }
+    ]
   },
   {
     id: 'schema_sliders',

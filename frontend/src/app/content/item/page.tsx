@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { getCollectionBySlug, getDocument } from '@/core/content/actions';
 import { notFound, useRouter, useSearchParams } from 'next/navigation';
 import { ContentForm } from '@/components/builder/ContentForm';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
 
 function EditContentContent() {
   const router = useRouter();
@@ -37,8 +38,10 @@ function EditContentContent() {
 
 export default function EditContentPage() {
   return (
-    <Suspense fallback={<div>Carregando...</div>}>
-      <EditContentContent />
-    </Suspense>
+    <DashboardLayout>
+      <Suspense fallback={<div>Carregando...</div>}>
+        <EditContentContent />
+      </Suspense>
+    </DashboardLayout>
   )
 }

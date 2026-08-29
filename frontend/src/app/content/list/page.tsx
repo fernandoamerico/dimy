@@ -5,6 +5,7 @@ import { getCollectionBySlug, getDocuments, deleteDocument } from '@/core/conten
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Layers, Plus, Edit2, Trash2 } from 'lucide-react';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
 
 function ContentListContent() {
   const searchParams = useSearchParams();
@@ -65,7 +66,7 @@ function ContentListContent() {
 
   if (!collection) return null;
 
-  const titleField = collection.fields.find((f: any) => f.name === 'title' || f.name === 'nome' || f.name === 'name' || f.type === 'text');
+  const titleField = (collection.fields || []).find((f: any) => f.name === 'title' || f.name === 'nome' || f.name === 'name' || f.type === 'text');
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -167,8 +168,10 @@ function ContentListContent() {
 
 export default function ContentListPage() {
   return (
-    <Suspense fallback={<div>Carregando...</div>}>
-      <ContentListContent />
-    </Suspense>
+    <DashboardLayout>
+      <Suspense fallback={<div>Carregando...</div>}>
+        <ContentListContent />
+      </Suspense>
+    </DashboardLayout>
   )
 }

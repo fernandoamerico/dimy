@@ -28,6 +28,14 @@ export default function StorePage() {
 
   // Filter and Sort Logic
   const processedExtensions = STORE_MOCK_DATA.filter(ext => {
+    const isInstalled = localStatuses.some(s => s.id === ext.id && s.isInstalled);
+    const hasSearch = searchQuery.trim().length > 0;
+    
+    // Oculta apps instalados por padrão, a não ser que o usuário esteja buscando algo específico
+    if (isInstalled && !hasSearch) {
+      return false;
+    }
+
     const matchesSearch = ext.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           ext.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesPrice = filterPrice === 'all' || ext.price === filterPrice;
@@ -65,8 +73,11 @@ export default function StorePage() {
             </div>
           </div>
           
-          <Link href="/aplicativos" className="text-sm font-medium text-blue-600 dark:text-emerald-400 hover:underline">
-            ← Voltar para Meus Aplicativos
+          <Link 
+            href="/aplicativos" 
+            className="inline-flex items-center justify-center px-5 py-2.5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 text-gray-900 dark:text-white text-sm font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors shadow-sm"
+          >
+            Meus Aplicativos
           </Link>
         </div>
 
@@ -148,12 +159,7 @@ export default function StorePage() {
                     </div>
                   )}
 
-                  {/* Installed Badge */}
-                  {status?.isInstalled && (
-                    <div className="absolute top-4 right-4 bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">
-                      Instalado
-                    </div>
-                  )}
+
 
                   <div className={`flex items-start justify-between mb-5 ${ext.isRecommended ? 'mt-7' : ''}`}>
                     <div className="w-16 h-16 rounded-2xl bg-gray-50 dark:bg-neutral-950 border border-gray-100 dark:border-neutral-800 flex items-center justify-center p-3 group-hover:scale-105 transition-transform">
@@ -162,13 +168,20 @@ export default function StorePage() {
                       </div>
                     </div>
                     
-                    <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest ${
-                      ext.price === 'free' 
-                        ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' 
-                        : 'bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400'
-                    }`}>
-                      {ext.price === 'free' ? 'Grátis' : 'Pago'}
-                    </span>
+                    <div className="flex flex-col items-end gap-1.5 sm:flex-row sm:items-center sm:gap-2">
+                      {status?.isInstalled && (
+                        <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest bg-emerald-500 text-white shadow-sm">
+                          Instalado
+                        </span>
+                      )}
+                      <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest ${
+                        ext.price === 'free' 
+                          ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' 
+                          : 'bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400'
+                      }`}>
+                        {ext.price === 'free' ? 'Grátis' : 'Pago'}
+                      </span>
+                    </div>
                   </div>
 
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">

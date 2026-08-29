@@ -197,6 +197,78 @@ export function PostEditor({
               placeholder="URL de Destino" className={inputClass} />
           </div>
         );
+
+      case 'toggle': {
+        const togVal = formData[field.name] ?? false;
+        return (
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => handleChange(field.name, !togVal)}
+              className={`w-12 h-6 rounded-full relative transition-colors ${
+                togVal ? 'bg-lime-500' : 'bg-gray-200 dark:bg-neutral-700'
+              }`}
+            >
+              <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+                togVal ? 'translate-x-6' : 'translate-x-0'
+              }`} />
+            </button>
+            <span className="text-sm text-gray-700 dark:text-gray-300">
+              {togVal ? 'Ligado' : 'Desligado'}
+            </span>
+          </div>
+        );
+      }
+
+      case 'select': {
+        const opts: string[] = field.options || [];
+        const selVal = formData[field.name] || '';
+        return (
+          <select
+            value={selVal}
+            onChange={e => handleChange(field.name, e.target.value)}
+            className={`${inputClass} cursor-pointer text-left`}
+          >
+            <option value="">Selecione uma opção...</option>
+            {opts.map((opt: string) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        );
+      }
+
+      case 'multiselect': {
+        const opts: string[] = field.options || [];
+        const multiVal: string[] = formData[field.name] || [];
+        const toggleOpt = (opt: string) => {
+          const newVal = multiVal.includes(opt)
+            ? multiVal.filter((v: string) => v !== opt)
+            : [...multiVal, opt];
+          handleChange(field.name, newVal);
+        };
+        return (
+          <div className="flex flex-wrap gap-2 p-3 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl min-h-[48px]">
+            {opts.length === 0 && (
+              <span className="text-sm text-gray-400 italic">Nenhuma opção definida no esqueleto.</span>
+            )}
+            {opts.map((opt: string) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => toggleOpt(opt)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${
+                  multiVal.includes(opt)
+                    ? 'bg-teal-500 text-white border-teal-500 shadow-sm'
+                    : 'bg-white dark:bg-neutral-900 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-neutral-700 hover:border-teal-400 hover:text-teal-600 dark:hover:text-teal-400'
+                }`}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+        );
+      }
+
       default:
         return null;
     }
@@ -246,8 +318,8 @@ export function PostEditor({
               <p className="text-gray-500 dark:text-gray-400">Esta categoria não possui campos configurados.</p>
             </div>
           ) : (
-            fields.map((field: any) => (
-              <div key={field.name} className="bg-white dark:bg-neutral-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-neutral-800">
+            fields.map((field: any, index: number) => (
+              <div key={index} className="bg-white dark:bg-neutral-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-neutral-800">
                 <div className="mb-3">
                   <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{field.label}</h3>
                 </div>

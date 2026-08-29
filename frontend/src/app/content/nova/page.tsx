@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { getCollectionBySlug } from '@/core/content/actions';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ContentForm } from '@/components/builder/ContentForm';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
 
 function NovaContentContent() {
   const router = useRouter();
@@ -30,8 +31,10 @@ function NovaContentContent() {
 
 export default function NovaContentPage() {
   return (
-    <Suspense fallback={<div>Carregando...</div>}>
-      <NovaContentContent />
-    </Suspense>
+    <DashboardLayout>
+      <Suspense fallback={<div>Carregando...</div>}>
+        <NovaContentContent />
+      </Suspense>
+    </DashboardLayout>
   )
 }

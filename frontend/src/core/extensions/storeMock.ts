@@ -126,7 +126,7 @@ export const STORE_MOCK_DATA: StoreExtension[] = [
   },
   {
     id: 'cloudflare_r2',
-    name: 'Cloudflare R2 (Armazenamento)',
+    name: 'Cloudflare R2',
     description: 'Armazene todas as imagens e mídias do seu CMS na nuvem da Cloudflare sem taxa de egress.',
     longDescription: `
       Conecte o seu Dimy ao Cloudflare R2, uma alternativa S3-compatible rápida e barata.
@@ -161,7 +161,7 @@ export const STORE_MOCK_DATA: StoreExtension[] = [
   },
   {
     id: 'supabase_config',
-    name: 'Supabase (Banco de Dados)',
+    name: 'Supabase',
     description: 'Conecte o Dimy ao Supabase para garantir a persistência dos seus dados na nuvem.',
     longDescription: `
       Sem o Supabase, seus dados são armazenados localmente no SQLite, o que não é persistente entre atualizações de container.

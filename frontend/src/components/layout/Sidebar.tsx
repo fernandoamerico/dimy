@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { getCollections } from '@/core/schema/actions';
 import { 
   LayoutDashboard, 
@@ -40,6 +40,7 @@ export function Sidebar({
   setIsMobileSidebarOpen: (v: boolean) => void;
 }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [combinedNavItems, setCombinedNavItems] = useState<any[]>([]);
   const { t } = useTranslation();
 
@@ -61,11 +62,28 @@ export function Sidebar({
         try {
           const meta = JSON.parse(c.metadata);
           if (meta.is_page && !meta.show_in_sidebar) return false;
+          if (meta.hide_from_sidebar) return false;
         } catch (e) {}
         return true;
       });
       
-      const formattedCols = visibleCols.map((c: any) => ({ ...c, id: `/content/list?slug=${c.slug}`, href: `/content/list?slug=${c.slug}`, label: c.name, iconName: 'Layers', type: 'col' }));
+      const formattedCols = visibleCols.map((c: any) => {
+        let isProduct = false;
+        try {
+          const meta = JSON.parse(c.metadata);
+          isProduct = meta.is_product === true;
+        } catch (e) {}
+        
+        const baseUrl = isProduct ? '/produtos/lista' : '/content/list';
+        return { 
+          ...c, 
+          id: `${baseUrl}?slug=${c.slug}`, 
+          href: `${baseUrl}?slug=${c.slug}`, 
+          label: c.name, 
+          iconName: isProduct ? 'Package' : 'Layers', 
+          type: 'col' 
+        };
+      });
       
       const combined = [...formattedNavs, ...formattedCols];
 
@@ -127,7 +145,19 @@ export function Sidebar({
         <nav className="flex-1 py-6 pl-3 pr-0 overflow-visible">
           {!isSidebarCollapsed && <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">Menu Principal</div>}
           {combinedNavItems.map((item) => {
-            const isActive = item.href === '/' ? pathname === '/' : pathname?.startsWith(item.href);
+            const currentSlug = searchParams.get('slug');
+            let isActive = false;
+            
+            if (item.href === '/') {
+              isActive = pathname === '/';
+            } else if (item.type === 'col') {
+              // Extrai o slug do href (ex: /produtos/lista?slug=passeios)
+              const itemSlug = new URLSearchParams(item.href.split('?')[1]).get('slug');
+              isActive = currentSlug === itemSlug;
+            } else {
+              // Item genérico (ex: /produtos). Fica ativo apenas se não estivermos dentro de uma coleção específica.
+              isActive = !!pathname?.startsWith(item.href) && !currentSlug;
+            }
             
             // Map icon string to Lucide component
             const iconsMap: any = { LayoutDashboard, Settings, Blocks: Layers, Newspaper, Layers, Briefcase, FileText, Package, Images };
