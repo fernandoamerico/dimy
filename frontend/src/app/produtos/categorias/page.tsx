@@ -127,7 +127,7 @@ export default function ProductCategoriesPage() {
                   </div>
                   <div className="p-4 bg-gray-50 dark:bg-neutral-950 border-t border-slate-100 dark:border-neutral-800 flex justify-end gap-3">
                     <Link 
-                      href={`/produtos/categorias/${cat.id}`}
+                      href={`/produtos/categorias/builder?id=${cat.id}`}
                       className="text-sm font-medium text-blue-600 dark:text-emerald-400 hover:text-blue-700 dark:hover:text-emerald-300 flex items-center gap-1"
                     >
                       Editar Skeleton

@@ -103,7 +103,7 @@ function ProductItemsContent() {
           <div className="flex items-center gap-3">
             {collection && (
               <Link 
-                href={`/produtos/categorias/${collection.id}`}
+                href={`/produtos/categorias/builder?id=${collection.id}`}
                 className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-800 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-xl transition-colors shadow-sm"
               >
                 <Settings className="w-4 h-4" />

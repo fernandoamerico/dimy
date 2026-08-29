@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { getCollections } from '@/core/schema/actions';
 import { UniversalBuilder } from '@/components/builder/UniversalBuilder';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 
-export default function ProductCategoryBuilderPage() {
-  const params = useParams<{ id: string }>();
+function ProductCategoryBuilderContent() {
+  const searchParams = useSearchParams();
+  const id = searchParams.get('id') as string;
   const router = useRouter();
   const [collection, setCollection] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -15,7 +16,7 @@ export default function ProductCategoryBuilderPage() {
   useEffect(() => {
     async function load() {
       const collections = await getCollections();
-      const found = collections.find((c: any) => c.id === params.id);
+      const found = collections.find((c: any) => c.id === id);
       if (!found) {
         router.push('/produtos/categorias');
         return;
@@ -46,5 +47,13 @@ export default function ProductCategoryBuilderPage() {
         />
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function ProductCategoryBuilderPage() {
+  return (
+    <Suspense fallback={<DashboardLayout><div className="flex h-full items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div></div></DashboardLayout>}>
+      <ProductCategoryBuilderContent />
+    </Suspense>
   );
 }

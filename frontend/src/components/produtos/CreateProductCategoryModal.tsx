@@ -49,7 +49,7 @@ export default function CreateProductCategoryModal({
     if (res.success) {
       toast.success('Categoria de produto criada!');
       if (onSuccess) onSuccess();
-      router.push(`/produtos/categorias/${res.id}`); // Redireciona para o builder
+      router.push(`/produtos/categorias/builder?id=${res.id}`); // Redireciona para o builder
       onClose();
     } else {
       toast.error('Erro ao criar: ' + res.error);
