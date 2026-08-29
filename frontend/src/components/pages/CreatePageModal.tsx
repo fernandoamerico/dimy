@@ -30,7 +30,7 @@ export default function CreatePageModal({
     setError('');
 
     // Generate slug from name
-    const slug = formData.name
+    const slug = 'page-' + formData.name
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')

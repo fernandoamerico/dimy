@@ -32,7 +32,7 @@ export default function CreateCategoryModal({
     setError('');
 
     // Generate slug from name
-    const slug = formData.name
+    const slug = 'post-category-' + formData.name
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')

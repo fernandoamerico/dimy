@@ -79,7 +79,7 @@ function Panel({ title, icon: Icon, iconColor, defaultOpen, children }: {
 }) {
   const [open, setOpen] = useState(defaultOpen ?? false);
   return (
-    <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-slate-200 dark:border-neutral-800 overflow-hidden">
+    <div className="bg-white dark:bg-neutral-900 rounded-2xl dark:shadow-sm dark:border dark:border-neutral-800 overflow-hidden">
       <button onClick={() => setOpen(!open)}
         className="w-full p-5 flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors">
         <h2 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
@@ -159,6 +159,8 @@ export function PageBuilder({
     try { return collection.metadata ? JSON.parse(collection.metadata) : {}; } catch { return {}; }
   })();
 
+  const [collectionName, setCollectionName] = useState(collection.name);
+
   const [formData, setFormData] = useState<Record<string, any>>(pageDoc?.data || {});
   const [fields, setFields] = useState<any[]>(collection.fields || []);
 
@@ -195,7 +197,7 @@ export function PageBuilder({
   const saveMetadata = async (overrides: Record<string, any> = {}) => {
     const updatedMeta = buildMetadata(overrides);
     const res = await updateCollection(collection.id, {
-      name: collection.name, slug: collection.slug, icon: collection.icon,
+      name: collectionName, slug: collection.slug, icon: collection.icon,
       metadata: updatedMeta, fields,
     });
     if (res.success) {
@@ -255,7 +257,7 @@ export function PageBuilder({
     
     const updatedFields = [...fields, newFieldObj];
     const res = await updateCollection(collection.id, {
-      name: collection.name, slug: collection.slug, icon: collection.icon,
+      name: collectionName, slug: collection.slug, icon: collection.icon,
       metadata: collection.metadata, fields: updatedFields,
     });
     
@@ -287,7 +289,7 @@ export function PageBuilder({
     const updatedFields = [...fields, newFieldObj];
     
     const res = await updateCollection(collection.id, {
-      name: collection.name, slug: collection.slug, icon: collection.icon,
+      name: collectionName, slug: collection.slug, icon: collection.icon,
       metadata: collection.metadata, fields: updatedFields,
     });
     
@@ -313,7 +315,7 @@ export function PageBuilder({
     newFields[index] = { ...newFields[index], label: newLabel };
 
     const res = await updateCollection(collection.id, {
-      name: collection.name, slug: collection.slug, icon: collection.icon,
+      name: collectionName, slug: collection.slug, icon: collection.icon,
       metadata: collection.metadata, fields: newFields,
     });
 
@@ -351,7 +353,7 @@ export function PageBuilder({
     newFields[index] = { ...newFields[index], name: newName };
 
     const res = await updateCollection(collection.id, {
-      name: collection.name, slug: collection.slug, icon: collection.icon,
+      name: collectionName, slug: collection.slug, icon: collection.icon,
       metadata: collection.metadata, fields: newFields,
     });
 
@@ -380,7 +382,7 @@ export function PageBuilder({
     setIsSubmitting(true);
     const updatedFields = fields.filter(f => f.name !== fieldToDelete);
     const res = await updateCollection(collection.id, {
-      name: collection.name, slug: collection.slug, icon: collection.icon,
+      name: collectionName, slug: collection.slug, icon: collection.icon,
       metadata: collection.metadata, fields: updatedFields,
     });
     if (res.success) {
@@ -405,7 +407,7 @@ export function PageBuilder({
     newFields.forEach((f, i) => f.order = i);
     setFields(newFields);
     await updateCollection(collection.id, {
-      name: collection.name, slug: collection.slug, icon: collection.icon,
+      name: collectionName, slug: collection.slug, icon: collection.icon,
       metadata: collection.metadata, fields: newFields,
     });
   };
@@ -495,7 +497,7 @@ export function PageBuilder({
         const tableVal: string[][] = formData[field.name] || [['', ''], ['', '']];
         return (
           <div className="space-y-2">
-            <div className="overflow-x-auto rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-sm">
+            <div className="overflow-x-auto rounded-xl dark:border dark:border-neutral-700 bg-white dark:bg-neutral-900 dark:shadow-sm">
               <table className="w-full text-sm border-collapse">
                 <tbody>
                   {tableVal.map((row: string[], ri: number) => (
@@ -541,16 +543,16 @@ export function PageBuilder({
   return (
     <PageContainer maxWidth="7xl">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Link href="/paginas" className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 min-w-0 w-full">
+        <div className="flex items-center gap-4 min-w-0 flex-1">
+          <Link href="/paginas" className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors shrink-0">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{collection.name}</h1>
+          <div className="min-w-0 flex-1 pr-8 lg:pr-24">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white line-clamp-2 break-words min-w-0">{collectionName}</h1>
               {!isActive && (
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 border border-red-200 dark:border-red-900/50">
+                <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 border border-red-200 dark:border-red-900/50">
                   Desativada
                 </span>
               )}
@@ -579,7 +581,7 @@ export function PageBuilder({
             fields.map((field, index) => {
               const FieldIcon = ICON_MAP[field.type] || Type;
               return (
-                <div key={field.name} className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-5 shadow-sm transition-all hover:border-blue-300 dark:hover:border-emerald-500/50">
+                <div key={field.name} className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md dark:border dark:border-neutral-800 rounded-2xl p-5 dark:shadow-sm transition-all hover:border-blue-300 dark:hover:border-emerald-500/50">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2">
                     <div className="flex items-center gap-2 flex-1 w-full max-w-sm">
                       <FieldIcon className={`w-4 h-4 shrink-0 ${COLOR_MAP[field.type] || 'text-gray-400'}`} />
@@ -634,7 +636,7 @@ export function PageBuilder({
         {/* ─── SIDEBAR (right 1/3) ─────────────────────────────────────────── */}
         <div className="space-y-4">
           {/* ADD BLOCK */}
-          <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-neutral-800">
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800">
             <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
               <Plus className="w-4 h-4 text-blue-500 dark:text-emerald-400" /> Adicionar Bloco
             </h2>
@@ -670,8 +672,19 @@ export function PageBuilder({
 
           {/* SETTINGS */}
           <Panel title="Configurações" icon={Settings} iconColor="text-gray-400" defaultOpen>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-semibold text-gray-500 dark:text-neutral-400 uppercase tracking-wider block mb-2">Nome da Página</label>
+                <input
+                  type="text"
+                  value={collectionName}
+                  onChange={(e) => setCollectionName(e.target.value)}
+                  onBlur={handleSavePage}
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 transition-colors"
+                />
+              </div>
+              <div className="pt-4 border-t border-gray-100 dark:border-neutral-800 space-y-3">
+                <div className="flex items-center justify-between">
                 <div><span className="block text-sm font-medium text-gray-900 dark:text-white">Página Ativa</span><span className="block text-xs text-gray-500 dark:text-gray-400">Desativa a rota da API</span></div>
                 <Toggle checked={isActive} onChange={v => handleToggle('is_active', v, setIsActive, 'Página ativada!', 'Página desativada.')} />
               </div>
@@ -681,7 +694,8 @@ export function PageBuilder({
               </div>
               <div className="flex items-center justify-between">
                 <div><span className="block text-sm font-medium text-gray-900 dark:text-white">Exibir no Menu Lateral</span><span className="block text-xs text-gray-500 dark:text-gray-400">Fixar atalho direto no Sidebar</span></div>
-                <Toggle checked={showInSidebar} onChange={v => handleToggle('show_in_sidebar', v, setShowInSidebar, 'Adicionado ao menu lateral!', 'Removido do menu lateral.')} />
+                  <Toggle checked={showInSidebar} onChange={v => handleToggle('show_in_sidebar', v, setShowInSidebar, 'Adicionado ao menu lateral!', 'Removido do menu lateral.')} />
+                </div>
               </div>
             </div>
           </Panel>

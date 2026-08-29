@@ -82,6 +82,7 @@ export function UniversalBuilder({
   const [isAddingField, setIsAddingField] = useState(false);
   const [fieldToDelete, setFieldToDelete] = useState<string | null>(null);
   const [editingOriginalValue, setEditingOriginalValue] = useState<string | null>(null);
+  const [collectionName, setCollectionName] = useState(collection.name);
 
   // Parse metadata
   const initialMeta = (() => {
@@ -124,7 +125,7 @@ export function UniversalBuilder({
   const saveMetadata = async (overrides: Record<string, any> = {}) => {
     const updatedMeta = buildMetadata(overrides);
     const res = await updateCollection(collection.id, {
-      name: collection.name, slug: collection.slug, icon: collection.icon,
+      name: collectionName, slug: collection.slug, icon: collection.icon,
       metadata: updatedMeta, fields,
     });
     if (res.success) {
@@ -168,7 +169,7 @@ export function UniversalBuilder({
     
     const updatedFields = [...fields, newFieldObj];
     const res = await updateCollection(collection.id, {
-      name: collection.name, slug: collection.slug, icon: collection.icon,
+      name: collectionName, slug: collection.slug, icon: collection.icon,
       metadata: collection.metadata, fields: updatedFields,
     });
 
@@ -201,7 +202,7 @@ export function UniversalBuilder({
     const updatedFields = [...fields, newFieldObj];
 
     const res = await updateCollection(collection.id, {
-      name: collection.name, slug: collection.slug, icon: collection.icon,
+      name: collectionName, slug: collection.slug, icon: collection.icon,
       metadata: collection.metadata, fields: updatedFields,
     });
 
@@ -234,7 +235,7 @@ export function UniversalBuilder({
     newFields[index] = { ...newFields[index], label: newLabel };
 
     const res = await updateCollection(collection.id, {
-      name: collection.name, slug: collection.slug, icon: collection.icon,
+      name: collectionName, slug: collection.slug, icon: collection.icon,
       metadata: collection.metadata, fields: newFields,
     });
 
@@ -282,7 +283,7 @@ export function UniversalBuilder({
     newFields[index] = { ...newFields[index], name: newName };
 
     const res = await updateCollection(collection.id, {
-      name: collection.name, slug: collection.slug, icon: collection.icon,
+      name: collectionName, slug: collection.slug, icon: collection.icon,
       metadata: collection.metadata, fields: newFields,
     });
 
@@ -306,7 +307,7 @@ export function UniversalBuilder({
     setIsSubmitting(true);
     const updatedFields = fields.filter(f => f.name !== fieldToDelete);
     const res = await updateCollection(collection.id, {
-      name: collection.name, slug: collection.slug, icon: collection.icon,
+      name: collectionName, slug: collection.slug, icon: collection.icon,
       metadata: collection.metadata, fields: updatedFields,
     });
     if (res.success) {
@@ -326,7 +327,7 @@ export function UniversalBuilder({
     newFields.forEach((f, i) => f.order = i);
     setFields(newFields);
     await updateCollection(collection.id, {
-      name: collection.name, slug: collection.slug, icon: collection.icon,
+      name: collectionName, slug: collection.slug, icon: collection.icon,
       metadata: collection.metadata, fields: newFields,
     });
   };
@@ -367,7 +368,7 @@ export function UniversalBuilder({
     newFields[index] = { ...newFields[index], options };
     setFields(newFields);
     await updateCollection(collection.id, {
-      name: collection.name, slug: collection.slug, icon: collection.icon,
+      name: collectionName, slug: collection.slug, icon: collection.icon,
       metadata: collection.metadata, fields: newFields,
     });
   };
@@ -576,15 +577,15 @@ export function UniversalBuilder({
   return (
     <PageContainer maxWidth="7xl">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <button onClick={() => router.push(backUrl)} className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 min-w-0 w-full">
+        <div className="flex items-center gap-4 min-w-0 flex-1">
+          <button onClick={() => router.push(backUrl)} className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors shrink-0">
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{collection.name}</h1>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50">
+          <div className="min-w-0 flex-1 pr-8 lg:pr-24">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white line-clamp-2 break-words min-w-0">{collectionName}</h1>
+              <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50">
                 Construtor de Esqueleto
               </span>
             </div>
@@ -709,10 +710,25 @@ export function UniversalBuilder({
 
           {/* SETTINGS */}
           <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-neutral-800">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><Settings className="w-4 h-4 text-gray-400" /> Configurações Padrão</h3>
-            <div className="space-y-3">
-              {renderSideSettings()}
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><Settings className="w-4 h-4 text-gray-400" /> Configurações Gerais</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-semibold text-gray-500 dark:text-neutral-400 uppercase tracking-wider block mb-2">Nome da Categoria</label>
+                <input
+                  type="text"
+                  value={collectionName}
+                  onChange={(e) => setCollectionName(e.target.value)}
+                  onBlur={handleSaveCategory}
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 transition-colors"
+                />
+              </div>
+
+              <div className="pt-4 border-t border-gray-100 dark:border-neutral-800 space-y-3">
+                {renderSideSettings()}
+              </div>
             </div>
+            
             <p className="text-[10px] text-gray-400 dark:text-neutral-500 mt-4">Estas opções habilitam/desabilitam funcionalidades no painel lateral na hora da criação do item.</p>
           </div>
 

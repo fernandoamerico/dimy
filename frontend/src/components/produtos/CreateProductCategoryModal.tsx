@@ -18,6 +18,8 @@ export default function CreateProductCategoryModal({
   const router = useRouter();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [isPublic, setIsPublic] = useState(true);
+  const [showInSidebar, setShowInSidebar] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
@@ -29,11 +31,13 @@ export default function CreateProductCategoryModal({
     setIsSubmitting(true);
     
     // Generate a slug from the name
-    const slug = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const slug = 'product-category-' + name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
     const metadata = JSON.stringify({
       is_product: true, // Marker for product categories
       description,
+      visibility: isPublic ? 'public' : 'private',
+      show_in_sidebar: showInSidebar,
       enable_status: true,
       enable_sizes: false,
       enable_colors: false,
@@ -93,6 +97,38 @@ export default function CreateProductCategoryModal({
               placeholder="Ex: Categoria para produtos de tecnologia"
               className="w-full px-4 py-2.5 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 transition-all text-gray-900 dark:text-white"
             />
+          </div>
+
+          <div className="flex items-center justify-between py-2">
+            <div>
+              <span className="block text-sm font-medium text-gray-900 dark:text-white">Visibilidade Pública</span>
+              <span className="block text-xs text-gray-500 dark:text-gray-400">Desative para exigir login</span>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={isPublic}
+                onChange={(e) => setIsPublic(e.target.checked)}
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-emerald-500"></div>
+            </label>
+          </div>
+
+          <div className="flex items-center justify-between py-2 border-t border-slate-100 dark:border-neutral-800">
+            <div>
+              <span className="block text-sm font-medium text-gray-900 dark:text-white">Exibir no menu lateral</span>
+              <span className="block text-xs text-gray-500 dark:text-gray-400">Fixar atalho direto no Sidebar</span>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={showInSidebar}
+                onChange={(e) => setShowInSidebar(e.target.checked)}
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-emerald-500"></div>
+            </label>
           </div>
           
           <div className="pt-2 flex justify-end gap-3">
