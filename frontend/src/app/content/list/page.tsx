@@ -26,13 +26,20 @@ function ContentListContent() {
 
         // If it's a page, redirect to page builder
         let isPage = false;
+        let isPublication = false;
         try {
           const meta = col.metadata ? JSON.parse(col.metadata) : {};
           isPage = meta.is_page === true;
+          isPublication = meta.is_publication === true;
         } catch (e) {}
 
         if (isPage) {
           router.push(`/paginas/item?slug=${slug}`);
+          return;
+        }
+        
+        if (isPublication) {
+          router.push(`/publicacoes/list?slug=${slug}`);
           return;
         }
 

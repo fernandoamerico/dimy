@@ -11,6 +11,19 @@ import (
 	"github.com/google/uuid"
 )
 
+func parseTime(timeStr string) time.Time {
+	if t, err := time.Parse(time.RFC3339, timeStr); err == nil {
+		return t
+	}
+	if t, err := time.Parse("2006-01-02 15:04:05", timeStr); err == nil {
+		return t
+	}
+	if t, err := time.Parse("2006-01-02 15:04:05.999999999-07:00", timeStr); err == nil {
+		return t
+	}
+	return time.Time{}
+}
+
 // GetCollectionsHandler returns all schema collections
 func GetCollectionsHandler(w http.ResponseWriter, r *http.Request) {
 	rows, err := db.Instance.Query("SELECT id, name, slug, icon, metadata, created_at, updated_at FROM schema_collections ORDER BY created_at DESC")
@@ -40,10 +53,8 @@ func GetCollectionsHandler(w http.ResponseWriter, r *http.Request) {
 			col.Metadata = &metadata.String
 		}
 
-		t, _ := time.Parse("2006-01-02 15:04:05", createdAt)
-		col.CreatedAt = t
-		t2, _ := time.Parse("2006-01-02 15:04:05", updatedAt)
-		col.UpdatedAt = t2
+		col.CreatedAt = parseTime(createdAt)
+		col.UpdatedAt = parseTime(updatedAt)
 
 		// Fetch fields
 		col.Fields = fetchSchemaFields(col.ID)
@@ -84,10 +95,8 @@ func GetCollectionByIdHandler(w http.ResponseWriter, r *http.Request) {
 	if metadata.Valid {
 		col.Metadata = &metadata.String
 	}
-	t, _ := time.Parse("2006-01-02 15:04:05", createdAt)
-	col.CreatedAt = t
-	t2, _ := time.Parse("2006-01-02 15:04:05", updatedAt)
-	col.UpdatedAt = t2
+	col.CreatedAt = parseTime(createdAt)
+	col.UpdatedAt = parseTime(updatedAt)
 
 	col.Fields = fetchSchemaFields(col.ID)
 

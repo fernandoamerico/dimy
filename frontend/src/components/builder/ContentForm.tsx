@@ -1,10 +1,10 @@
-'use client';
-
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createDocument, updateDocument } from '@/core/content/actions';
 import { ArrowLeft, Save } from 'lucide-react';
 import Link from 'next/link';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { toast } from 'sonner';
 
 export function ContentForm({ 
   collection, 
@@ -35,124 +35,132 @@ export function ContentForm({
     }
 
     if (result.success) {
+      toast.success('Conteúdo salvo com sucesso!');
       router.push(`/content/list?slug=${collection.slug}`);
     } else {
-      alert('Erro ao salvar: ' + result.error);
+      toast.error('Erro ao salvar: ' + result.error);
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href={`/content/list?slug=${collection.slug}`} className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {documentId ? `Editar ${collection.name}` : `Novo ${collection.name}`}
-          </h1>
-          <p className="text-gray-500 mt-1">
-            Preencha os campos abaixo para salvar.
-          </p>
+    <PageContainer>
+      <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
+        <div className="flex items-center gap-4">
+          <Link href={`/content/list?slug=${collection.slug}`} className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              {documentId ? `Editar ${collection.name}` : `Novo ${collection.name}`}
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
+              Preencha os campos abaixo para salvar.
+            </p>
+          </div>
         </div>
-      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="bg-white/60 backdrop-blur-md border border-slate-200/50 rounded-2xl p-6 shadow-sm space-y-6">
-          
-          {collection.fields.map((field: any) => (
-            <div key={field.id} className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                {field.label}
-                {field.required && <span className="text-red-500 text-xs">*</span>}
-              </label>
-              
-              {field.type === 'text' && (
-                <input 
-                  type="text" 
-                  value={formData[field.name] || ''}
-                  onChange={(e) => handleChange(field.name, e.target.value)}
-                  required={field.required}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
-                />
-              )}
-              
-              {field.type === 'richText' && (
-                <textarea 
-                  value={formData[field.name] || ''}
-                  onChange={(e) => handleChange(field.name, e.target.value)}
-                  required={field.required}
-                  rows={6}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow resize-y"
-                />
-              )}
-              
-              {field.type === 'number' && (
-                <input 
-                  type="number" 
-                  value={formData[field.name] || ''}
-                  onChange={(e) => handleChange(field.name, e.target.value)}
-                  required={field.required}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
-                />
-              )}
-              
-              {field.type === 'boolean' && (
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={!!formData[field.name]}
-                    onChange={(e) => handleChange(field.name, e.target.checked)}
-                    className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-600">Sim / Ativo</span>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="bg-white/60 dark:bg-neutral-900/50 backdrop-blur-md border border-slate-200/50 dark:border-neutral-800 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+            
+            {(collection.fields || []).map((field: any) => (
+              <div key={field.id} className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                  {field.label}
+                  {field.required && <span className="text-red-500 text-xs">*</span>}
                 </label>
-              )}
-              
-              {field.type === 'image' && (
-                <div className="flex flex-col gap-2">
+                
+                {field.type === 'text' && (
                   <input 
-                    type="url" 
-                    placeholder="URL da Imagem (Ex: https://...)"
+                    type="text" 
                     value={formData[field.name] || ''}
                     onChange={(e) => handleChange(field.name, e.target.value)}
                     required={field.required}
-                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+                    className="w-full px-4 py-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 text-gray-900 dark:text-white transition-shadow"
                   />
-                  {formData[field.name] && (
-                    <div className="mt-2 w-32 h-32 rounded-lg border border-gray-200 overflow-hidden bg-gray-50 flex items-center justify-center">
-                      <img src={formData[field.name]} alt="Preview" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = 'none')} />
-                    </div>
-                  )}
-                </div>
+                )}
+                
+                {field.type === 'richText' && (
+                  <textarea 
+                    value={formData[field.name] || ''}
+                    onChange={(e) => handleChange(field.name, e.target.value)}
+                    required={field.required}
+                    rows={6}
+                    className="w-full px-4 py-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 text-gray-900 dark:text-white transition-shadow resize-y"
+                  />
+                )}
+                
+                {field.type === 'number' && (
+                  <input 
+                    type="number" 
+                    value={formData[field.name] || ''}
+                    onChange={(e) => handleChange(field.name, e.target.value)}
+                    required={field.required}
+                    className="w-full px-4 py-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 text-gray-900 dark:text-white transition-shadow"
+                  />
+                )}
+                
+                {field.type === 'boolean' && (
+                  <label className="flex items-center gap-3 cursor-pointer mt-2">
+                    <input 
+                      type="checkbox" 
+                      checked={!!formData[field.name]}
+                      onChange={(e) => handleChange(field.name, e.target.checked)}
+                      className="w-5 h-5 text-blue-600 dark:text-emerald-500 rounded border-gray-300 dark:border-neutral-700 focus:ring-blue-500 dark:focus:ring-emerald-500 bg-white dark:bg-neutral-900"
+                    />
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Sim / Ativo</span>
+                  </label>
+                )}
+                
+                {field.type === 'image' && (
+                  <div className="flex flex-col gap-3">
+                    <input 
+                      type="url" 
+                      placeholder="URL da Imagem (Ex: https://...)"
+                      value={formData[field.name] || ''}
+                      onChange={(e) => handleChange(field.name, e.target.value)}
+                      required={field.required}
+                      className="w-full px-4 py-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 text-gray-900 dark:text-white transition-shadow"
+                    />
+                    {formData[field.name] && (
+                      <div className="mt-2 w-32 h-32 rounded-xl border border-gray-200 dark:border-neutral-800 overflow-hidden bg-gray-50 dark:bg-neutral-950 flex items-center justify-center">
+                        <img src={formData[field.name]} alt="Preview" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <Link 
+              href={`/content/list?slug=${collection.slug}`}
+              className="px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors shadow-sm"
+            >
+              Cancelar
+            </Link>
+            <button 
+              type="submit"
+              disabled={isSubmitting}
+              className="px-6 py-3 text-sm font-medium text-white bg-blue-600 dark:bg-emerald-500 rounded-xl hover:bg-blue-700 dark:hover:bg-emerald-600 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  Salvar
+                </>
               )}
-            </div>
-          ))}
-
-        </div>
-
-        <div className="flex justify-end gap-3 pt-2">
-          <Link 
-            href={`/content/list?slug=${collection.slug}`}
-            className="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 font-medium transition-colors shadow-sm"
-          >
-            Cancelar
-          </Link>
-          <button 
-            type="submit"
-            disabled={isSubmitting}
-            className="px-5 py-2.5 text-white bg-blue-600 rounded-xl hover:bg-blue-700 font-medium transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
-          >
-            {isSubmitting ? 'Salvando...' : (
-              <>
-                <Save className="w-4 h-4" />
-                Salvar
-              </>
-            )}
-          </button>
-        </div>
-      </form>
-    </div>
+            </button>
+          </div>
+        </form>
+      </div>
+    </PageContainer>
   );
 }

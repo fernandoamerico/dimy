@@ -243,13 +243,24 @@ func UpdateDocumentHandler(w http.ResponseWriter, r *http.Request) {
 
 	dataBytes, _ := json.Marshal(payload.Data)
 
-	_, err := db.Instance.Exec(
-		"UPDATE documents SET data = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2",
-		string(dataBytes), id,
-	)
-	if err != nil {
-		http.Error(w, "Erro ao atualizar documento", http.StatusInternalServerError)
-		return
+	if payload.CollectionID != "" {
+		_, err := db.Instance.Exec(
+			"UPDATE documents SET collection_id = $1, data = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3",
+			payload.CollectionID, string(dataBytes), id,
+		)
+		if err != nil {
+			http.Error(w, "Erro ao atualizar documento com nova coleção", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		_, err := db.Instance.Exec(
+			"UPDATE documents SET data = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2",
+			string(dataBytes), id,
+		)
+		if err != nil {
+			http.Error(w, "Erro ao atualizar documento", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	json.NewEncoder(w).Encode(map[string]interface{}{"success": true})

@@ -79,7 +79,7 @@ export async function createDocument(collectionId: string, slug: string, data: a
       throw new Error(respData.error || await res.text().catch(() => 'Erro na API'));
     }
     
-    return { success: true };
+    return { success: true, id: respData.id, ...respData };
   } catch (error: any) {
     console.error('Error creating document:', error);
     return { success: false, error: error.message };

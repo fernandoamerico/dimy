@@ -56,12 +56,16 @@ export function Sidebar({
       
       const formattedNavs = navs.map((n: any) => ({ ...n, id: n.href, type: 'nav' }));
       
-      // Filter out page collections that don't have show_in_sidebar enabled
+      // Filter out page collections and publications that don't have show_in_sidebar enabled
       const visibleCols = cols.filter((c: any) => {
-        if (!c.metadata) return true;
+        if (!c.metadata) return false; // If no metadata, hide by default since it might be a page/category
         try {
           const meta = JSON.parse(c.metadata);
-          if (meta.is_page && !meta.show_in_sidebar) return false;
+          if (meta.is_product) return true; // Keep products visible by default (if they exist)
+          
+          if ((meta.is_page || meta.is_publication) && !meta.show_in_sidebar) {
+            return false;
+          }
           if (meta.hide_from_sidebar) return false;
         } catch (e) {}
         return true;
@@ -69,18 +73,23 @@ export function Sidebar({
       
       const formattedCols = visibleCols.map((c: any) => {
         let isProduct = false;
+        let isPublication = false;
         try {
           const meta = JSON.parse(c.metadata);
           isProduct = meta.is_product === true;
+          isPublication = meta.is_publication === true;
         } catch (e) {}
         
-        const baseUrl = isProduct ? '/produtos/lista' : '/content/list';
+        let baseUrl = '/content/list';
+        if (isProduct) baseUrl = '/produtos/lista';
+        else if (isPublication) baseUrl = '/publicacoes/list';
+
         return { 
           ...c, 
           id: `${baseUrl}?slug=${c.slug}`, 
           href: `${baseUrl}?slug=${c.slug}`, 
           label: c.name, 
-          iconName: isProduct ? 'Package' : 'Layers', 
+          iconName: isProduct ? 'Package' : (isPublication ? 'Newspaper' : 'Layers'), 
           type: 'col' 
         };
       });

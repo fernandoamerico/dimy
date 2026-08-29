@@ -57,7 +57,7 @@ export default function CreatePageModal({
       if (res.success) {
         onClose();
         // Redirect directly to the page builder
-        router.push(`/paginas/${slug}`);
+        router.push(`/paginas/item?slug=${slug}`);
       } else {
         setError(res.error || 'Erro ao criar página.');
       }

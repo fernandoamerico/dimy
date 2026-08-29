@@ -680,8 +680,8 @@ export function PageBuilder({
                 <Toggle checked={isPublic} onChange={v => handleToggle('is_public', v, setIsPublic, 'Rota pública!', 'Rota agora exige login.')} />
               </div>
               <div className="flex items-center justify-between">
-                <div><span className="block text-sm font-medium text-gray-900 dark:text-white">Exibir no Menu</span><span className="block text-xs text-gray-500 dark:text-gray-400">Atalho no sidebar</span></div>
-                <Toggle checked={showInSidebar} onChange={v => handleToggle('show_in_sidebar', v, setShowInSidebar, 'Adicionada ao menu!', 'Removida do menu.')} />
+                <div><span className="block text-sm font-medium text-gray-900 dark:text-white">Exibir no Menu Lateral</span><span className="block text-xs text-gray-500 dark:text-gray-400">Fixar atalho direto no Sidebar</span></div>
+                <Toggle checked={showInSidebar} onChange={v => handleToggle('show_in_sidebar', v, setShowInSidebar, 'Adicionado ao menu lateral!', 'Removido do menu lateral.')} />
               </div>
             </div>
           </Panel>

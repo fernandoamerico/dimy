@@ -101,7 +101,7 @@ export function UniversalBuilder({
   const [enableColors, setEnableColors] = useState(initialMeta.enable_colors !== false);
   
   // Visibility
-  const [hideFromSidebar, setHideFromSidebar] = useState(initialMeta.hide_from_sidebar === true);
+  const [showInSidebar, setShowInSidebar] = useState(initialMeta.show_in_sidebar === true);
 
   // ─── Helpers ──────────────────────────────────────────────────────────────
   const buildMetadata = (overrides: Record<string, any> = {}) => {
@@ -116,7 +116,7 @@ export function UniversalBuilder({
       enable_status: enableStatus,
       enable_sizes: enableSizes,
       enable_colors: enableColors,
-      hide_from_sidebar: hideFromSidebar,
+      show_in_sidebar: showInSidebar,
       ...overrides,
     });
   };
@@ -508,11 +508,11 @@ export function UniversalBuilder({
             </button>
           </div>
           <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-neutral-800 mt-4">
-            <div><span className="block text-sm font-medium text-gray-900 dark:text-white">Ocultar da Sidebar</span><span className="block text-xs text-gray-500 dark:text-gray-400">Remove esta coleção do menu lateral</span></div>
+            <div><span className="block text-sm font-medium text-gray-900 dark:text-white">Exibir no Menu Lateral</span><span className="block text-xs text-gray-500 dark:text-gray-400">Fixar atalho direto no Sidebar</span></div>
             <button 
-              onClick={() => handleToggle('hide_from_sidebar', !hideFromSidebar, setHideFromSidebar, 'Ocultado da sidebar!', 'Visível na sidebar.')}
-              className={`w-10 h-5 rounded-full relative transition-colors ${hideFromSidebar ? 'bg-blue-500' : 'bg-gray-200 dark:bg-neutral-700'}`}>
-              <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${hideFromSidebar ? 'translate-x-5' : 'translate-x-0'}`} />
+              onClick={() => handleToggle('show_in_sidebar', !showInSidebar, setShowInSidebar, 'Adicionado ao menu lateral!', 'Removido do menu lateral.')}
+              className={`w-10 h-5 rounded-full relative transition-colors ${showInSidebar ? 'bg-blue-500' : 'bg-gray-200 dark:bg-neutral-700'}`}>
+              <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${showInSidebar ? 'translate-x-5' : 'translate-x-0'}`} />
             </button>
           </div>
         </>
@@ -545,11 +545,11 @@ export function UniversalBuilder({
             </button>
           </div>
           <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-neutral-800 mt-4">
-            <div><span className="block text-sm font-medium text-gray-900 dark:text-white">Ocultar da Sidebar</span><span className="block text-xs text-gray-500 dark:text-gray-400">Remove esta coleção do menu lateral</span></div>
+            <div><span className="block text-sm font-medium text-gray-900 dark:text-white">Exibir no Menu Lateral</span><span className="block text-xs text-gray-500 dark:text-gray-400">Fixar atalho direto no Sidebar</span></div>
             <button 
-              onClick={() => handleToggle('hide_from_sidebar', !hideFromSidebar, setHideFromSidebar, 'Ocultado da sidebar!', 'Visível na sidebar.')}
-              className={`w-10 h-5 rounded-full relative transition-colors ${hideFromSidebar ? 'bg-blue-500' : 'bg-gray-200 dark:bg-neutral-700'}`}>
-              <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${hideFromSidebar ? 'translate-x-5' : 'translate-x-0'}`} />
+              onClick={() => handleToggle('show_in_sidebar', !showInSidebar, setShowInSidebar, 'Adicionado ao menu lateral!', 'Removido do menu lateral.')}
+              className={`w-10 h-5 rounded-full relative transition-colors ${showInSidebar ? 'bg-blue-500' : 'bg-gray-200 dark:bg-neutral-700'}`}>
+              <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${showInSidebar ? 'translate-x-5' : 'translate-x-0'}`} />
             </button>
           </div>
           <div className="p-3 bg-blue-50 dark:bg-emerald-500/10 text-blue-800 dark:text-emerald-400 rounded-lg text-xs mt-2 border border-blue-100 dark:border-emerald-900/50">
