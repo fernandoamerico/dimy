@@ -10,6 +10,7 @@ import {
   List, MousePointerClick, Save, Trash2, Plus, Settings
 } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 export function PostEditor({
   collection,
@@ -155,7 +156,7 @@ export function PostEditor({
         const tableVal: string[][] = formData[field.name] || [['', ''], ['', '']];
         return (
           <div className="space-y-3">
-            <div className="border border-gray-300 dark:border-neutral-700 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-neutral-900">
+            <div className="dark:border dark:border-neutral-700 rounded-xl overflow-hidden dark:shadow-sm bg-white dark:bg-neutral-900">
               <table className="w-full text-sm text-left">
                 <tbody>
                   {tableVal.map((row: string[], ri: number) => (
@@ -306,7 +307,7 @@ export function PostEditor({
         {/* ─── EDITOR (left 2/3) ───────────────────────────────────────────── */}
         <div className="lg:col-span-2 space-y-6">
           
-          <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-neutral-800 space-y-2">
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800 space-y-2">
              <label className="text-sm font-semibold text-gray-900 dark:text-white block">Título da Publicação *</label>
              <input type="text" value={title} onChange={e => setTitle(e.target.value)}
               placeholder="Digite o título principal..." 
@@ -319,7 +320,7 @@ export function PostEditor({
             </div>
           ) : (
             fields.map((field: any, index: number) => (
-              <div key={index} className="bg-white dark:bg-neutral-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-neutral-800">
+              <div key={index} className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800">
                 <div className="mb-3">
                   <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{field.label}</h3>
                 </div>
@@ -333,7 +334,7 @@ export function PostEditor({
         <div className="space-y-4">
           
           {meta.enable_status !== false && (
-            <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-neutral-800">
+            <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><Settings className="w-4 h-4 text-gray-400" /> Publicação</h3>
               <div className="space-y-4">
                 <div>
@@ -359,7 +360,7 @@ export function PostEditor({
           )}
 
           {meta.enable_author !== false && (
-            <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-neutral-800">
+            <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><Type className="w-4 h-4 text-blue-500" /> Autor</h3>
               <div>
                 <input type="text" value={author} onChange={e => setAuthor(e.target.value)} placeholder="Nome do autor"
@@ -369,7 +370,7 @@ export function PostEditor({
           )}
 
           {meta.enable_cover !== false && (
-            <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-neutral-800">
+            <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><ImageIcon className="w-4 h-4 text-amber-500" /> Capa</h3>
               <div className="space-y-3">
                 <label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1">URL ou Arquivo da Capa</label>
@@ -384,7 +385,7 @@ export function PostEditor({
           )}
 
           {meta.enable_seo !== false && (
-            <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-neutral-800">
+            <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><Settings className="w-4 h-4 text-gray-400" /> SEO</h3>
               <div className="space-y-3">
                 <div>

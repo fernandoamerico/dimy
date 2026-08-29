@@ -25,7 +25,7 @@ function ProductCategoryBuilderContent() {
       setLoading(false);
     }
     load();
-  }, [params.id, router]);
+  }, [id, router]);
 
   if (loading) {
     return (

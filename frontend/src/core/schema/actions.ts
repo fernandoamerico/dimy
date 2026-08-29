@@ -43,12 +43,19 @@ export async function createCollection(data: CreateCollectionInput) {
     const respData = contentType && contentType.includes('application/json') ? await res.json() : {};
     
     if (!res.ok) {
-      throw new Error(respData.error || await res.text().catch(() => 'Erro na API'));
+      let errMsg = respData.error;
+      if (!errMsg) {
+        try {
+          errMsg = await res.text();
+        } catch (e) {
+          errMsg = 'Erro na API';
+        }
+      }
+      return { success: false, error: errMsg };
     }
     
     return { success: true, collection: respData };
   } catch (error: any) {
-    console.error('Error creating collection:', error);
     return { success: false, error: error.message };
   }
 }

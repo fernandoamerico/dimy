@@ -314,7 +314,7 @@ export function ProductEditor({
         <div className="lg:col-span-2 space-y-6">
 
           {/* Informações básicas */}
-          <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-neutral-800 space-y-4">
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800 space-y-4">
             <div>
               <label className="text-sm font-semibold text-gray-900 dark:text-white block mb-2">Nome do Produto *</label>
               <input type="text" value={title} onChange={e => setTitle(e.target.value)}
@@ -349,7 +349,7 @@ export function ProductEditor({
           </div>
 
           {/* ─── Preço / Variantes ───────────────────────────────────────── */}
-          <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-slate-200 dark:border-neutral-800 overflow-hidden">
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl dark:shadow-sm dark:border dark:border-neutral-800 overflow-hidden">
             {/* Header da seção de preço */}
             <div className="px-5 py-4 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -503,7 +503,7 @@ export function ProductEditor({
                 <div className="flex-1 h-px bg-gray-200 dark:bg-neutral-800" />
               </div>
               {fields.map((field: any, index: number) => (
-                <div key={index} className="bg-white dark:bg-neutral-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-neutral-800">
+                <div key={index} className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800">
                   <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">{field.label}</h3>
                   {renderFieldEditor(field)}
                 </div>
@@ -516,7 +516,7 @@ export function ProductEditor({
         <div className="space-y-4">
 
           {/* Configurações Gerais */}
-          <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-neutral-800">
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><Settings className="w-4 h-4 text-gray-400" /> Configurações Gerais</h3>
             <div className="space-y-4">
               {meta.enable_status !== false && (
@@ -557,7 +557,7 @@ export function ProductEditor({
 
           {/* Resumo de Variantes (quando ativo) */}
           {hasVariants && variants.length > 0 && (
-            <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-neutral-800">
+            <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><Layers className="w-4 h-4 text-blue-500 dark:text-emerald-400" /> Resumo de Variantes</h3>
               <div className="space-y-2">
                 {variants.map(v => (
@@ -581,7 +581,7 @@ export function ProductEditor({
 
           {/* Tamanhos */}
           {meta.enable_sizes !== false && (
-            <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-neutral-800">
+            <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><List className="w-4 h-4 text-blue-500" /> Tamanhos</h3>
               <TagSelector value={sizes} onChange={setSizes} placeholder="P, M, G, GG..." />
             </div>
@@ -589,7 +589,7 @@ export function ProductEditor({
 
           {/* Cores */}
           {meta.enable_colors !== false && (
-            <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-neutral-800">
+            <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><List className="w-4 h-4 text-amber-500" /> Cores</h3>
               <TagSelector value={colors} onChange={setColors} placeholder="Preto, Branco, Azul..." />
             </div>

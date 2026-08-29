@@ -116,8 +116,8 @@ function ContentListContent() {
             </Link>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-gray-600 dark:text-gray-400">
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-slate-200 dark:border-neutral-800 overflow-x-auto">
+            <table className="w-full min-w-[700px] text-left text-sm text-gray-600 dark:text-gray-400">
               <thead className="bg-gray-50/50 dark:bg-neutral-950/50 text-gray-700 dark:text-gray-300 uppercase font-medium border-b border-gray-200/50 dark:border-neutral-800">
                 <tr>
                   <th className="px-6 py-4">

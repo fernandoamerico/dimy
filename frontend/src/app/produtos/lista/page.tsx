@@ -104,13 +104,21 @@ function ProductItemsContent() {
             {collection && (
               <Link 
                 href={`/produtos/categorias/builder?id=${collection.id}`}
-                className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-800 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-xl transition-colors shadow-sm"
+                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-xl transition-colors"
               >
                 <Settings className="w-4 h-4" />
                 Configurar Esqueleto
               </Link>
             )}
-            {allCategories.length > 0 && (
+            {collection ? (
+              <Link 
+                href={`/produtos/item?slug=${collection.slug}&id=novo`}
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-sm font-medium rounded-xl transition-colors shadow-sm shadow-blue-500/20"
+              >
+                <Plus className="w-4 h-4" />
+                Novo Produto
+              </Link>
+            ) : allCategories.length > 0 && (
               <div className="relative group">
                 <button className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-sm font-medium rounded-xl transition-colors shadow-sm shadow-blue-500/20">
                   <Plus className="w-4 h-4" />
@@ -143,8 +151,8 @@ function ProductItemsContent() {
             </p>
           </div>
         ) : (
-          <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-slate-200 dark:border-neutral-800 overflow-hidden">
-            <table className="w-full text-left text-sm text-gray-500 dark:text-gray-400">
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-slate-200 dark:border-neutral-800 overflow-x-auto">
+            <table className="w-full min-w-[700px] text-left text-sm text-gray-500 dark:text-gray-400">
               <thead className="bg-gray-50/50 dark:bg-neutral-950/50 border-b border-gray-200 dark:border-neutral-800 text-xs uppercase text-gray-500 dark:text-neutral-400">
                 <tr>
                   <th className="px-6 py-4 font-semibold">Produto</th>

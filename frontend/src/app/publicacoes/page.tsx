@@ -186,8 +186,8 @@ export default function PublicationsPage() {
             })}
           </div>
         ) : (
-          <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-slate-200 dark:border-neutral-800 overflow-hidden">
-            <table className="w-full text-left text-sm text-gray-500 dark:text-gray-400">
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-slate-200 dark:border-neutral-800 overflow-x-auto">
+            <table className="w-full min-w-[700px] text-left text-sm text-gray-500 dark:text-gray-400">
               <thead className="bg-gray-50/50 dark:bg-neutral-950/50 border-b border-gray-200 dark:border-neutral-800 text-xs uppercase text-gray-500 dark:text-neutral-400">
                 <tr>
                   <th className="px-6 py-4 font-semibold">Categoria</th>
