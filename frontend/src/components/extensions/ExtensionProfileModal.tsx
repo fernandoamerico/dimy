@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { X, Star, Download, ChevronRight, ShieldAlert, User, Clock, CheckCircle2, MessageSquare, Loader2, Power, Trash2, Image as ImageIcon, Settings } from 'lucide-react';
 import { StoreExtension } from '@/core/extensions/storeMock';
@@ -25,6 +25,27 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
   const [adminPassword, setAdminPassword] = useState('');
   const [uninstallError, setUninstallError] = useState('');
   const [businessLogo, setBusinessLogo] = useState('');
+
+  // Supabase Storage config state
+  const [supabaseUrl, setSupabaseUrl] = useState('');
+  const [supabaseBucket, setSupabaseBucket] = useState('');
+  const [isLoadingSupabaseConfig, setIsLoadingSupabaseConfig] = useState(false);
+  const [supabaseConfigLoaded, setSupabaseConfigLoaded] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'configure' && extension.id === 'supabase_storage' && !supabaseConfigLoaded) {
+      setIsLoadingSupabaseConfig(true);
+      Promise.all([
+        fetch('/api/system/config?key=supabase_storage_url').then(r => r.json()).catch(() => ({value: ''})),
+        fetch('/api/system/config?key=supabase_storage_bucket').then(r => r.json()).catch(() => ({value: ''}))
+      ]).then(([urlRes, bucketRes]) => {
+        setSupabaseUrl(urlRes.value || '');
+        setSupabaseBucket(bucketRes.value || '');
+        setSupabaseConfigLoaded(true);
+        setIsLoadingSupabaseConfig(false);
+      });
+    }
+  }, [activeTab, extension.id, supabaseConfigLoaded]);
 
   const isFakeStoreExtension = extension.id.startsWith('store_');
 
@@ -433,6 +454,11 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
                   <p>Insira as credenciais do seu projeto Supabase para habilitar o upload direto para seus Buckets.</p>
                 </div>
                 
+                {isLoadingSupabaseConfig ? (
+                  <div className="flex justify-center items-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+                  </div>
+                ) : (
                 <form 
                   onSubmit={async (e) => {
                     e.preventDefault();
@@ -457,16 +483,16 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
                   <div className="grid grid-cols-1 gap-4">
                     <div className="space-y-1">
                       <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Supabase URL</label>
-                      <input name="supabase_storage_url" type="url" required placeholder="Ex: https://xxxx.supabase.co" className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-emerald-500/50 outline-none text-gray-900 dark:text-white" />
+                      <input name="supabase_storage_url" type="url" required value={supabaseUrl} onChange={e => setSupabaseUrl(e.target.value)} placeholder="Ex: https://xxxx.supabase.co" className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-emerald-500/50 outline-none text-gray-900 dark:text-white" />
                     </div>
                     <div className="space-y-1">
                       <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Service Role Key (Secret)</label>
-                      <input name="supabase_storage_key" type="password" required placeholder="Ex: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-emerald-500/50 outline-none text-gray-900 dark:text-white" />
+                      <input name="supabase_storage_key" type="password" required placeholder={supabaseConfigLoaded && (supabaseUrl || supabaseBucket) ? "••••••••••••••••" : "Ex: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."} className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-emerald-500/50 outline-none text-gray-900 dark:text-white" />
                       <p className="text-[11px] text-gray-500">Utilize a Service Role Key (e não a Anon Key) para que o servidor tenha permissão de gravar no bucket sem depender de regras RLS.</p>
                     </div>
                     <div className="space-y-1">
                       <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Nome do Bucket</label>
-                      <input name="supabase_storage_bucket" type="text" required placeholder="Ex: dimy-images" className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-emerald-500/50 outline-none text-gray-900 dark:text-white" />
+                      <input name="supabase_storage_bucket" type="text" required value={supabaseBucket} onChange={e => setSupabaseBucket(e.target.value)} placeholder="Ex: dimy-images" className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-emerald-500/50 outline-none text-gray-900 dark:text-white" />
                     </div>
                   </div>
                   
@@ -502,6 +528,7 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
                     </button>
                   </div>
                 </form>
+                )}
               </div>
             )}
             {activeTab === 'configure' && extension.id === 'business_info' && (

@@ -1,8 +1,9 @@
 'use client';
 
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Database, CheckCircle2, Terminal, ExternalLink, Copy, AlertTriangle } from 'lucide-react';
+import { Database, CheckCircle2, Terminal, ExternalLink, Copy, AlertTriangle, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 function CodeBlock({ code }: { code: string }) {
   const [copied, setCopied] = useState(false);
@@ -44,6 +45,25 @@ function Step({ number, title, children }: { number: number; title: string; chil
 }
 
 export default function SupabasePage() {
+  const [isTesting, setIsTesting] = useState(false);
+
+  const handleTestConnection = async () => {
+    setIsTesting(true);
+    const loadingToast = toast.loading('Testando conexão com o banco de dados...');
+    try {
+      const res = await fetch('/api/system/test-database');
+      if (res.ok) {
+        toast.success('Conexão estabelecida com sucesso!', { id: loadingToast });
+      } else {
+        const errData = await res.text();
+        toast.error(errData || 'Erro ao conectar.', { id: loadingToast });
+      }
+    } catch (err) {
+      toast.error('Erro de rede ao testar conexão.', { id: loadingToast });
+    }
+    setIsTesting(false);
+  };
+
   return (
     <DashboardLayout>
       <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 pb-10">
@@ -120,8 +140,15 @@ export default function SupabasePage() {
           </div>
         </div>
 
-        {/* Link */}
-        <div className="flex justify-end">
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={handleTestConnection}
+            disabled={isTesting}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-gray-50 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-neutral-700 text-sm font-medium rounded-xl transition-colors"
+          >
+            {isTesting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Testar Conexão'}
+          </button>
           <a
             href="https://supabase.com/dashboard"
             target="_blank"

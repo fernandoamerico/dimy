@@ -104,3 +104,24 @@ func GetBusinessInfoHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(businessInfo)
 }
+
+// TestDatabaseConnectionHandler tests the current database connection
+func TestDatabaseConnectionHandler(w http.ResponseWriter, r *http.Request) {
+	// Check if running on Supabase (PostgreSQL)
+	isSupabase := strings.HasPrefix(os.Getenv("DATABASE_URL"), "postgres")
+
+	if !isSupabase {
+		http.Error(w, "O sistema ainda está rodando com SQLite local. Configure a variável DATABASE_URL primeiro.", http.StatusBadRequest)
+		return
+	}
+
+	// Ping the database to ensure it's alive
+	err := db.Instance.Ping()
+	if err != nil {
+		http.Error(w, "Erro ao conectar com o banco de dados: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Conexão com Supabase bem-sucedida!"))
+}
