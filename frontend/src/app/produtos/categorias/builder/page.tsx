@@ -42,7 +42,7 @@ function ProductCategoryBuilderContent() {
       <div className="py-4">
         <UniversalBuilder
           collection={collection}
-          backUrl="/produtos"
+          backUrl={`/produtos/lista?slug=${collection.slug}`}
           appType="product"
         />
       </div>
