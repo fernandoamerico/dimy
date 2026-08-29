@@ -4,6 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
 	"net/http"
 	"os"
@@ -11,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
@@ -41,6 +46,17 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	// 2. Generate a unique filename
 	filename := fmt.Sprintf("%d_%s", time.Now().UnixNano(), strings.ReplaceAll(header.Filename, " ", "_"))
+	mimeType := header.Header.Get("Content-Type")
+	fileSize := header.Size
+
+	var dimensions string
+	if strings.HasPrefix(mimeType, "image/") {
+		if img, _, err := image.Decode(file); err == nil {
+			bounds := img.Bounds()
+			dimensions = fmt.Sprintf("%dx%d", bounds.Dx(), bounds.Dy())
+		}
+		file.Seek(0, io.SeekStart) // reset seek
+	}
 
 	// 3. Check if extensions are enabled
 	var r2Enabled bool
@@ -73,6 +89,16 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Failed to save locally: "+errUpload.Error(), http.StatusInternalServerError)
 			return
 		}
+	}
+
+	// 5. Save to media_files table
+	mediaID := uuid.New().String()
+	_, errDb := db.Instance.Exec(`INSERT INTO media_files 
+		(id, name, filename, url, size, mime_type, dimensions, alt, comment) 
+		VALUES (?, ?, ?, ?, ?, ?, ?, '', '')`,
+		mediaID, header.Filename, filename, fileURL, fileSize, mimeType, dimensions)
+	if errDb != nil {
+		fmt.Println("Warning: Failed to save media_files record:", errDb)
 	}
 
 	w.WriteHeader(http.StatusOK)

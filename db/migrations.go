@@ -76,6 +76,19 @@ func RunMigrations(db *sql.DB, driver string) error {
 			installed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		);`,
+		`CREATE TABLE IF NOT EXISTS media_files (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			filename TEXT UNIQUE NOT NULL,
+			url TEXT NOT NULL,
+			size INTEGER NOT NULL,
+			mime_type TEXT NOT NULL,
+			dimensions TEXT,
+			alt TEXT DEFAULT '',
+			comment TEXT DEFAULT '',
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);`,
 	}
 
 	for _, q := range queries {

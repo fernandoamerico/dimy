@@ -34,6 +34,16 @@ export const EXTENSION_REGISTRY: ExtensionDef[] = [
       { label: 'Aplicativos', href: '/aplicativos', iconName: 'Blocks', requiredPermissions: ['manage:extensions'] }
     ]
   },
+  {
+    id: 'core_media',
+    name: 'Mídias',
+    description: 'Gerenciamento central de imagens e arquivos no formato biblioteca.',
+    type: 'core',
+    isEssential: true,
+    navItems: [
+      { label: 'Biblioteca', href: '/midias', iconName: 'Images', requiredPermissions: [] }
+    ]
+  },
 
   // ---------------------------------------------------------
   // MODULES — instalados via loja

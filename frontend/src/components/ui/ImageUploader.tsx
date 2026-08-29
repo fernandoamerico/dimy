@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { UploadCloud, Link as LinkIcon, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { UploadCloud, Link as LinkIcon, Image as ImageIcon, Loader2, Library } from 'lucide-react';
+import { MediaLibraryModal } from '@/components/media/MediaLibraryModal';
 
 interface ImageUploaderProps {
   value: string;
@@ -12,6 +13,7 @@ interface ImageUploaderProps {
 
 export function ImageUploader({ value, onChange, placeholder = "URL da imagem", className = "" }: ImageUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = async (file: File) => {
@@ -57,10 +59,18 @@ export function ImageUploader({ value, onChange, placeholder = "URL da imagem", 
       </div>
       <button
         type="button"
+        onClick={() => setIsLibraryOpen(true)}
+        className="shrink-0 p-2 text-gray-500 hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-400 bg-gray-100 dark:bg-neutral-800 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors border border-transparent hover:border-blue-200 dark:hover:border-blue-500/20"
+        title="Escolher da Biblioteca de Mídia"
+      >
+        <ImageIcon className="w-5 h-5" />
+      </button>
+      <button
+        type="button"
         onClick={() => fileInputRef.current?.click()}
         disabled={isUploading}
         className="shrink-0 p-2 text-gray-500 hover:text-blue-600 dark:text-neutral-400 dark:hover:text-emerald-400 bg-gray-100 dark:bg-neutral-800 hover:bg-blue-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors border border-transparent hover:border-blue-200 dark:hover:border-emerald-500/20 disabled:opacity-50"
-        title="Fazer Upload do Computador"
+        title="Fazer Upload Rápido"
       >
         {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <UploadCloud className="w-5 h-5" />}
       </button>
@@ -69,11 +79,20 @@ export function ImageUploader({ value, onChange, placeholder = "URL da imagem", 
         ref={fileInputRef}
         onChange={(e) => {
           if (e.target.files && e.target.files.length > 0) {
-            handleUpload(e.target.files[0]);
+            const file = e.target.files.item(0);
+            if (file) handleUpload(file);
           }
         }}
         accept="image/*"
         className="hidden"
+      />
+      <MediaLibraryModal 
+        isOpen={isLibraryOpen} 
+        onClose={() => setIsLibraryOpen(false)} 
+        onSelect={(url) => {
+          onChange(url);
+          setIsLibraryOpen(false);
+        }}
       />
     </div>
   );
