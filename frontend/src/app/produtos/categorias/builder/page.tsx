@@ -18,7 +18,7 @@ function ProductCategoryBuilderContent() {
       const collections = await getCollections();
       const found = collections.find((c: any) => c.id === id);
       if (!found) {
-        router.push('/produtos/categorias');
+        router.push('/produtos');
         return;
       }
       setCollection(found);
@@ -42,7 +42,7 @@ function ProductCategoryBuilderContent() {
       <div className="py-4">
         <UniversalBuilder
           collection={collection}
-          backUrl="/produtos/categorias"
+          backUrl="/produtos"
           appType="product"
         />
       </div>

@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getCollections, deleteCollection } from '@/core/schema/actions';
-import { FileText, Plus, Layers, Folder, Layout, Trash2, X, AlertTriangle } from 'lucide-react';
+import { getCollections, deleteCollection, duplicateCollection } from '@/core/schema/actions';
+import { FileText, Plus, Layers, Folder, Layout, Trash2, X, AlertTriangle, Copy } from 'lucide-react';
 import CreatePageModal from '@/components/pages/CreatePageModal';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -16,6 +16,29 @@ export default function PagesListPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [pageToDelete, setPageToDelete] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDuplicating, setIsDuplicating] = useState<string | null>(null);
+
+  const handleDuplicate = async (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setIsDuplicating(id);
+    const toastId = toast.loading('Duplicando página...');
+    
+    try {
+      const res = await duplicateCollection(id);
+      if (res.success) {
+        toast.success('Página duplicada com sucesso!', { id: toastId });
+        fetchPages();
+      } else {
+        toast.error('Erro ao duplicar: ' + res.error, { id: toastId });
+      }
+    } catch (error) {
+      toast.error('Erro de conexão ao duplicar.', { id: toastId });
+    } finally {
+      setIsDuplicating(null);
+    }
+  };
 
   const fetchPages = async () => {
     try {
@@ -150,18 +173,28 @@ export default function PagesListPage() {
                     <div className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-gray-400">
                       Criado em {page.created_at ? new Date(page.created_at).toLocaleDateString('pt-BR') : '...'}
                     </div>
-                    <button 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setPageToDelete(page);
-                        setIsDeleteModalOpen(true);
-                      }}
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={(e) => handleDuplicate(page.id, e)}
+                        disabled={isDuplicating === page.id}
+                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors disabled:opacity-50"
+                        title="Duplicar Página"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setPageToDelete(page);
+                          setIsDeleteModalOpen(true);
+                        }}
                       className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
                       title="Excluir Página"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
+                    </div>
                   </div>
                 </div>
               );

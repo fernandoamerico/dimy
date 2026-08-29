@@ -114,3 +114,29 @@ export async function updateCollection(id: string, data: CreateCollectionInput) 
     return { success: false, error: error.message };
   }
 }
+
+export async function duplicateCollection(id: string) {
+  try {
+    const col = await getCollectionById(id);
+    if (!col) return { success: false, error: 'Coleção não encontrada' };
+    
+    const newCat: CreateCollectionInput = {
+        name: `${col.name} (Cópia)`,
+        slug: `${col.slug}-copia-${Math.floor(Date.now() / 1000)}`,
+        icon: col.icon || '',
+        metadata: col.metadata || '',
+        fields: col.fields ? col.fields.map((f: any) => ({
+            name: f.name,
+            label: f.label,
+            type: f.type,
+            required: f.required,
+            order: f.order
+        })) : []
+    };
+    
+    return await createCollection(newCat);
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+

@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getCollections } from '@/core/schema/actions';
+import { getCollections, duplicateCollection } from '@/core/schema/actions';
 import { getDocuments } from '@/core/content/actions';
-import { FileText, Plus, Layers, Folder, Search, Trash2, LayoutGrid, List } from 'lucide-react';
+import { FileText, Plus, Layers, Folder, Search, Trash2, LayoutGrid, List, Copy } from 'lucide-react';
 import CreateCategoryModal from '@/components/publications/CreateCategoryModal';
 import { DeleteCategoryModal } from '@/components/publications/DeleteCategoryModal';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageContainer } from '@/components/layout/PageContainer';
 
@@ -16,9 +17,32 @@ export default function PublicationsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<any>(null);
+  const [isDuplicating, setIsDuplicating] = useState<string | null>(null);
   
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [postCounts, setPostCounts] = useState<Record<string, number>>({});
+
+  const handleDuplicate = async (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setIsDuplicating(id);
+    const toastId = toast.loading('Duplicando categoria...');
+    
+    try {
+      const res = await duplicateCollection(id);
+      if (res.success) {
+        toast.success('Categoria duplicada com sucesso!', { id: toastId });
+        fetchCategories();
+      } else {
+        toast.error('Erro ao duplicar: ' + res.error, { id: toastId });
+      }
+    } catch (error) {
+      toast.error('Erro de conexão ao duplicar.', { id: toastId });
+    } finally {
+      setIsDuplicating(null);
+    }
+  };
 
   const fetchCategories = async () => {
     try {
@@ -168,18 +192,28 @@ export default function PublicationsPage() {
                       <FileText className="w-4 h-4" />
                       {count} Publicações
                     </div>
-                    <button 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setCategoryToDelete(cat);
-                        setIsDeleteModalOpen(true);
-                      }}
-                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
-                      title="Excluir Categoria"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={(e) => handleDuplicate(cat.id, e)}
+                        disabled={isDuplicating === cat.id}
+                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors disabled:opacity-50"
+                        title="Duplicar Categoria"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setCategoryToDelete(cat);
+                          setIsDeleteModalOpen(true);
+                        }}
+                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                        title="Excluir Categoria"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -233,6 +267,14 @@ export default function PublicationsPage() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
+                          <button 
+                            onClick={(e) => handleDuplicate(cat.id, e)}
+                            disabled={isDuplicating === cat.id}
+                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors disabled:opacity-50"
+                            title="Duplicar Categoria"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
                           <button 
                             onClick={(e) => {
                               e.preventDefault();

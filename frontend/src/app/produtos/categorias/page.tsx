@@ -1,16 +1,40 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getCollections } from '@/core/schema/actions';
-import { Tags, Plus, Layers, Folder, Search, ArrowLeft } from 'lucide-react';
+import { getCollections, duplicateCollection } from '@/core/schema/actions';
+import { Tags, Plus, Layers, Folder, Search, ArrowLeft, Copy } from 'lucide-react';
 import CreateProductCategoryModal from '@/components/produtos/CreateProductCategoryModal';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 
 export default function ProductCategoriesPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDuplicating, setIsDuplicating] = useState<string | null>(null);
+
+  const handleDuplicate = async (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setIsDuplicating(id);
+    const toastId = toast.loading('Duplicando categoria...');
+    
+    try {
+      const res = await duplicateCollection(id);
+      if (res.success) {
+        toast.success('Categoria duplicada com sucesso!', { id: toastId });
+        fetchCategories();
+      } else {
+        toast.error('Erro ao duplicar: ' + res.error, { id: toastId });
+      }
+    } catch (error) {
+      toast.error('Erro de conexão ao duplicar.', { id: toastId });
+    } finally {
+      setIsDuplicating(null);
+    }
+  };
 
   const fetchCategories = async () => {
     try {
@@ -18,7 +42,7 @@ export default function ProductCategoriesPage() {
       const allCollections = await getCollections();
       
       // Filter only collections that have is_product in their metadata
-      const productCategories = allCollections.filter(col => {
+      const productCategories = allCollections.filter((col: any) => {
         if (!col.metadata) return false;
         try {
           const meta = JSON.parse(col.metadata);
@@ -126,6 +150,14 @@ export default function ProductCategoriesPage() {
                     </p>
                   </div>
                   <div className="p-4 bg-gray-50 dark:bg-neutral-950 border-t border-slate-100 dark:border-neutral-800 flex justify-end gap-3">
+                    <button
+                      onClick={(e) => handleDuplicate(cat.id, e)}
+                      disabled={isDuplicating === cat.id}
+                      className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors disabled:opacity-50"
+                      title="Duplicar Estrutura"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </button>
                     <Link 
                       href={`/produtos/categorias/builder?id=${cat.id}`}
                       className="text-sm font-medium text-blue-600 dark:text-emerald-400 hover:text-blue-700 dark:hover:text-emerald-300 flex items-center gap-1"
