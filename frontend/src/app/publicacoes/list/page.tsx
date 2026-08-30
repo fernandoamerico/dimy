@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { getCollectionBySlug, getDocuments, deleteDocument } from '@/core/content/actions';
 import { getCollections } from '@/core/schema/actions';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Plus, Settings, FileText, ArrowLeft, Trash2, Edit2, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Settings, FileText, ArrowLeft, Trash2, Edit2, Search, Filter, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { DeleteCategoryModal } from '@/components/publications/DeleteCategoryModal';
 import { toast } from 'sonner';
 import Link from 'next/link';
@@ -21,6 +21,7 @@ function PublicationItemsContent() {
   const [isCreating, setIsCreating] = useState(false);
   const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
   const [deleteItem, setDeleteItem] = useState<{ type: 'single' | 'bulk', id?: string } | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   // Filtros e Paginação
   const [searchQuery, setSearchQuery] = useState('');
@@ -257,7 +258,22 @@ function PublicationItemsContent() {
                           />
                         </td>
                         <td className="px-6 py-4">
-                          <span className="font-medium text-gray-900 dark:text-white">{title}</span>
+                          <div className="flex items-center gap-3">
+                            {doc.data?._cover?.image ? (
+                              <button
+                                onClick={() => setSelectedImage(doc.data._cover.image)}
+                                className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer shrink-0"
+                                type="button"
+                              >
+                                <img src={doc.data._cover.image} alt={title} className="w-full h-full object-cover bg-gray-100" />
+                              </button>
+                            ) : (
+                              <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-neutral-800 flex items-center justify-center shrink-0">
+                                <FileText className="w-5 h-5 text-gray-400" />
+                              </div>
+                            )}
+                            <span className="font-medium text-gray-900 dark:text-white">{title}</span>
+                          </div>
                         </td>
                         <td className="px-6 py-4">
                           {isPublished ? (
@@ -396,6 +412,22 @@ function PublicationItemsContent() {
           </div>,
           document.body
         )}
+        
+        {selectedImage && createPortal(
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200" onClick={() => setSelectedImage(null)}>
+            <div className="relative max-w-4xl max-h-[90vh] w-full flex items-center justify-center">
+              <button 
+                onClick={() => setSelectedImage(null)}
+                className="absolute -top-12 right-0 p-2 text-white/70 hover:text-white bg-black/50 hover:bg-black/80 rounded-full transition-colors"
+                title="Fechar"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <img src={selectedImage} alt="Preview" className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl" onClick={(e) => e.stopPropagation()} />
+            </div>
+          </div>,
+          document.body
+        )}
       </div>
     </DashboardLayout>
   );
@@ -403,7 +435,7 @@ function PublicationItemsContent() {
 
 export default function PublicationItemsPage() {
   return (
-    <Suspense fallback={<DashboardLayout><div>Carregando...</div></DashboardLayout>}>
+    <Suspense fallback={<DashboardLayout><div className="p-8 text-center text-gray-500">Carregando...</div></DashboardLayout>}>
       <PublicationItemsContent />
     </Suspense>
   )

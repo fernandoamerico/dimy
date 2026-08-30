@@ -10,7 +10,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-transparent font-sans text-slate-900 dark:text-neutral-200 selection:bg-blue-200 dark:selection:bg-emerald-500/30">
-      <div className="relative z-20">
+      <div className="relative">
         <Sidebar 
           isSidebarCollapsed={isSidebarCollapsed} 
           setIsSidebarCollapsed={setIsSidebarCollapsed} 
@@ -19,7 +19,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         />
       </div>
       
-      <div className="flex flex-col min-h-screen relative z-10">
+      <div className="flex flex-col min-h-screen relative">
         <Header 
           isSidebarCollapsed={isSidebarCollapsed} 
           setIsMobileSidebarOpen={setIsMobileSidebarOpen}
