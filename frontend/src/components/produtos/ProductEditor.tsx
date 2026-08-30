@@ -182,7 +182,8 @@ export function ProductEditor({
         );
 
       case 'gallery': {
-        const galleryVal: string[] = formData[field.name] || [];
+        const rawVal = formData[field.name];
+        const galleryVal: string[] = Array.isArray(rawVal) ? rawVal : [];
         return (
           <GalleryBlockEditor
             urls={galleryVal}
@@ -192,10 +193,12 @@ export function ProductEditor({
       }
 
       case 'url':
-        return <input type="url" value={formData[field.name] || ''} onChange={e => handleChange(field.name, e.target.value)} placeholder="https://..." className={inputClass} />;
+        const urlVal = typeof formData[field.name] === 'string' ? formData[field.name] : '';
+        return <input type="url" value={urlVal} onChange={e => handleChange(field.name, e.target.value)} placeholder="https://..." className={inputClass} />;
 
       case 'table': {
-        const tableVal: string[][] = formData[field.name] || [['', ''], ['', '']];
+        const rawVal = formData[field.name];
+        const tableVal: string[][] = Array.isArray(rawVal) ? rawVal : [['', ''], ['', '']];
         return (
           <div className="space-y-3">
             <div className="border border-gray-300 dark:border-neutral-700 rounded-xl overflow-hidden">
@@ -223,7 +226,8 @@ export function ProductEditor({
       }
 
       case 'button': {
-        const btnVal = formData[field.name] || { label: '', url: '' };
+        const rawVal = formData[field.name];
+        const btnVal = (typeof rawVal === 'object' && rawVal !== null && !Array.isArray(rawVal)) ? rawVal : { label: '', url: '' };
         return (
           <div className="flex items-center gap-3">
             <input type="text" value={btnVal.label} onChange={e => handleChange(field.name, { ...btnVal, label: e.target.value })} placeholder="Texto do Botão" className={inputClass} />
@@ -233,7 +237,8 @@ export function ProductEditor({
       }
 
       case 'toggle': {
-        const togVal = formData[field.name] ?? false;
+        const rawVal = formData[field.name];
+        const togVal = typeof rawVal === 'boolean' ? rawVal : false;
         return (
           <div className="flex items-center gap-3">
             <button type="button" onClick={() => handleChange(field.name, !togVal)}
@@ -247,8 +252,10 @@ export function ProductEditor({
 
       case 'select': {
         const opts: string[] = field.options || [];
+        const rawVal = formData[field.name];
+        const selVal = typeof rawVal === 'string' ? rawVal : '';
         return (
-          <select value={formData[field.name] || ''} onChange={e => handleChange(field.name, e.target.value)} className={`${inputClass} cursor-pointer`}>
+          <select value={selVal} onChange={e => handleChange(field.name, e.target.value)} className={`${inputClass} cursor-pointer`}>
             <option value="">Selecione uma opção...</option>
             {opts.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
           </select>
@@ -257,7 +264,8 @@ export function ProductEditor({
 
       case 'multiselect': {
         const opts: string[] = field.options || [];
-        const multiVal: string[] = formData[field.name] || [];
+        const rawVal = formData[field.name];
+        const multiVal: string[] = Array.isArray(rawVal) ? rawVal : [];
         const toggleOpt = (opt: string) => {
           handleChange(field.name, multiVal.includes(opt) ? multiVal.filter((v: string) => v !== opt) : [...multiVal, opt]);
         };

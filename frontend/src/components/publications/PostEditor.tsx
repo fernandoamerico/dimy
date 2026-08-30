@@ -130,21 +130,24 @@ export function PostEditor({
           </div>
         );
 
-      case 'gallery':
-        const galleryVal: string[] = formData[field.name] || [];
+      case 'gallery': {
+        const rawVal = formData[field.name];
+        const galleryVal = Array.isArray(rawVal) ? rawVal : [];
         return (
           <GalleryBlockEditor
             urls={galleryVal}
             onChange={(urls) => handleChange(field.name, urls)}
           />
         );
+      }
 
       case 'url':
         return <input type="url" value={formData[field.name] || ''} onChange={e => handleChange(field.name, e.target.value)}
           placeholder="https://exemplo.com" className={inputClass} />;
 
-      case 'table':
-        const tableVal: string[][] = formData[field.name] || [['', ''], ['', '']];
+      case 'table': {
+        const rawVal = formData[field.name];
+        const tableVal = Array.isArray(rawVal) ? rawVal : [['', ''], ['', '']];
         return (
           <div className="space-y-3">
             <div className="dark:border dark:border-neutral-700 rounded-xl overflow-hidden dark:shadow-sm bg-white dark:bg-neutral-900">
@@ -179,8 +182,9 @@ export function PostEditor({
           </div>
         );
 
-      case 'button':
-        const btnVal = formData[field.name] || { label: '', url: '' };
+      case 'button': {
+        const rawVal = formData[field.name];
+        const btnVal = (typeof rawVal === 'object' && rawVal !== null && !Array.isArray(rawVal)) ? rawVal : { label: '', url: '' };
         return (
           <div className="flex items-center gap-3">
             <input type="text" value={btnVal.label} onChange={e => handleChange(field.name, { ...btnVal, label: e.target.value })}
@@ -191,7 +195,8 @@ export function PostEditor({
         );
 
       case 'toggle': {
-        const togVal = formData[field.name] ?? false;
+        const rawVal = formData[field.name];
+        const togVal = typeof rawVal === 'boolean' ? rawVal : false;
         return (
           <div className="flex items-center gap-3">
             <button
@@ -214,7 +219,8 @@ export function PostEditor({
 
       case 'select': {
         const opts: string[] = field.options || [];
-        const selVal = formData[field.name] || '';
+        const rawVal = formData[field.name];
+        const selVal = typeof rawVal === 'string' ? rawVal : '';
         return (
           <select
             value={selVal}
@@ -231,7 +237,8 @@ export function PostEditor({
 
       case 'multiselect': {
         const opts: string[] = field.options || [];
-        const multiVal: string[] = formData[field.name] || [];
+        const rawVal = formData[field.name];
+        const multiVal: string[] = Array.isArray(rawVal) ? rawVal : [];
         const toggleOpt = (opt: string) => {
           const newVal = multiVal.includes(opt)
             ? multiVal.filter((v: string) => v !== opt)
