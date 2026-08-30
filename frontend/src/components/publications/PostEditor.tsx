@@ -181,6 +181,7 @@ export function PostEditor({
             </div>
           </div>
         );
+      }
 
       case 'button': {
         const rawVal = formData[field.name];
@@ -193,6 +194,7 @@ export function PostEditor({
               placeholder="URL de Destino" className={inputClass} />
           </div>
         );
+      }
 
       case 'toggle': {
         const rawVal = formData[field.name];
