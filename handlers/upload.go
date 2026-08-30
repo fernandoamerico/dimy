@@ -328,3 +328,109 @@ func TestSupabaseConnectionHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Conexão bem-sucedida!"))
 }
+
+func DeleteFromSupabase(filename string) error {
+	var supabaseUrl, supabaseKey, bucketName string
+
+	rows, err := db.Instance.Query(`
+		SELECT key, value FROM system_configs 
+		WHERE key IN ('supabase_storage_url', 'supabase_storage_key', 'supabase_storage_bucket')
+	`)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var k, v string
+		rows.Scan(&k, &v)
+		switch k {
+		case "supabase_storage_url":
+			supabaseUrl = v
+		case "supabase_storage_key":
+			supabaseKey = v
+		case "supabase_storage_bucket":
+			bucketName = v
+		}
+	}
+
+	if supabaseUrl == "" || supabaseKey == "" || bucketName == "" {
+		return fmt.Errorf("Supabase Storage não configurado")
+	}
+
+	supabaseUrl = strings.TrimRight(supabaseUrl, "/")
+	deleteUrl := fmt.Sprintf("%s/storage/v1/object/%s/%s", supabaseUrl, bucketName, filename)
+
+	req, err := http.NewRequest("DELETE", deleteUrl, nil)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+supabaseKey)
+
+	client := &http.Client{Timeout: 15 * time.Second}
+	res, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode >= 400 {
+		return fmt.Errorf("Erro ao deletar: status %d", res.StatusCode)
+	}
+	return nil
+}
+
+func DeleteFromR2(ctx context.Context, filename string) error {
+	var accountId, accessKey, secretKey, bucketName string
+
+	rows, err := db.Instance.Query(`
+		SELECT key, value FROM system_configs 
+		WHERE key IN ('r2_account_id', 'r2_access_key', 'r2_secret_key', 'r2_bucket')
+	`)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var k, v string
+		rows.Scan(&k, &v)
+		switch k {
+		case "r2_account_id":
+			accountId = v
+		case "r2_access_key":
+			accessKey = v
+		case "r2_secret_key":
+			secretKey = v
+		case "r2_bucket":
+			bucketName = v
+		}
+	}
+
+	if accountId == "" || accessKey == "" || secretKey == "" || bucketName == "" {
+		return fmt.Errorf("R2 não configurado")
+	}
+
+	r2Resolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+		return aws.Endpoint{
+			URL: fmt.Sprintf("https://%s.r2.cloudflarestorage.com", accountId),
+		}, nil
+	})
+
+	cfg, err := config.LoadDefaultConfig(ctx,
+		config.WithEndpointResolverWithOptions(r2Resolver),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(accessKey, secretKey, "")),
+		config.WithRegion("auto"),
+	)
+	if err != nil {
+		return err
+	}
+
+	client := s3.NewFromConfig(cfg)
+	_, err = client.DeleteObject(ctx, &s3.DeleteObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(filename),
+	})
+	return err
+}

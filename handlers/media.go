@@ -145,14 +145,16 @@ func DeleteMediaHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var url string
-	err := db.Instance.QueryRow("SELECT url FROM media_files WHERE id = $1", id).Scan(&url)
+	var url, filename string
+	err := db.Instance.QueryRow("SELECT url, filename FROM media_files WHERE id = $1", id).Scan(&url, &filename)
 	if err == nil {
 		if strings.HasPrefix(url, "/uploads/") {
-			filename := strings.TrimPrefix(url, "/uploads/")
-			os.Remove(filepath.Join("./frontend/public/uploads", filename))
+			localFilename := strings.TrimPrefix(url, "/uploads/")
+			os.Remove(filepath.Join("./frontend/public/uploads", localFilename))
+		} else {
+			DeleteFromSupabase(filename)
+			DeleteFromR2(r.Context(), filename)
 		}
-		// Notice: R2 and Supabase object physical deletion omitted for simplicity 
 	}
 
 	_, err = db.Instance.Exec("DELETE FROM media_files WHERE id = $1", id)
