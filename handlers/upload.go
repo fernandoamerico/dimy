@@ -95,7 +95,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	mediaID := uuid.New().String()
 	_, errDb := db.Instance.Exec(`INSERT INTO media_files 
 		(id, name, filename, url, size, mime_type, dimensions, alt, comment) 
-		VALUES (?, ?, ?, ?, ?, ?, ?, '', '')`,
+		VALUES ($1, $2, $3, $4, $5, $6, $7, '', '')`,
 		mediaID, header.Filename, filename, fileURL, fileSize, mimeType, dimensions)
 	if errDb != nil {
 		fmt.Println("Warning: Failed to save media_files record:", errDb)

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -46,11 +47,13 @@ func ListMediaHandler(w http.ResponseWriter, r *http.Request) {
 
 	query := "SELECT id, name, filename, url, size, mime_type, dimensions, alt, comment, created_at, updated_at FROM media_files WHERE 1=1"
 	var args []interface{}
+	paramIndex := 1
 
 	if search != "" {
-		query += " AND (name LIKE ? OR filename LIKE ?)"
+		query += fmt.Sprintf(" AND (LOWER(name) LIKE LOWER($%d) OR LOWER(filename) LIKE LOWER($%d))", paramIndex, paramIndex+1)
 		likeStr := "%" + search + "%"
 		args = append(args, likeStr, likeStr)
+		paramIndex += 2
 	}
 
 	if mimeType != "" && mimeType != "all" {
@@ -59,12 +62,13 @@ func ListMediaHandler(w http.ResponseWriter, r *http.Request) {
 		} else if mimeType == "document" {
 			query += " AND (mime_type LIKE 'application/pdf' OR mime_type LIKE 'application/msword' OR mime_type LIKE 'application/vnd.%')"
 		} else {
-			query += " AND mime_type = ?"
+			query += fmt.Sprintf(" AND mime_type = $%d", paramIndex)
 			args = append(args, mimeType)
+			paramIndex++
 		}
 	}
 
-	query += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
+	query += fmt.Sprintf(" ORDER BY created_at DESC LIMIT $%d OFFSET $%d", paramIndex, paramIndex+1)
 	args = append(args, limit, offset)
 
 	rows, err := db.Instance.Query(query, args...)
@@ -124,7 +128,7 @@ func UpdateMediaHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := db.Instance.Exec("UPDATE media_files SET alt = ?, comment = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", req.Alt, req.Comment, id)
+	_, err := db.Instance.Exec("UPDATE media_files SET alt = $1, comment = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3", req.Alt, req.Comment, id)
 	if err != nil {
 		http.Error(w, "Failed to update media", http.StatusInternalServerError)
 		return
@@ -142,7 +146,7 @@ func DeleteMediaHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var url string
-	err := db.Instance.QueryRow("SELECT url FROM media_files WHERE id = ?", id).Scan(&url)
+	err := db.Instance.QueryRow("SELECT url FROM media_files WHERE id = $1", id).Scan(&url)
 	if err == nil {
 		if strings.HasPrefix(url, "/uploads/") {
 			filename := strings.TrimPrefix(url, "/uploads/")
@@ -151,7 +155,7 @@ func DeleteMediaHandler(w http.ResponseWriter, r *http.Request) {
 		// Notice: R2 and Supabase object physical deletion omitted for simplicity 
 	}
 
-	_, err = db.Instance.Exec("DELETE FROM media_files WHERE id = ?", id)
+	_, err = db.Instance.Exec("DELETE FROM media_files WHERE id = $1", id)
 	if err != nil {
 		http.Error(w, "Failed to delete media", http.StatusInternalServerError)
 		return
