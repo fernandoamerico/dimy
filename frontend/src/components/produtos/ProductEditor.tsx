@@ -174,11 +174,6 @@ export function ProductEditor({
         return (
           <div className="space-y-3">
             <ImageUploader value={formData[field.name] || ''} onChange={url => handleChange(field.name, url)} placeholder="URL ou Upload" />
-            {formData[field.name] && (
-              <div className="w-full h-48 rounded-xl border border-gray-200 dark:border-neutral-800 overflow-hidden">
-                <img src={formData[field.name]} alt="" className="w-full h-full object-cover" />
-              </div>
-            )}
           </div>
         );
 
@@ -209,7 +204,7 @@ export function ProductEditor({
                     <tr key={ri} className="border-b border-gray-300 dark:border-neutral-700 last:border-b-0">
                       {row.map((col: string, ci: number) => (
                         <td key={ci} className="p-0 border-r border-gray-300 dark:border-neutral-700 last:border-r-0">
-                          <input type="text" value={col} onChange={e => { const t = tableVal.map((r: string[]) => [...r]); t[ri][ci] = e.target.value; handleChange(field.name, t); }} className="w-full px-4 py-2.5 bg-transparent focus:outline-none focus:bg-blue-50/50 dark:focus:bg-emerald-500/10 text-gray-900 dark:text-white text-sm" />
+                          <input type="text" value={col} onChange={e => { const t = tableVal.map((r: string[]) => [...r]); t[ri]![ci] = e.target.value; handleChange(field.name, t); }} className="w-full px-4 py-2.5 bg-transparent focus:outline-none focus:bg-blue-50/50 dark:focus:bg-emerald-500/10 text-gray-900 dark:text-white text-sm" />
                         </td>
                       ))}
                       <td className="p-1 w-10 text-center"><button onClick={() => { if (tableVal.length > 1) handleChange(field.name, tableVal.filter((_: any, i: number) => i !== ri)); }} className="p-1 text-red-400 hover:text-red-600 rounded disabled:opacity-30" disabled={tableVal.length <= 1}><Trash2 className="w-3.5 h-3.5" /></button></td>
@@ -346,11 +341,6 @@ export function ProductEditor({
               <label className="text-sm font-semibold text-gray-900 dark:text-white block mb-2">Imagem Principal</label>
               <div className="space-y-3">
                 <ImageUploader value={mainImage} onChange={setMainImage} placeholder="URL ou Upload da Imagem Principal" />
-                {mainImage && (
-                  <div className="w-full h-56 rounded-xl border border-gray-200 dark:border-neutral-800 overflow-hidden bg-gray-50 dark:bg-neutral-950">
-                    <img src={mainImage} alt="" className="w-full h-full object-contain" />
-                  </div>
-                )}
               </div>
             </div>
           </div>

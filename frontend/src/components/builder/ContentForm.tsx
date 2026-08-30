@@ -1,23 +1,28 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createDocument, updateDocument } from '@/core/content/actions';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, Trash2, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { toast } from 'sonner';
+import { ImageUploader } from '@/components/ui/ImageUploader';
 
 export function ContentForm({ 
   collection, 
   initialData = {}, 
-  documentId = null 
+  documentId = null,
+  backUrl
 }: { 
   collection: any, 
   initialData?: any,
-  documentId?: string | null 
+  documentId?: string | null,
+  backUrl?: string
 }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<Record<string, any>>(initialData);
+  
+  const resolvedBackUrl = backUrl || `/content/list?slug=${collection.slug}`;
 
   const handleChange = (fieldName: string, value: any) => {
     setFormData(prev => ({ ...prev, [fieldName]: value }));
@@ -36,7 +41,7 @@ export function ContentForm({
 
     if (result.success) {
       toast.success('Conteúdo salvo com sucesso!');
-      router.push(`/content/list?slug=${collection.slug}`);
+      router.push(resolvedBackUrl);
     } else {
       toast.error('Erro ao salvar: ' + result.error);
       setIsSubmitting(false);
@@ -47,7 +52,7 @@ export function ContentForm({
     <PageContainer>
       <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
         <div className="flex items-center gap-4">
-          <Link href={`/content/list?slug=${collection.slug}`} className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors">
+          <Link href={resolvedBackUrl} className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
@@ -114,19 +119,11 @@ export function ContentForm({
                 
                 {field.type === 'image' && (
                   <div className="flex flex-col gap-3">
-                    <input 
-                      type="url" 
-                      placeholder="URL da Imagem (Ex: https://...)"
+                    <ImageUploader 
                       value={formData[field.name] || ''}
-                      onChange={(e) => handleChange(field.name, e.target.value)}
-                      required={field.required}
-                      className="w-full px-4 py-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 text-gray-900 dark:text-white transition-shadow"
+                      onChange={(url) => handleChange(field.name, url)}
+                      placeholder="Imagem"
                     />
-                    {formData[field.name] && (
-                      <div className="mt-2 w-32 h-32 rounded-xl border border-gray-200 dark:border-neutral-800 overflow-hidden bg-gray-50 dark:bg-neutral-950 flex items-center justify-center">
-                        <img src={formData[field.name]} alt="Preview" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = 'none')} />
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
@@ -159,7 +156,7 @@ export function ContentForm({
               )}
             </button>
           </div>
-        </form>
+      </form>
       </div>
     </PageContainer>
   );

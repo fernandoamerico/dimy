@@ -119,15 +119,6 @@ export function PostEditor({
               onChange={url => handleChange(field.name, url)} 
               placeholder="URL ou Upload da Imagem"
             />
-            {formData[field.name] ? (
-              <div className="w-full h-48 rounded-xl border border-gray-200 dark:border-neutral-800 overflow-hidden bg-gray-50 dark:bg-neutral-950">
-                <img src={formData[field.name]} alt="Preview" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} />
-              </div>
-            ) : (
-              <div className="w-full h-24 rounded-xl border border-dashed border-gray-300 dark:border-neutral-700 bg-gray-50/50 dark:bg-neutral-950/50 flex flex-col items-center justify-center text-gray-400">
-                <ImageIcon className="w-6 h-6 mb-2 opacity-50" /><span className="text-xs">Insira uma URL ou faça upload</span>
-              </div>
-            )}
           </div>
         );
 
@@ -159,7 +150,7 @@ export function PostEditor({
                       {row.map((col: string, ci: number) => (
                         <td key={ci} className="p-0 border-r border-gray-300 dark:border-neutral-700 last:border-r-0 relative">
                           <input type="text" value={col}
-                            onChange={e => { const t = tableVal.map((r: string[]) => [...r]); t[ri][ci] = e.target.value; handleChange(field.name, t); }}
+                            onChange={e => { const t = tableVal.map((r: string[]) => [...r]); t[ri]![ci] = e.target.value; handleChange(field.name, t); }}
                             className="w-full px-4 py-2.5 bg-transparent focus:outline-none focus:bg-blue-50/50 dark:focus:bg-emerald-500/10 hover:bg-gray-50 dark:hover:bg-neutral-800 text-gray-900 dark:text-white text-sm transition-colors" />
                         </td>
                       ))}
@@ -374,13 +365,7 @@ export function PostEditor({
             <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><ImageIcon className="w-4 h-4 text-amber-500" /> Capa</h3>
               <div className="space-y-3">
-                <label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1">URL ou Arquivo da Capa</label>
-                <ImageUploader value={cover.image} onChange={url => setCover({ ...cover, image: url })} />
-                {cover.image && (
-                  <div className="w-full h-32 rounded-lg border border-gray-200 dark:border-neutral-800 overflow-hidden">
-                    <img src={cover.image} alt="Cover" className="w-full h-full object-cover" />
-                  </div>
-                )}
+                <ImageUploader value={cover.image} onChange={url => setCover({ ...cover, image: url })} layout="col" />
               </div>
             </div>
           )}

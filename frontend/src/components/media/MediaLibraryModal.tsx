@@ -248,13 +248,15 @@ export function MediaLibraryModal({
                   {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
                   Enviar Arquivo
                 </button>
-                <button
-                  onClick={() => { setIsMultiSelectMode(true); setSelectedFile(null); }}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${isModal ? 'bg-gray-100 hover:bg-gray-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-gray-700 dark:text-gray-200' : 'bg-white/60 dark:bg-neutral-800/60 backdrop-blur-md border border-white/40 dark:border-neutral-700/50 text-gray-700 dark:text-gray-200 hover:shadow-md'}`}
-                >
-                  <CheckSquare className="w-4 h-4" />
-                  Selecionar
-                </button>
+                {!isSelectionMode && (
+                  <button
+                    onClick={() => { setIsMultiSelectMode(true); setSelectedFile(null); }}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${isModal ? 'bg-gray-100 hover:bg-gray-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-gray-700 dark:text-gray-200' : 'bg-white/60 dark:bg-neutral-800/60 backdrop-blur-md border border-white/40 dark:border-neutral-700/50 text-gray-700 dark:text-gray-200 hover:shadow-md'}`}
+                  >
+                    <CheckSquare className="w-4 h-4" />
+                    Selecionar
+                  </button>
+                )}
               </div>
 
               <div className="flex-1 flex justify-end gap-3">

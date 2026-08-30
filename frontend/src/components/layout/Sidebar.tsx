@@ -63,7 +63,7 @@ export function Sidebar({
           const meta = JSON.parse(c.metadata);
           if (meta.is_product) return true; // Keep products visible by default (if they exist)
           
-          if ((meta.is_page || meta.is_publication) && !meta.show_in_sidebar) {
+          if ((meta.is_page || meta.is_publication || meta.is_banner) && !meta.show_in_sidebar) {
             return false;
           }
           if (meta.hide_from_sidebar) return false;
@@ -165,7 +165,11 @@ export function Sidebar({
               isActive = currentSlug === itemSlug;
             } else {
               // Item genérico (ex: /produtos). Fica ativo apenas se não estivermos dentro de uma coleção específica.
-              isActive = !!pathname?.startsWith(item.href) && !currentSlug;
+              if (item.href === '/banners') {
+                isActive = !!pathname?.startsWith('/banners');
+              } else {
+                isActive = !!pathname?.startsWith(item.href) && !currentSlug;
+              }
             }
             
             // Map icon string to Lucide component
