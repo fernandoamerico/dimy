@@ -6,6 +6,7 @@ import { updateDocument, createDocument } from '@/core/content/actions';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { ImageUploader } from '@/components/ui/ImageUploader';
 import { GalleryBlockEditor } from '@/components/ui/GalleryBlockEditor';
+import { WysiwygEditor } from '@/components/ui/WysiwygEditor';
 import { MediaLibraryModal } from '@/components/media/MediaLibraryModal';
 import { TagSelector } from '@/components/ui/TagSelector';
 import { toast } from 'sonner';
@@ -167,7 +168,7 @@ export function ProductEditor({
           placeholder={`Escreva...`} rows={6} className={`${inputClass} resize-y`} />;
 
       case 'wysiwyg':
-        return <div className={`${inputClass} h-32 flex items-center`}>Editor visual...</div>;
+        return <WysiwygEditor value={formData[field.name] || ''} onChange={val => handleChange(field.name, val)} />;
 
       case 'image':
         return (
