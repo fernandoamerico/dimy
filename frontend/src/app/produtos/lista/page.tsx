@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getCollectionBySlug, getDocuments, deleteDocument } from '@/core/content/actions';
 import { getCollections } from '@/core/schema/actions';
@@ -17,6 +18,7 @@ function ProductItemsContent() {
   const [allCategories, setAllCategories] = useState<any[]>([]);
   const [documents, setDocuments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteItem, setDeleteItem] = useState<{id: string, slug: string} | null>(null);
 
   const fetchContent = async () => {
     setLoading(true);
@@ -59,15 +61,8 @@ function ProductItemsContent() {
     fetchContent();
   }, [slug]);
 
-  const handleDelete = async (id: string, itemSlug: string) => {
-    if (!confirm('Deseja realmente excluir este produto?')) return;
-    const res = await deleteDocument(id, itemSlug);
-    if (res.success) {
-      toast.success('Produto excluído!');
-      fetchContent();
-    } else {
-      toast.error('Erro ao excluir produto.');
-    }
+  const handleDelete = (id: string, itemSlug: string) => {
+    setDeleteItem({ id, itemSlug });
   };
 
   if (loading) {
@@ -210,7 +205,7 @@ function ProductItemsContent() {
                         )}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center justify-end gap-2">
                           <Link href={`/produtos/item?slug=${itemSlug}&id=${doc.id}`}
                             className="p-2 text-blue-600 hover:bg-blue-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10 rounded-lg transition-colors">
                             <Edit2 className="w-4 h-4" />
@@ -229,6 +224,48 @@ function ProductItemsContent() {
           </div>
         )}
       </div>
+
+      {deleteItem && createPortal(
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/70 backdrop-blur-md">
+          <div className="w-full max-w-sm bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-neutral-800 animate-in zoom-in-95 duration-200">
+            <div className="p-6 text-center space-y-4">
+              <div className="w-16 h-16 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Trash2 className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                Excluir Produto?
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Tem certeza que deseja apagar permanentemente este produto? Esta ação não pode ser desfeita.
+              </p>
+            </div>
+            <div className="p-4 bg-gray-50 dark:bg-neutral-800/50 flex gap-3">
+              <button
+                onClick={() => setDeleteItem(null)}
+                className="flex-1 px-4 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-200 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  const res = await deleteDocument(deleteItem.id, deleteItem.slug);
+                  if (res.success) {
+                    toast.success('Produto excluído!');
+                    fetchContent();
+                  } else {
+                    toast.error('Erro ao excluir produto.');
+                  }
+                  setDeleteItem(null);
+                }}
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors"
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </DashboardLayout>
   );
 }

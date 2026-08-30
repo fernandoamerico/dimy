@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, FileText, Loader2 } from 'lucide-react';
 import { createCollection } from '@/core/schema/actions';
 import { useRouter } from 'next/navigation';
@@ -68,8 +69,8 @@ export default function CreatePageModal({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+  return createPortal(
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/70 backdrop-blur-md">
       <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-neutral-800">
         <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-neutral-800">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
@@ -169,6 +170,7 @@ export default function CreatePageModal({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation';
 import { updateDocument, createDocument } from '@/core/content/actions';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { ImageUploader } from '@/components/ui/ImageUploader';
+import { GalleryBlockEditor } from '@/components/ui/GalleryBlockEditor';
+import { MediaLibraryModal } from '@/components/media/MediaLibraryModal';
 import { 
   ArrowLeft, Type, Image as ImageIcon, 
-  List, MousePointerClick, Save, Trash2, Plus, Settings
+  List, MousePointerClick, Save, Trash2, Plus, Settings, Library
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -26,6 +28,7 @@ export function PostEditor({
 
   // Initialize data
   const [formData, setFormData] = useState<Record<string, any>>(document?.data || {});
+  const [galleryLibraryOpenFor, setGalleryLibraryOpenFor] = useState<string | null>(null);
   
   // Publication metadata defaults
   const [title, setTitle] = useState(formData._title || '');
@@ -130,22 +133,10 @@ export function PostEditor({
       case 'gallery':
         const galleryVal: string[] = formData[field.name] || [];
         return (
-          <div className="space-y-3">
-            {galleryVal.map((url: string, i: number) => (
-              <div key={i} className="flex items-center gap-2">
-                <ImageUploader 
-                  value={url} 
-                  onChange={newUrl => { const arr = [...galleryVal]; arr[i] = newUrl; handleChange(field.name, arr); }}
-                  placeholder={`Imagem ${i + 1}...`}
-                  className="flex-1"
-                />
-                <button onClick={() => { const arr = galleryVal.filter((_: string, j: number) => j !== i); handleChange(field.name, arr); }}
-                  className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg"><Trash2 className="w-4 h-4" /></button>
-              </div>
-            ))}
-            <button onClick={() => handleChange(field.name, [...galleryVal, ''])}
-              className="text-sm text-blue-600 dark:text-emerald-400 hover:underline flex items-center gap-1"><Plus className="w-3.5 h-3.5" /> Adicionar imagem</button>
-          </div>
+          <GalleryBlockEditor
+            urls={galleryVal}
+            onChange={(urls) => handleChange(field.name, urls)}
+          />
         );
 
       case 'url':

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { AlertTriangle, Trash2, X, RefreshCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import { getDocuments, deleteDocument, updateDocument } from '@/core/content/actions';
@@ -88,8 +89,8 @@ export function DeleteCategoryModal({ isOpen, onClose, category, allCategories, 
     }
   };
 
-  return (
-    <div className="fixed inset-0 bg-gray-900/40 dark:bg-neutral-900/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+  return createPortal(
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
       <div className="bg-white dark:bg-neutral-900 rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl border border-gray-100 dark:border-neutral-800 relative animate-in slide-in-from-bottom-4 duration-300">
         <button 
           onClick={onClose}
@@ -198,6 +199,7 @@ export function DeleteCategoryModal({ isOpen, onClose, category, allCategories, 
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

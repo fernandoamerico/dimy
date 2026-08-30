@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation';
 import { updateDocument, createDocument } from '@/core/content/actions';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { ImageUploader } from '@/components/ui/ImageUploader';
+import { GalleryBlockEditor } from '@/components/ui/GalleryBlockEditor';
+import { MediaLibraryModal } from '@/components/media/MediaLibraryModal';
 import { TagSelector } from '@/components/ui/TagSelector';
 import { toast } from 'sonner';
 import {
   ArrowLeft, Image as ImageIcon, List, MousePointerClick,
   Save, Trash2, Plus, Settings, DollarSign, Barcode, Scale,
-  Layers, ChevronDown, GripVertical, X, AlertCircle, CheckSquare, ListChecks, ToggleLeft
+  Layers, ChevronDown, GripVertical, X, AlertCircle, CheckSquare, ListChecks, ToggleLeft, Library
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -46,6 +48,7 @@ export function ProductEditor({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState<Record<string, any>>(document?.data || {});
+  const [galleryLibraryOpenFor, setGalleryLibraryOpenFor] = useState<string | null>(null);
 
   // Basic fields
   const [title, setTitle] = useState(formData._title || '');
@@ -138,7 +141,7 @@ export function ProductEditor({
       const res = await createDocument(collection.id, collection.slug, dataToSave);
       if (res.success) {
         toast.success('Produto criado!');
-        router.push(`/produtos`);
+        router.push(`/produtos/lista?slug=${collection.slug}`);
         router.refresh();
       } else { toast.error(res.error || 'Erro ao criar produto.'); }
     } else {
@@ -181,15 +184,10 @@ export function ProductEditor({
       case 'gallery': {
         const galleryVal: string[] = formData[field.name] || [];
         return (
-          <div className="space-y-3">
-            {galleryVal.map((url: string, i: number) => (
-              <div key={i} className="flex items-center gap-2">
-                <ImageUploader value={url} onChange={newUrl => { const a = [...galleryVal]; a[i] = newUrl; handleChange(field.name, a); }} placeholder={`Imagem ${i + 1}`} className="flex-1" />
-                <button onClick={() => handleChange(field.name, galleryVal.filter((_: string, j: number) => j !== i))} className="p-2 text-red-400 hover:text-red-600 rounded-lg"><Trash2 className="w-4 h-4" /></button>
-              </div>
-            ))}
-            <button onClick={() => handleChange(field.name, [...galleryVal, ''])} className="text-sm text-blue-600 dark:text-emerald-400 hover:underline flex items-center gap-1"><Plus className="w-3.5 h-3.5" /> Adicionar imagem</button>
-          </div>
+          <GalleryBlockEditor
+            urls={galleryVal}
+            onChange={(urls) => handleChange(field.name, urls)}
+          />
         );
       }
 
@@ -288,7 +286,7 @@ export function ProductEditor({
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Link href="/produtos" className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors">
+          <Link href={`/produtos/lista?slug=${collection.slug}`} className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { updateCollection } from '@/core/schema/actions';
 import { 
@@ -765,8 +766,8 @@ export function UniversalBuilder({
       </div>
 
       {/* Delete Confirmation Modal */}
-      {fieldToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+      {fieldToDelete && createPortal(
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/70 backdrop-blur-md">
           <div className="w-full max-w-sm bg-white dark:bg-neutral-900 rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-neutral-800 animate-in zoom-in-95 duration-200">
             <div className="p-6 text-center space-y-4">
               <div className="w-12 h-12 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4"><Trash2 className="w-6 h-6" /></div>
@@ -784,7 +785,8 @@ export function UniversalBuilder({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </PageContainer>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getCollectionBySlug, getDocuments, deleteDocument } from '@/core/content/actions';
 import { getCollections } from '@/core/schema/actions';
@@ -19,6 +20,7 @@ function PublicationItemsContent() {
   const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
+  const [deleteItem, setDeleteItem] = useState<{ type: 'single' | 'bulk', id?: string } | null>(null);
 
   // Filtros e Paginação
   const [searchQuery, setSearchQuery] = useState('');
@@ -92,32 +94,16 @@ function PublicationItemsContent() {
     );
   };
 
-  const handleBulkDelete = async () => {
-    if (!confirm(`Deseja realmente excluir ${selectedDocs.length} publicação(ões)?`)) return;
-    
-    try {
-      await Promise.all(selectedDocs.map(id => deleteDocument(id, collection.slug)));
-      toast.success(`${selectedDocs.length} publicações excluídas!`);
-      setSelectedDocs([]);
-      fetchContent();
-    } catch (error) {
-      toast.error('Erro ao excluir algumas publicações.');
-    }
+  const handleBulkDelete = () => {
+    setDeleteItem({ type: 'bulk' });
   };
 
   const handleCreatePost = () => {
     router.push(`/publicacoes/item?slug=${collection?.slug}&id=nova`);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Deseja realmente excluir esta publicação?')) return;
-    const res = await deleteDocument(id, collection.slug);
-    if (res.success) {
-      toast.success('Publicação excluída!');
-      fetchContent();
-    } else {
-      toast.error('Erro ao excluir publicação.');
-    }
+  const handleDelete = (id: string) => {
+    setDeleteItem({ type: 'single', id });
   };
 
   if (loading) {
@@ -361,6 +347,55 @@ function PublicationItemsContent() {
           allCategories={allCategories}
           onSuccess={() => router.push('/publicacoes')}
         />
+
+        {deleteItem && createPortal(
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/70 backdrop-blur-md">
+            <div className="w-full max-w-sm bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-neutral-800 animate-in zoom-in-95 duration-200">
+              <div className="p-6 text-center space-y-4">
+                <div className="w-16 h-16 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Trash2 className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Excluir {deleteItem.type === 'bulk' ? 'Publicações' : 'Publicação'}?
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Tem certeza que deseja apagar permanentemente {deleteItem.type === 'bulk' ? `estas ${selectedDocs.length} publicações` : 'esta publicação'}? Esta ação não pode ser desfeita.
+                </p>
+              </div>
+              <div className="p-4 bg-gray-50 dark:bg-neutral-800/50 flex gap-3">
+                <button
+                  onClick={() => setDeleteItem(null)}
+                  className="flex-1 px-4 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-200 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      if (deleteItem.type === 'bulk') {
+                        await Promise.all(selectedDocs.map(id => deleteDocument(id, collection.slug)));
+                        toast.success(`${selectedDocs.length} publicações excluídas!`);
+                        setSelectedDocs([]);
+                      } else if (deleteItem.id) {
+                        const res = await deleteDocument(deleteItem.id, collection.slug);
+                        if (res.success) toast.success('Publicação excluída!');
+                        else toast.error('Erro ao excluir publicação.');
+                      }
+                      fetchContent();
+                    } catch (error) {
+                      toast.error('Erro ao excluir.');
+                    }
+                    setDeleteItem(null);
+                  }}
+                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors"
+                >
+                  Excluir
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
       </div>
     </DashboardLayout>
   );

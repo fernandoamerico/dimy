@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { updateDocument } from '@/core/content/actions';
 import { updateCollection } from '@/core/schema/actions';
@@ -8,11 +9,13 @@ import {
   ArrowLeft, Save, Plus, Type, Image as ImageIcon, AlignLeft, Settings,
   Trash2, Code, Copy, Check, ChevronDown, ChevronUp, ArrowUp, ArrowDown,
   Link2, Images, Table, MousePointerClick, FileEdit, Search, Paintbrush,
-  FileCode, Power, Globe, ImagePlus, Bold, Italic, Underline, Strikethrough, List, ListOrdered
+  FileCode, Power, Globe, ImagePlus, Bold, Italic, Underline, Strikethrough, List, ListOrdered, Library
 } from 'lucide-react';
 import Link from 'next/link';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { ImageUploader } from '@/components/ui/ImageUploader';
+import { GalleryBlockEditor } from '@/components/ui/GalleryBlockEditor';
+import { MediaLibraryModal } from '@/components/media/MediaLibraryModal';
 import { toast } from 'sonner';
 
 // ─── Block Type Definitions ─────────────────────────────────────────────────
@@ -162,6 +165,10 @@ export function PageBuilder({
   const [collectionName, setCollectionName] = useState(collection.name);
 
   const [formData, setFormData] = useState<Record<string, any>>(pageDoc?.data || {});
+  const [activeTab, setActiveTab] = useState<'content' | 'settings' | 'seo'>('content');
+
+  const [galleryLibraryOpenFor, setGalleryLibraryOpenFor] = useState<string | null>(null);
+
   const [fields, setFields] = useState<any[]>(collection.fields || []);
 
   // Metadata states
@@ -471,22 +478,10 @@ export function PageBuilder({
       case 'gallery':
         const galleryVal: string[] = formData[field.name] || [];
         return (
-          <div className="space-y-3">
-            {galleryVal.map((url: string, i: number) => (
-              <div key={i} className="flex items-center gap-2">
-                <ImageUploader 
-                  value={url} 
-                  onChange={newUrl => { const arr = [...galleryVal]; arr[i] = newUrl; handleChange(field.name, arr); }}
-                  placeholder={`Imagem ${i + 1}...`}
-                  className="flex-1"
-                />
-                <button onClick={() => { const arr = galleryVal.filter((_: string, j: number) => j !== i); handleChange(field.name, arr); }}
-                  className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg"><Trash2 className="w-4 h-4" /></button>
-              </div>
-            ))}
-            <button onClick={() => handleChange(field.name, [...galleryVal, ''])}
-              className="text-sm text-blue-600 dark:text-emerald-400 hover:underline flex items-center gap-1"><Plus className="w-3.5 h-3.5" /> Adicionar imagem</button>
-          </div>
+          <GalleryBlockEditor
+            urls={galleryVal}
+            onChange={(urls) => handleChange(field.name, urls)}
+          />
         );
 
       case 'url':
@@ -818,8 +813,8 @@ export function PageBuilder({
       </div>
 
       {/* Delete Confirmation Modal */}
-      {fieldToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+      {fieldToDelete && createPortal(
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/70 backdrop-blur-md">
           <div className="w-full max-w-sm bg-white dark:bg-neutral-900 rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-neutral-800 animate-in zoom-in-95 duration-200">
             <div className="p-6 text-center space-y-4">
               <div className="w-12 h-12 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4"><Trash2 className="w-6 h-6" /></div>
@@ -837,7 +832,8 @@ export function PageBuilder({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </PageContainer>
   );
