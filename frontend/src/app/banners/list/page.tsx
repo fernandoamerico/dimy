@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getCollectionBySlug, getDocuments, deleteDocument } from '@/core/content/actions';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Plus, Settings, Images, ArrowLeft, Trash2, Edit2, Search, ImageIcon } from 'lucide-react';
+import { Plus, Settings, Images, ArrowLeft, Trash2, Edit2, Search, ImageIcon, X } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
@@ -15,6 +15,7 @@ function BannerItemsContent() {
   const [collection, setCollection] = useState<any>(null);
   const [documents, setDocuments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const fetchContent = async () => {
     setLoading(true);
@@ -131,13 +132,17 @@ function BannerItemsContent() {
                     return (
                       <tr key={doc.id} className="hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors group">
                         <td className="px-6 py-3">
-                          <div className="w-16 h-12 bg-gray-100 dark:bg-neutral-800 rounded-lg overflow-hidden flex items-center justify-center">
-                            {data.image ? (
-                              <img src={data.image} alt={data.title} className="w-full h-full object-cover" />
+                          <button 
+                            onClick={() => (data.image || data.imageUrl) && setSelectedImage(data.image || data.imageUrl)}
+                            className="w-16 h-12 bg-gray-100 dark:bg-neutral-800 rounded-lg overflow-hidden flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer"
+                            type="button"
+                          >
+                            {(data.image || data.imageUrl) ? (
+                              <img src={data.image || data.imageUrl} alt={data.title} className="w-full h-full object-cover" />
                             ) : (
                               <ImageIcon className="w-5 h-5 text-gray-400" />
                             )}
-                          </div>
+                          </button>
                         </td>
                         <td className="px-6 py-4">
                           <p className="font-semibold text-gray-900 dark:text-white truncate max-w-xs">
@@ -181,6 +186,22 @@ function BannerItemsContent() {
             </div>
           )}
         </div>
+        
+        {/* Image Popup Modal */}
+        {selectedImage && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200" onClick={() => setSelectedImage(null)}>
+            <div className="relative max-w-4xl max-h-[90vh] w-full flex items-center justify-center">
+              <button 
+                onClick={() => setSelectedImage(null)}
+                className="absolute -top-12 right-0 p-2 text-white/70 hover:text-white bg-black/50 hover:bg-black/80 rounded-full transition-colors"
+                title="Fechar"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <img src={selectedImage} alt="Preview" className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl" onClick={(e) => e.stopPropagation()} />
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
