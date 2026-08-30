@@ -3,10 +3,10 @@
 import { useEffect, useState, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getCollectionBySlug, getDocuments, deleteDocument } from '@/core/content/actions';
+import { getCollectionBySlug, getDocuments, deleteDocument, createDocument } from '@/core/content/actions';
 import { getCollections } from '@/core/schema/actions';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Plus, Settings, Package, ArrowLeft, Trash2, Edit2, Tags, X } from 'lucide-react';
+import { Plus, Settings, Package, ArrowLeft, Trash2, Edit2, Tags, X, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
@@ -41,7 +41,8 @@ function ProductItemsContent() {
       if (col) {
         setCollection(col);
         const docs = await getDocuments(col.id);
-        setDocuments(docs);
+        const docsWithCat = docs.map((d: any) => ({ ...d, _categoryName: col.name, _categorySlug: col.slug, _categoryId: col.id }));
+        setDocuments(docsWithCat);
       }
     } else if (productCategories.length > 0) {
       // Se não tem slug, pega todos os documentos de todas as categorias de produto
@@ -49,13 +50,38 @@ function ProductItemsContent() {
       for (const cat of productCategories) {
         const docs = await getDocuments(cat.id);
         // anexa a categoria para mostrar na tabela
-        const docsWithCat = docs.map((d: any) => ({ ...d, _categoryName: cat.name, _categorySlug: cat.slug }));
+        const docsWithCat = docs.map((d: any) => ({ ...d, _categoryName: cat.name, _categorySlug: cat.slug, _categoryId: cat.id }));
         allDocs = [...allDocs, ...docsWithCat];
       }
       setDocuments(allDocs);
     }
     
     setLoading(false);
+  };
+
+  const handleDuplicate = async (doc: any) => {
+    try {
+      const newData = { ...doc.data };
+      if (newData._title) {
+        newData._title = `${newData._title} (Cópia)`;
+      }
+      if (newData.title) {
+        newData.title = `${newData.title} (Cópia)`;
+      }
+      
+      const categoryId = collection ? collection.id : doc._categoryId;
+      const categorySlug = collection ? collection.slug : doc._categorySlug;
+      
+      const res = await createDocument(categoryId, categorySlug, newData);
+      if (res && res.success) {
+        toast.success('Produto duplicado com sucesso!');
+        fetchContent();
+      } else {
+        toast.error('Erro ao duplicar o produto.');
+      }
+    } catch (error) {
+      toast.error('Ocorreu um erro ao duplicar o produto.');
+    }
   };
 
   useEffect(() => {
@@ -213,12 +239,23 @@ function ProductItemsContent() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleDuplicate(doc)}
+                            className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-emerald-400 hover:bg-blue-50 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+                            title="Duplicar"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
                           <Link href={`/produtos/item?slug=${itemSlug}&id=${doc.id}`}
-                            className="p-2 text-blue-600 hover:bg-blue-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10 rounded-lg transition-colors">
+                            className="p-2 text-blue-600 hover:bg-blue-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10 rounded-lg transition-colors"
+                            title="Editar"
+                          >
                             <Edit2 className="w-4 h-4" />
                           </Link>
                           <button onClick={() => handleDelete(doc.id, itemSlug)}
-                            className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 rounded-lg transition-colors">
+                            className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                            title="Excluir"
+                          >
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>

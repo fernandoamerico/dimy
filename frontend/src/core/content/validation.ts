@@ -26,8 +26,7 @@ export function validateDocumentData(collection: any, data: any) {
       } else if (field.type === 'boolean') {
         validData[field.name] = Boolean(value);
       } else {
-        // text, richText, image, relation (treat all as strings mostly)
-        validData[field.name] = String(value);
+        validData[field.name] = typeof value === 'object' ? value : String(value);
       }
     }
   }

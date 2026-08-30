@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getCollectionBySlug, getDocuments, deleteDocument } from '@/core/content/actions';
+import { getCollectionBySlug, getDocuments, deleteDocument, createDocument } from '@/core/content/actions';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Plus, Settings, Images, ArrowLeft, Trash2, Edit2, Search, ImageIcon, X } from 'lucide-react';
+import { Plus, Settings, Images, ArrowLeft, Trash2, Edit2, Search, ImageIcon, X, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
@@ -16,6 +17,7 @@ function BannerItemsContent() {
   const [documents, setDocuments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [deleteItem, setDeleteItem] = useState<string | null>(null);
 
   const fetchContent = async () => {
     setLoading(true);
@@ -34,24 +36,31 @@ function BannerItemsContent() {
     fetchContent();
   }, [slug]);
 
+  const handleDuplicate = async (doc: any) => {
+    try {
+      const newData = { ...doc.data };
+      if (newData.title) {
+        newData.title = `${newData.title} (Cópia)`;
+      }
+      
+      const res = await createDocument(collection.id, collection.slug, newData);
+      if (res && res.success) {
+        toast.success('Item duplicado com sucesso!');
+        fetchContent();
+      } else {
+        toast.error('Erro ao duplicar o item.');
+      }
+    } catch (error) {
+      toast.error('Ocorreu um erro ao duplicar o item.');
+    }
+  };
+
   const handleCreatePost = () => {
     router.push(`/banners/item?slug=${collection?.slug}&id=nova`);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Deseja excluir este banner?')) return;
-    const toastId = toast.loading('Excluindo banner...');
-    try {
-      const res = await deleteDocument(id, slug);
-      if (res.success) {
-        toast.success('Banner excluído com sucesso!', { id: toastId });
-        setDocuments(prev => prev.filter(d => d.id !== id));
-      } else {
-        toast.error('Erro ao excluir: ' + res.error, { id: toastId });
-      }
-    } catch (err: any) {
-      toast.error('Erro de conexão.', { id: toastId });
-    }
+  const handleDelete = (id: string) => {
+    setDeleteItem(id);
   };
 
   if (loading) {
@@ -162,6 +171,13 @@ function BannerItemsContent() {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handleDuplicate(doc)}
+                              className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-emerald-400 hover:bg-blue-50 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+                              title="Duplicar"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </button>
                             <Link 
                               href={`/banners/item?slug=${collection.slug}&id=${doc.id}`}
                               className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-emerald-400 hover:bg-blue-50 dark:hover:bg-neutral-800 rounded-lg transition-colors"
@@ -186,6 +202,53 @@ function BannerItemsContent() {
             </div>
           )}
         </div>
+        
+        {deleteItem && createPortal(
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/70 backdrop-blur-md">
+            <div className="w-full max-w-sm bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-neutral-800 animate-in zoom-in-95 duration-200">
+              <div className="p-6 text-center space-y-4">
+                <div className="w-16 h-16 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Trash2 className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Excluir Banner?
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Tem certeza que deseja apagar permanentemente este banner? Esta ação não pode ser desfeita.
+                </p>
+              </div>
+              <div className="p-4 bg-gray-50 dark:bg-neutral-800/50 flex gap-3">
+                <button
+                  onClick={() => setDeleteItem(null)}
+                  className="flex-1 px-4 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-200 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={async () => {
+                    const toastId = toast.loading('Excluindo banner...');
+                    try {
+                      const res = await deleteDocument(deleteItem, slug);
+                      if (res.success) {
+                        toast.success('Banner excluído com sucesso!', { id: toastId });
+                        setDocuments(prev => prev.filter(d => d.id !== deleteItem));
+                      } else {
+                        toast.error('Erro ao excluir: ' + res.error, { id: toastId });
+                      }
+                    } catch (err: any) {
+                      toast.error('Erro de conexão.', { id: toastId });
+                    }
+                    setDeleteItem(null);
+                  }}
+                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors shadow-sm shadow-red-600/20"
+                >
+                  Excluir
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
         
         {/* Image Popup Modal */}
         {selectedImage && (

@@ -3,10 +3,10 @@
 import { useEffect, useState, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getCollectionBySlug, getDocuments, deleteDocument } from '@/core/content/actions';
+import { getCollectionBySlug, getDocuments, deleteDocument, createDocument } from '@/core/content/actions';
 import { getCollections } from '@/core/schema/actions';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Plus, Settings, FileText, ArrowLeft, Trash2, Edit2, Search, Filter, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Plus, Settings, FileText, ArrowLeft, Trash2, Edit2, Search, Filter, ChevronLeft, ChevronRight, X, Copy } from 'lucide-react';
 import { DeleteCategoryModal } from '@/components/publications/DeleteCategoryModal';
 import { toast } from 'sonner';
 import Link from 'next/link';
@@ -97,6 +97,31 @@ function PublicationItemsContent() {
 
   const handleBulkDelete = () => {
     setDeleteItem({ type: 'bulk' });
+  };
+
+  const handleDuplicate = async (doc: any) => {
+    try {
+      const newData = { ...doc.data };
+      if (newData._title) {
+        newData._title = `${newData._title} (Cópia)`;
+      }
+      if (newData.title) {
+        newData.title = `${newData.title} (Cópia)`;
+      }
+      if (newData.titulo) {
+        newData.titulo = `${newData.titulo} (Cópia)`;
+      }
+      
+      const res = await createDocument(collection.id, collection.slug, newData);
+      if (res && res.success) {
+        toast.success('Publicação duplicada com sucesso!');
+        fetchContent();
+      } else {
+        toast.error('Erro ao duplicar a publicação.');
+      }
+    } catch (error) {
+      toast.error('Ocorreu um erro ao duplicar a publicação.');
+    }
   };
 
   const handleCreatePost = () => {
@@ -291,12 +316,23 @@ function PublicationItemsContent() {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handleDuplicate(doc)}
+                              className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-emerald-400 hover:bg-blue-50 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+                              title="Duplicar"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </button>
                             <Link href={`/publicacoes/item?slug=${collection.slug}&id=${doc.id}`}
-                              className="p-2 text-blue-600 hover:bg-blue-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10 rounded-lg transition-colors">
+                              className="p-2 text-blue-600 hover:bg-blue-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10 rounded-lg transition-colors"
+                              title="Editar"
+                            >
                               <Edit2 className="w-4 h-4" />
                             </Link>
                             <button onClick={() => handleDelete(doc.id)}
-                              className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 rounded-lg transition-colors">
+                              className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                              title="Excluir"
+                            >
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
