@@ -6,8 +6,7 @@ import {
   Hash,
   CalendarDays,
   Users,
-  Newspaper,
-  Key
+  Newspaper
 } from 'lucide-react';
 
 /**
@@ -22,7 +21,6 @@ export const dimyConfig = {
     { name: 'Visão Geral', href: '/', icon: LayoutDashboard },
     { name: 'Publicações', href: '/publicacoes', icon: Newspaper },
     { name: 'Configurações', href: '/configuracoes', icon: Settings },
-    { name: 'Chaves de API', href: '/api-keys', icon: Key },
   ],
   
   // Future integrations configs can be added here...

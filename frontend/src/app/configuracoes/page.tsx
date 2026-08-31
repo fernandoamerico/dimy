@@ -5,6 +5,7 @@ import { SidebarOrderManager } from './SidebarOrderManager'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { UpdateNotifier } from './UpdateNotifier'
 import { DatabaseNotifier } from './DatabaseNotifier'
+import { ApiKeysManager } from './ApiKeysManager'
 
 export default function SettingsPage() {
   return (
@@ -65,17 +66,16 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        {/* Outras Seções Futuras */}
-        <section className="bg-white dark:bg-neutral-900 rounded-3xl p-6 lg:p-8 dark:border dark:border-neutral-800 opacity-50 select-none">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-3">
-            Mais configurações 
-            <span className="text-xs bg-gray-100 dark:bg-neutral-800 px-2 py-1 rounded-md text-gray-500 dark:text-neutral-400 font-medium">
-              Em breve
-            </span>
-          </h2>
-          <p className="text-gray-500 dark:text-neutral-400 text-sm mt-1">
-            Opções de conta, banco de dados e integrações serão adicionadas em futuras atualizações.
-          </p>
+        {/* Seção de Chaves de API */}
+        <section className="bg-white dark:bg-neutral-900 rounded-3xl p-6 lg:p-8 dark:border dark:border-neutral-800 relative overflow-hidden">
+          <div className="relative z-10">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Chaves de API (Headless)</h2>
+            <p className="text-gray-500 dark:text-neutral-400 text-sm mb-6">
+              Gere tokens de acesso seguros para que seus aplicativos consumam o conteúdo do Dimy remotamente.
+            </p>
+            <hr className="border-gray-100 dark:border-neutral-800 mb-6" />
+            <ApiKeysManager />
+          </div>
         </section>
 
       </PageContainer>
