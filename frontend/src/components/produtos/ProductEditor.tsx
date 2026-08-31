@@ -59,6 +59,7 @@ export function ProductEditor({
   const [sku, setSku] = useState(formData._sku || '');
   const [price, setPrice] = useState(formData._price || '');
   const [discountPrice, setDiscountPrice] = useState(formData._discountPrice || '');
+  const [priceDescription, setPriceDescription] = useState(formData._priceDescription || '');
   const [weight, setWeight] = useState(formData._weight || '');
   const [productType, setProductType] = useState(formData._productType || 'fisico');
   const [status, setStatus] = useState<'available' | 'out_of_stock'>(formData._status || 'available');
@@ -147,6 +148,7 @@ export function ProductEditor({
       _sku: sku,
       _price: basePrice,
       _discountPrice: discountPrice,
+      _priceDescription: priceDescription,
       _weight: weight,
       _productType: productType,
       _status: status,
@@ -397,14 +399,20 @@ export function ProductEditor({
             <div className="p-5 space-y-4">
               {!hasVariants ? (
                 /* Preço simples */
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-semibold text-gray-900 dark:text-white block mb-2">Preço *</label>
-                    <input type="number" step="0.01" value={price} onChange={e => setPrice(e.target.value)} placeholder="0.00" className={inputCls} />
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-semibold text-gray-900 dark:text-white block mb-2">Preço *</label>
+                      <input type="number" step="0.01" value={price} onChange={e => setPrice(e.target.value)} placeholder="0.00" className={inputCls} />
+                    </div>
+                    <div>
+                      <label className="text-sm font-semibold text-gray-900 dark:text-white block mb-2">Preço Promocional</label>
+                      <input type="number" step="0.01" value={discountPrice} onChange={e => setDiscountPrice(e.target.value)} placeholder="0.00" className={inputCls} />
+                    </div>
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-gray-900 dark:text-white block mb-2">Preço Promocional</label>
-                    <input type="number" step="0.01" value={discountPrice} onChange={e => setDiscountPrice(e.target.value)} placeholder="0.00" className={inputCls} />
+                    <label className="text-sm font-semibold text-gray-900 dark:text-white block mb-2">Descrição do Preço</label>
+                    <input type="text" value={priceDescription} onChange={e => setPriceDescription(e.target.value)} placeholder="Ex: à vista no PIX" className={inputCls} />
                   </div>
                 </div>
               ) : (
