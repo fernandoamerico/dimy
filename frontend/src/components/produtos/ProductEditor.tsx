@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { updateDocument, createDocument } from '@/core/content/actions';
+import { updateDocument, createDocument, getDocuments } from '@/core/content/actions';
 import { slugify } from '@/core/utils/slug';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { ImageUploader } from '@/components/ui/ImageUploader';
@@ -146,6 +146,15 @@ export function ProductEditor({
     const basePrice = hasVariants && priceRange ? String(priceRange.min) : price;
 
     const finalSlug = slug.trim() ? slug.trim() : slugify(title);
+
+    // Validação de unicidade do slug
+    const allDocs = await getDocuments(collection.id);
+    const isDuplicate = allDocs.some((d: any) => d.data?._slug === finalSlug && d.id !== document?.id);
+    if (isDuplicate) {
+      toast.error('Este slug (URL) já está em uso por outro produto. Por favor, modifique o slug.');
+      setIsSubmitting(false);
+      return;
+    }
 
     const dataToSave = {
       ...formData,

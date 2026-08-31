@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { updateCollection } from '@/core/schema/actions';
+import { updateCollection, getCollections } from '@/core/schema/actions';
 import { slugify } from '@/core/utils/slug';
 import { 
   Plus, Settings, Trash2, ArrowUp, ArrowDown, 
@@ -129,6 +129,15 @@ export function UniversalBuilder({
   const saveMetadata = async (overrides: Record<string, any> = {}) => {
     const updatedMeta = buildMetadata(overrides);
     const finalSlug = collectionSlug.trim() ? collectionSlug.trim() : slugify(collectionName);
+    
+    // Validate collection slug uniqueness
+    const allCollections = await getCollections();
+    const isDuplicate = allCollections.some((c: any) => c.slug === finalSlug && c.id !== collection.id);
+    if (isDuplicate) {
+      toast.error('Este slug (URL) já está em uso por outra categoria. Por favor, modifique o slug nas Configurações Gerais.');
+      return false;
+    }
+
     const res = await updateCollection(collection.id, {
       name: collectionName, slug: finalSlug, icon: collection.icon,
       metadata: updatedMeta, fields,
