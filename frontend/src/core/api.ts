@@ -71,3 +71,12 @@ export async function logout() {
     return { error: error.message };
   }
 }
+
+export const apiKeysService = {
+  list: () => fetchAPI('/system/api-keys'),
+  create: (name: string) => fetchAPI('/system/api-keys', { 
+    method: 'POST', 
+    body: JSON.stringify({ name }) 
+  }),
+  delete: (id: string) => fetchAPI(`/system/api-keys/${id}`, { method: 'DELETE' }),
+};

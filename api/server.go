@@ -30,6 +30,11 @@ func StartServer(port string, frontendFS fs.FS) error {
 	mux.HandleFunc("GET /api/system/update", handlers.RequireAuth(handlers.CheckUpdateHandler))
 	mux.HandleFunc("GET /api/system/version", handlers.RequireAuth(handlers.GetSystemVersionHandler))
 
+	// API Keys
+	mux.HandleFunc("GET /api/system/api-keys", handlers.RequireAuth(handlers.GetApiKeysHandler))
+	mux.HandleFunc("POST /api/system/api-keys", handlers.RequireAuth(handlers.CreateApiKeyHandler))
+	mux.HandleFunc("DELETE /api/system/api-keys/{id}", handlers.RequireAuth(handlers.DeleteApiKeyHandler))
+
 	// Extensions API
 	mux.HandleFunc("GET /api/extensions", handlers.RequireAuth(handlers.GetExtensionsHandler))
 	mux.HandleFunc("POST /api/extensions/install", handlers.RequireAuth(handlers.InstallExtensionHandler))
