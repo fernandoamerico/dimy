@@ -203,7 +203,16 @@ export function MediaLibraryModal({
           {isMultiSelectMode ? (
             // Multi-select toolbar
             <>
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+              >
+                {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
+                Enviar
+              </button>
+              
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300 ml-2">
                 {selectedIds.size} selecionado(s)
               </span>
               <button onClick={selectAll} className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
@@ -221,7 +230,7 @@ export function MediaLibraryModal({
               )}
               <button
                 onClick={exitMultiSelect}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-neutral-700 dark:hover:bg-neutral-600 text-gray-700 dark:text-gray-200 rounded-lg font-medium transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-neutral-700 dark:hover:bg-neutral-600 text-gray-700 dark:text-gray-200 rounded-lg font-medium transition-colors ml-auto"
               >
                 Cancelar
               </button>
@@ -229,7 +238,7 @@ export function MediaLibraryModal({
                 <button
                   onClick={handleBulkSelect}
                   disabled={selectedIds.size === 0}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg font-medium transition-colors ml-auto"
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg font-medium transition-colors"
                 >
                   <CheckSquare className="w-4 h-4" />
                   Inserir {selectedIds.size} {selectedIds.size === 1 ? 'imagem' : 'imagens'}
@@ -248,13 +257,13 @@ export function MediaLibraryModal({
                   {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
                   Enviar Arquivo
                 </button>
-                {!isSelectionMode && (
+                {(!isSelectionMode || !!onSelectMultiple) && (
                   <button
                     onClick={() => { setIsMultiSelectMode(true); setSelectedFile(null); }}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${isModal ? 'bg-gray-100 hover:bg-gray-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-gray-700 dark:text-gray-200' : 'bg-white/60 dark:bg-neutral-800/60 backdrop-blur-md border border-white/40 dark:border-neutral-700/50 text-gray-700 dark:text-gray-200 hover:shadow-md'}`}
                   >
                     <CheckSquare className="w-4 h-4" />
-                    Selecionar
+                    {onSelectMultiple ? 'Selecionar Várias' : 'Selecionar'}
                   </button>
                 )}
               </div>

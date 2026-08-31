@@ -15,26 +15,31 @@ export function GalleryBlockEditor({ urls = [], onChange }: GalleryBlockEditorPr
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleUpload = async (file: File) => {
+  const handleUpload = async (files: FileList) => {
     setIsUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-
+    
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        if (!res.ok) throw new Error('Falha no upload');
+        const data = await res.json();
+        return data.url;
       });
 
-      if (!res.ok) throw new Error('Falha no upload');
-
-      const data = await res.json();
-      if (data.url) {
-        onChange([...urls, data.url]);
+      const newUrls = await Promise.all(uploadPromises);
+      const validUrls = newUrls.filter(url => Boolean(url));
+      
+      if (validUrls.length > 0) {
+        onChange([...urls, ...validUrls]);
       }
     } catch (error) {
       console.error(error);
-      toast.error('Erro ao enviar a imagem.');
+      toast.error('Erro ao enviar as imagens.');
     } finally {
       setIsUploading(false);
     }
@@ -95,10 +100,11 @@ export function GalleryBlockEditor({ urls = [], onChange }: GalleryBlockEditorPr
 
       <input
         type="file"
+        multiple
         ref={fileInputRef}
         onChange={(e) => {
           if (e.target.files && e.target.files.length > 0) {
-            handleUpload(e.target.files[0]);
+            handleUpload(e.target.files);
             if (fileInputRef.current) {
               fileInputRef.current.value = '';
             }
