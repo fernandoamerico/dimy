@@ -106,7 +106,7 @@ func GetCollectionByIdHandler(w http.ResponseWriter, r *http.Request) {
 
 func fetchSchemaFields(collectionID string) []*models.SchemaField {
 	var fields []*models.SchemaField
-	rows, err := db.Instance.Query("SELECT id, name, label, type, required, collection_id, order_int, relation_to FROM schema_fields WHERE collection_id = $1 ORDER BY order_int ASC", collectionID)
+	rows, err := db.Instance.Query("SELECT id, name, label, type, required, collection_id, order_int, relation_to, options FROM schema_fields WHERE collection_id = $1 ORDER BY order_int ASC", collectionID)
 	if err != nil {
 		return fields
 	}
@@ -115,9 +115,13 @@ func fetchSchemaFields(collectionID string) []*models.SchemaField {
 	for rows.Next() {
 		var f models.SchemaField
 		var relationTo sql.NullString
-		if err := rows.Scan(&f.ID, &f.Name, &f.Label, &f.Type, &f.Required, &f.CollectionID, &f.Order, &relationTo); err == nil {
+		var optionsStr sql.NullString
+		if err := rows.Scan(&f.ID, &f.Name, &f.Label, &f.Type, &f.Required, &f.CollectionID, &f.Order, &relationTo, &optionsStr); err == nil {
 			if relationTo.Valid {
 				f.RelationTo = &relationTo.String
+			}
+			if optionsStr.Valid && optionsStr.String != "" {
+				json.Unmarshal([]byte(optionsStr.String), &f.Options)
 			}
 			fields = append(fields, &f)
 		}
@@ -160,9 +164,10 @@ func CreateCollectionHandler(w http.ResponseWriter, r *http.Request) {
 
 	for _, f := range payload.Fields {
 		fID := uuid.NewString()
+		optionsJson, _ := json.Marshal(f.Options)
 		_, err = tx.Exec(
-			"INSERT INTO schema_fields (id, name, label, type, required, collection_id, order_int, relation_to) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
-			fID, f.Name, f.Label, f.Type, f.Required, colID, f.Order, f.RelationTo,
+			"INSERT INTO schema_fields (id, name, label, type, required, collection_id, order_int, relation_to, options) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+			fID, f.Name, f.Label, f.Type, f.Required, colID, f.Order, f.RelationTo, string(optionsJson),
 		)
 		if err != nil {
 			http.Error(w, "Erro ao criar campos da coleção", http.StatusInternalServerError)
@@ -218,9 +223,10 @@ func UpdateCollectionHandler(w http.ResponseWriter, r *http.Request) {
 
 	for _, f := range payload.Fields {
 		fID := uuid.NewString()
+		optionsJson, _ := json.Marshal(f.Options)
 		_, err = tx.Exec(
-			"INSERT INTO schema_fields (id, name, label, type, required, collection_id, order_int, relation_to) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
-			fID, f.Name, f.Label, f.Type, f.Required, id, f.Order, f.RelationTo,
+			"INSERT INTO schema_fields (id, name, label, type, required, collection_id, order_int, relation_to, options) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+			fID, f.Name, f.Label, f.Type, f.Required, id, f.Order, f.RelationTo, string(optionsJson),
 		)
 		if err != nil {
 			http.Error(w, "Erro ao inserir novos campos da coleção", http.StatusInternalServerError)

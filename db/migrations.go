@@ -60,6 +60,7 @@ func RunMigrations(db *sql.DB, driver string) error {
 			collection_id TEXT NOT NULL,
 			order_int INTEGER DEFAULT 0,
 			relation_to TEXT,
+			options TEXT,
 			FOREIGN KEY(collection_id) REFERENCES schema_collections(id) ON DELETE CASCADE
 		);`,
 		fmt.Sprintf(`CREATE TABLE IF NOT EXISTS documents (
@@ -99,6 +100,7 @@ func RunMigrations(db *sql.DB, driver string) error {
 	
 	// Add column metadata for existing tables (ignore error if column already exists)
 	db.Exec(`ALTER TABLE schema_collections ADD COLUMN metadata TEXT;`)
+	db.Exec(`ALTER TABLE schema_fields ADD COLUMN options TEXT;`)
 
 	// Pre-install default modules
 	preInstalledModules := []string{

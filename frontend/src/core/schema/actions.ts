@@ -13,6 +13,7 @@ export type CreateCollectionInput = {
     type: string;
     required: boolean;
     order: number;
+    options?: string[];
   }>;
 };
 

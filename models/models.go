@@ -43,7 +43,6 @@ type SchemaCollection struct {
 	Fields    []*SchemaField `json:"fields,omitempty"` // For API responses
 }
 
-// SchemaField represents a custom field belonging to a SchemaCollection
 type SchemaField struct {
 	ID           string    `json:"id"`
 	Name         string    `json:"name"`
@@ -53,6 +52,7 @@ type SchemaField struct {
 	CollectionID string    `json:"collection_id"`
 	Order        int       `json:"order"`
 	RelationTo   *string   `json:"relation_to"` // pointer since it can be null
+	Options      []string  `json:"options,omitempty"`
 }
 
 // Document represents a row of dynamic content belonging to a SchemaCollection
