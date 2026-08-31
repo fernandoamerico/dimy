@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import {
   ArrowLeft, Image as ImageIcon, List, MousePointerClick,
   Save, Trash2, Plus, Settings, DollarSign, Barcode, Scale,
-  Layers, ChevronDown, GripVertical, X, AlertCircle, CheckSquare, ListChecks, ToggleLeft, Library
+  Layers, ChevronDown, GripVertical, X, AlertCircle, CheckSquare, ListChecks, ToggleLeft, Library, Copy, Star, Award, ThumbsUp
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -24,6 +24,9 @@ interface Variant {
   price: string;
   description?: string;
   sku?: string;
+  isBestSeller?: boolean;
+  isRecommended?: boolean;
+  isFeatured?: boolean;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -92,6 +95,22 @@ export function ProductEditor({
 
   const removeVariant = (id: string) => {
     setVariants(prev => prev.filter(v => v.id !== id));
+  };
+
+  const duplicateVariant = (id: string) => {
+    const variantToCopy = variants.find(v => v.id === id);
+    if (!variantToCopy) return;
+    const newVariant = { 
+      ...variantToCopy, 
+      id: genId(), 
+      name: `${variantToCopy.name} (Cópia)` 
+    };
+    const index = variants.findIndex(v => v.id === id);
+    setVariants(prev => {
+      const copy = [...prev];
+      copy.splice(index + 1, 0, newVariant);
+      return copy;
+    });
   };
 
   const toggleVariants = (enable: boolean) => {
@@ -449,13 +468,50 @@ export function ProductEditor({
                           className="col-span-3 px-3 py-2 text-sm font-mono bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 text-gray-900 dark:text-white"
                         />
 
-                        {/* Remove */}
-                        <button
-                          onClick={() => removeVariant(variant.id)}
-                          className="col-span-1 p-1.5 text-gray-300 hover:text-red-500 dark:text-neutral-700 dark:hover:text-red-400 rounded-lg transition-colors flex items-center justify-center"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
+                        {/* Ações (Duplicate, BestSeller, Recommended, Featured) */}
+                        <div className="col-span-12 flex flex-wrap items-center justify-start gap-2 border-t border-gray-100 dark:border-neutral-800/60 pt-3 mt-1">
+                          <button
+                             type="button"
+                             onClick={() => updateVariant(variant.id, 'isBestSeller', !variant.isBestSeller as any)}
+                             className={`px-2.5 py-1.5 text-[11px] font-bold tracking-wide uppercase rounded-lg transition-colors flex items-center gap-1.5 ${variant.isBestSeller ? 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400' : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-neutral-900 dark:text-gray-400 dark:hover:bg-neutral-800 border border-gray-200 dark:border-neutral-800'}`}
+                          >
+                             <Star className="w-3.5 h-3.5" />
+                             Mais Vendido
+                          </button>
+                          <button
+                             type="button"
+                             onClick={() => updateVariant(variant.id, 'isRecommended', !variant.isRecommended as any)}
+                             className={`px-2.5 py-1.5 text-[11px] font-bold tracking-wide uppercase rounded-lg transition-colors flex items-center gap-1.5 ${variant.isRecommended ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-neutral-900 dark:text-gray-400 dark:hover:bg-neutral-800 border border-gray-200 dark:border-neutral-800'}`}
+                          >
+                             <ThumbsUp className="w-3.5 h-3.5" />
+                             Recomendado
+                          </button>
+                          <button
+                             type="button"
+                             onClick={() => updateVariant(variant.id, 'isFeatured', !variant.isFeatured as any)}
+                             className={`px-2.5 py-1.5 text-[11px] font-bold tracking-wide uppercase rounded-lg transition-colors flex items-center gap-1.5 ${variant.isFeatured ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400' : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-neutral-900 dark:text-gray-400 dark:hover:bg-neutral-800 border border-gray-200 dark:border-neutral-800'}`}
+                          >
+                             <Award className="w-3.5 h-3.5" />
+                             Destaque
+                          </button>
+                          <div className="flex-1" />
+                          <button
+                            type="button"
+                            onClick={() => duplicateVariant(variant.id)}
+                            className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:text-blue-400 dark:hover:bg-blue-500/10 rounded-lg transition-colors"
+                            title="Duplicar Variante"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => removeVariant(variant.id)}
+                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                            title="Excluir Variante"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
 
                       {/* Descrição da variante */}

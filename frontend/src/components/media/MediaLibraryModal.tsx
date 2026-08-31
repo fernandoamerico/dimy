@@ -437,6 +437,7 @@ export function MediaLibraryModal({
                 <button
                   onClick={() => {
                     if (onSelect) onSelect(selectedFile.url);
+                    else if (onSelectMultiple) onSelectMultiple([selectedFile.url]);
                     if (onClose) onClose();
                   }}
                   className="w-full py-3 bg-blue-600 hover:bg-blue-700 shadow-sm hover:shadow-md text-white font-medium rounded-xl transition-all"
