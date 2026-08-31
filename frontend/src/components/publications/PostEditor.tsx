@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateDocument, createDocument } from '@/core/content/actions';
+import { slugify } from '@/core/utils/slug';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { ImageUploader } from '@/components/ui/ImageUploader';
 import { GalleryBlockEditor } from '@/components/ui/GalleryBlockEditor';
@@ -33,6 +34,8 @@ export function PostEditor({
   
   // Publication metadata defaults
   const [title, setTitle] = useState(formData._title || '');
+  const [slug, setSlug] = useState(formData._slug || (formData._title ? slugify(formData._title) : ''));
+  const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(Boolean(formData._slug));
   const [status, setStatus] = useState<'draft' | 'published'>(formData._status || 'draft');
   const [publishDate, setPublishDate] = useState(formData._publishDate || new Date().toISOString().split('T')[0]);
   const [author, setAuthor] = useState(formData._author || '');
@@ -63,9 +66,12 @@ export function PostEditor({
 
     setIsSubmitting(true);
 
+    const finalSlug = slug.trim() ? slug.trim() : slugify(title);
+
     const dataToSave = {
       ...formData,
       _title: title,
+      _slug: finalSlug,
       _status: status,
       _publishDate: publishDate,
       _author: author,
@@ -299,11 +305,27 @@ export function PostEditor({
         {/* ─── EDITOR (left 2/3) ───────────────────────────────────────────── */}
         <div className="lg:col-span-2 space-y-6">
           
-          <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800 space-y-2">
-             <label className="text-sm font-semibold text-gray-900 dark:text-white block">Título da Publicação *</label>
-             <input type="text" value={title} onChange={e => setTitle(e.target.value)}
-              placeholder="Digite o título principal..." 
-              className="w-full px-4 py-3 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 transition-all text-gray-900 dark:text-white text-lg font-medium" />
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800 space-y-4">
+             <div>
+               <label className="text-sm font-semibold text-gray-900 dark:text-white block mb-2">Título da Publicação *</label>
+               <input type="text" value={title} onChange={e => {
+                 setTitle(e.target.value);
+                 if (!isSlugManuallyEdited) {
+                   setSlug(slugify(e.target.value));
+                 }
+               }}
+                placeholder="Digite o título principal..." 
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 transition-all text-gray-900 dark:text-white text-lg font-medium" />
+             </div>
+             <div>
+               <label className="text-sm font-semibold text-gray-900 dark:text-white block mb-2">Slug (URL Amigável)</label>
+               <input type="text" value={slug} onChange={e => {
+                 setSlug(e.target.value);
+                 setIsSlugManuallyEdited(true);
+               }}
+                placeholder="ex: meu-primeiro-post" 
+                className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 transition-all text-gray-500 dark:text-gray-400 font-mono text-sm" />
+             </div>
           </div>
 
           {fields.length === 0 ? (

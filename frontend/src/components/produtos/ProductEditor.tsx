@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateDocument, createDocument } from '@/core/content/actions';
+import { slugify } from '@/core/utils/slug';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { ImageUploader } from '@/components/ui/ImageUploader';
 import { GalleryBlockEditor } from '@/components/ui/GalleryBlockEditor';
@@ -56,6 +57,8 @@ export function ProductEditor({
 
   // Basic fields
   const [title, setTitle] = useState(formData._title || '');
+  const [slug, setSlug] = useState(formData._slug || (formData._title ? slugify(formData._title) : ''));
+  const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(Boolean(formData._slug));
   const [sku, setSku] = useState(formData._sku || '');
   const [price, setPrice] = useState(formData._price || '');
   const [discountPrice, setDiscountPrice] = useState(formData._discountPrice || '');
@@ -142,9 +145,12 @@ export function ProductEditor({
     // Preço base = menor variante ou preço fixo
     const basePrice = hasVariants && priceRange ? String(priceRange.min) : price;
 
+    const finalSlug = slug.trim() ? slug.trim() : slugify(title);
+
     const dataToSave = {
       ...formData,
       _title: title,
+      _slug: finalSlug,
       _sku: sku,
       _price: basePrice,
       _discountPrice: discountPrice,
@@ -340,9 +346,24 @@ export function ProductEditor({
           <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800 space-y-4">
             <div>
               <label className="text-sm font-semibold text-gray-900 dark:text-white block mb-2">Nome do Produto *</label>
-              <input type="text" value={title} onChange={e => setTitle(e.target.value)}
+              <input type="text" value={title} onChange={e => {
+                setTitle(e.target.value);
+                if (!isSlugManuallyEdited) {
+                  setSlug(slugify(e.target.value));
+                }
+              }}
                 placeholder="Ex: Pacote Consultoria, Camiseta Básica..."
                 className={`${inputCls} text-lg font-medium`} />
+            </div>
+            
+            <div>
+              <label className="text-sm font-semibold text-gray-900 dark:text-white block mb-2">Slug (URL Amigável)</label>
+              <input type="text" value={slug} onChange={e => {
+                setSlug(e.target.value);
+                setIsSlugManuallyEdited(true);
+              }}
+                placeholder="ex: camiseta-basica"
+                className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 transition-all text-gray-500 dark:text-gray-400 font-mono text-sm" />
             </div>
 
             {/* SKU + Peso */}

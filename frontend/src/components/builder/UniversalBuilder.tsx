@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { updateCollection } from '@/core/schema/actions';
+import { slugify } from '@/core/utils/slug';
 import { 
   Plus, Settings, Trash2, ArrowUp, ArrowDown, 
   ArrowLeft, Copy, Code, Type, Image as ImageIcon, 
@@ -84,6 +85,8 @@ export function UniversalBuilder({
   const [fieldToDelete, setFieldToDelete] = useState<string | null>(null);
   const [editingOriginalValue, setEditingOriginalValue] = useState<string | null>(null);
   const [collectionName, setCollectionName] = useState(collection.name);
+  const [collectionSlug, setCollectionSlug] = useState(collection.slug);
+  const [isCollectionSlugEdited, setIsCollectionSlugEdited] = useState(false);
 
   // Parse metadata
   const initialMeta = (() => {
@@ -126,7 +129,7 @@ export function UniversalBuilder({
   const saveMetadata = async (overrides: Record<string, any> = {}) => {
     const updatedMeta = buildMetadata(overrides);
     const res = await updateCollection(collection.id, {
-      name: collectionName, slug: collection.slug, icon: collection.icon,
+      name: collectionName, slug: collectionSlug, icon: collection.icon,
       metadata: updatedMeta, fields,
     });
     if (res.success) {
@@ -719,9 +722,26 @@ export function UniversalBuilder({
                 <input
                   type="text"
                   value={collectionName}
-                  onChange={(e) => setCollectionName(e.target.value)}
+                  onChange={(e) => {
+                    setCollectionName(e.target.value);
+                    if (!isCollectionSlugEdited) {
+                      setCollectionSlug(slugify(e.target.value));
+                    }
+                  }}
                   onBlur={handleSaveCategory}
-                  className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 transition-colors"
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 transition-colors mb-3"
+                />
+                
+                <label className="text-xs font-semibold text-gray-500 dark:text-neutral-400 uppercase tracking-wider block mb-2">Slug (URL Amigável)</label>
+                <input
+                  type="text"
+                  value={collectionSlug}
+                  onChange={(e) => {
+                    setCollectionSlug(e.target.value);
+                    setIsCollectionSlugEdited(true);
+                  }}
+                  onBlur={handleSaveCategory}
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-700 rounded-lg text-sm font-mono text-gray-500 dark:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 transition-colors"
                 />
               </div>
 
