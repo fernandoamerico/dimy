@@ -9,7 +9,7 @@ import {
   Plus, Settings, Trash2, ArrowUp, ArrowDown, 
   ArrowLeft, Copy, Code, Type, Image as ImageIcon, 
   List, MousePointerClick, LayoutTemplate, Package,
-  ListChecks, CheckSquare, ToggleLeft, X as XIcon
+  ListChecks, CheckSquare, ToggleLeft, X as XIcon, Hash, ArrowUpDown
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -26,13 +26,15 @@ const BLOCK_TYPES = [
   { type: 'select', label: 'Seleção Única', icon: ListChecks, color: 'cyan', description: 'Lista suspensa com uma opção' },
   { type: 'multiselect', label: 'Multi Seleção', icon: CheckSquare, color: 'teal', description: 'Lista com múltiplas escolhas' },
   { type: 'toggle', label: 'Liga/Desliga', icon: ToggleLeft, color: 'lime', description: 'Interruptor verdadeiro ou falso' },
+  { type: 'number', label: 'Número', icon: Hash, color: 'blue', description: 'Campo de valor numérico' },
 ];
 
 const COLOR_MAP: Record<string, string> = {
   text: 'text-blue-500', richText: 'text-emerald-500', wysiwyg: 'text-violet-500',
   image: 'text-amber-500', gallery: 'text-orange-500',
   url: 'text-fuchsia-500', table: 'text-rose-500', button: 'text-indigo-500',
-  select: 'text-cyan-500', multiselect: 'text-teal-500', toggle: 'text-lime-500'
+  select: 'text-cyan-500', multiselect: 'text-teal-500', toggle: 'text-lime-500',
+  number: 'text-blue-500'
 };
 
 const BG_MAP: Record<string, string> = {
@@ -51,7 +53,8 @@ const BG_MAP: Record<string, string> = {
 const ICON_MAP: Record<string, any> = {
   text: Type, richText: List, wysiwyg: LayoutTemplate,
   image: ImageIcon, gallery: ImageIcon, table: List, button: MousePointerClick,
-  select: ListChecks, multiselect: CheckSquare, toggle: ToggleLeft
+  select: ListChecks, multiselect: CheckSquare, toggle: ToggleLeft,
+  number: Hash
 };
 
 const BADGE_MAP: Record<string, string> = {
@@ -64,7 +67,8 @@ const BADGE_MAP: Record<string, string> = {
   button: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400',
   select: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-500/20 dark:text-cyan-400',
   multiselect: 'bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-400',
-  toggle: 'bg-lime-100 text-lime-700 dark:bg-lime-500/20 dark:text-lime-400'
+  toggle: 'bg-lime-100 text-lime-700 dark:bg-lime-500/20 dark:text-lime-400',
+  number: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400'
 };
 
 export type AppType = 'publication' | 'page' | 'product';
@@ -100,6 +104,7 @@ export function UniversalBuilder({
   const [enableSeo, setEnableSeo] = useState(initialMeta.enable_seo !== false);
   const [enableCover, setEnableCover] = useState(initialMeta.enable_cover !== false);
   const [enableStatus, setEnableStatus] = useState(initialMeta.enable_status !== false);
+  const [enablePriority, setEnablePriority] = useState(initialMeta.enable_priority === true);
   
   // Specific for products (if needed later to toggle features)
   const [enableSizes, setEnableSizes] = useState(initialMeta.enable_sizes !== false);
@@ -119,6 +124,7 @@ export function UniversalBuilder({
       enable_seo: enableSeo,
       enable_cover: enableCover,
       enable_status: enableStatus,
+      enable_priority: enablePriority,
       enable_sizes: enableSizes,
       enable_colors: enableColors,
       show_in_sidebar: showInSidebar,
@@ -366,6 +372,7 @@ export function UniversalBuilder({
       base.enable_seo = enableSeo;
       base.enable_cover = enableCover;
       base.enable_status = enableStatus;
+      base.enable_priority = enablePriority;
     } else if (appType === 'product') {
       base.enable_status = enableStatus;
       base.enable_sizes = enableSizes;
@@ -512,6 +519,14 @@ export function UniversalBuilder({
               onClick={() => handleToggle('enable_seo', !enableSeo, setEnableSeo, 'SEO ativado!', 'SEO desativado.')}
               className={`w-10 h-5 rounded-full relative transition-colors ${enableSeo ? 'bg-blue-500' : 'bg-gray-200 dark:bg-neutral-700'}`}>
               <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${enableSeo ? 'translate-x-5' : 'translate-x-0'}`} />
+            </button>
+          </div>
+          <div className="flex items-center justify-between">
+            <div><span className="block text-sm font-medium text-gray-900 dark:text-white">Ordem / Prioridade</span><span className="block text-xs text-gray-500 dark:text-gray-400">Campo numérico p/ ordenação</span></div>
+            <button 
+              onClick={() => handleToggle('enable_priority', !enablePriority, setEnablePriority, 'Prioridade ativada!', 'Prioridade desativada.')}
+              className={`w-10 h-5 rounded-full relative transition-colors ${enablePriority ? 'bg-blue-500' : 'bg-gray-200 dark:bg-neutral-700'}`}>
+              <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${enablePriority ? 'translate-x-5' : 'translate-x-0'}`} />
             </button>
           </div>
           <div className="flex items-center justify-between">

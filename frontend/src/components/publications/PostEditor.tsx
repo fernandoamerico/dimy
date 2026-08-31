@@ -11,7 +11,7 @@ import { WysiwygEditor } from '@/components/ui/WysiwygEditor';
 import { MediaLibraryModal } from '@/components/media/MediaLibraryModal';
 import { 
   ArrowLeft, Type, Image as ImageIcon, 
-  List, MousePointerClick, Save, Trash2, Plus, Settings, Library
+  List, MousePointerClick, Save, Trash2, Plus, Settings, Library, Hash
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -39,6 +39,7 @@ export function PostEditor({
   const [status, setStatus] = useState<'draft' | 'published'>(formData._status || 'draft');
   const [publishDate, setPublishDate] = useState(formData._publishDate || new Date().toISOString().split('T')[0]);
   const [author, setAuthor] = useState(formData._author || '');
+  const [priority, setPriority] = useState<number | ''>(formData._priority ?? '');
   
   // SEO
   const [seo, setSeo] = useState(formData._seo || { title: '', description: '', keywords: '' });
@@ -84,6 +85,7 @@ export function PostEditor({
       _status: status,
       _publishDate: publishDate,
       _author: author,
+      _priority: priority,
       _seo: seo,
       _cover: cover,
     };
@@ -378,6 +380,16 @@ export function PostEditor({
                   <input type="date" value={publishDate} onChange={e => setPublishDate(e.target.value)}
                     className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 text-gray-900 dark:text-white text-sm" />
                 </div>
+              </div>
+            </div>
+          )}
+
+          {meta.enable_priority === true && (
+            <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><Hash className="w-4 h-4 text-blue-500" /> Prioridade / Ordem</h3>
+              <div>
+                <input type="number" value={priority} onChange={e => setPriority(e.target.value === '' ? '' : Number(e.target.value))} placeholder="Ex: 1, 2, 3..."
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 text-gray-900 dark:text-white text-sm" />
               </div>
             </div>
           )}
