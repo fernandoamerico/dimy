@@ -128,8 +128,9 @@ export function UniversalBuilder({
 
   const saveMetadata = async (overrides: Record<string, any> = {}) => {
     const updatedMeta = buildMetadata(overrides);
+    const finalSlug = collectionSlug.trim() ? collectionSlug.trim() : slugify(collectionName);
     const res = await updateCollection(collection.id, {
-      name: collectionName, slug: collectionSlug, icon: collection.icon,
+      name: collectionName, slug: finalSlug, icon: collection.icon,
       metadata: updatedMeta, fields,
     });
     if (res.success) {
