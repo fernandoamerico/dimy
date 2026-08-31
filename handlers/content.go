@@ -7,8 +7,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
-
 	"github.com/fernandoamerico/dimy/db"
 	"github.com/fernandoamerico/dimy/models"
 	"github.com/google/uuid"
@@ -43,37 +41,12 @@ func GetCollectionBySlugHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if metadata.Valid {
 		col.Metadata = &metadata.String
-
-		var meta struct {
-			IsActive *bool `json:"is_active"`
-			IsPublic *bool `json:"is_public"`
-		}
-		if err := json.Unmarshal([]byte(metadata.String), &meta); err == nil {
-			if meta.IsActive != nil && !*meta.IsActive {
-				http.Error(w, "Página desativada", http.StatusNotFound)
-				return
-			}
-			if meta.IsPublic != nil && !*meta.IsPublic {
-				cookie, err := r.Cookie("dimy_session")
-				if err != nil || cookie.Value == "" {
-					http.Error(w, "Autenticação necessária", http.StatusUnauthorized)
-					return
-				}
-
-				claims := &Claims{}
-				token, err := jwt.ParseWithClaims(cookie.Value, claims, func(token *jwt.Token) (interface{}, error) {
-					if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-						return nil, jwt.ErrSignatureInvalid
-					}
-					return jwtSecretKey, nil
-				})
-
-				if err != nil || !token.Valid {
-					http.Error(w, "Sessão inválida ou expirada", http.StatusUnauthorized)
-					return
-				}
-			}
-		}
+	}
+	
+	status, msg := checkCollectionAccess(r, metadata)
+	if status != 0 {
+		http.Error(w, msg, status)
+		return
 	}
 	t, _ := time.Parse("2006-01-02 15:04:05", createdAt)
 	col.CreatedAt = t
@@ -91,6 +64,19 @@ func GetDocumentsHandler(w http.ResponseWriter, r *http.Request) {
 	collectionID := r.URL.Query().Get("collectionId")
 	if collectionID == "" {
 		http.Error(w, "collectionId é obrigatório", http.StatusBadRequest)
+		return
+	}
+
+	var metadata sql.NullString
+	err := db.Instance.QueryRow("SELECT metadata FROM schema_collections WHERE id = $1", collectionID).Scan(&metadata)
+	if err != nil {
+		http.Error(w, "Coleção não encontrada", http.StatusNotFound)
+		return
+	}
+
+	status, msg := checkCollectionAccess(r, metadata)
+	if status != 0 {
+		http.Error(w, msg, status)
 		return
 	}
 
@@ -166,15 +152,22 @@ func GetDocumentHandler(w http.ResponseWriter, r *http.Request) {
 
 	var doc models.Document
 	var createdAt, updatedAt string
+	var collectionMetadata sql.NullString
 
-	err := db.Instance.QueryRow("SELECT id, collection_id, data, created_at, updated_at FROM documents WHERE id = $1", id).
-		Scan(&doc.ID, &doc.CollectionID, &doc.Data, &createdAt, &updatedAt)
+	err := db.Instance.QueryRow("SELECT d.id, d.collection_id, d.data, d.created_at, d.updated_at, c.metadata FROM documents d JOIN schema_collections c ON d.collection_id = c.id WHERE d.id = $1", id).
+		Scan(&doc.ID, &doc.CollectionID, &doc.Data, &createdAt, &updatedAt, &collectionMetadata)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Documento não encontrado", http.StatusNotFound)
 		} else {
 			http.Error(w, "Erro ao buscar documento", http.StatusInternalServerError)
 		}
+		return
+	}
+
+	status, msg := checkCollectionAccess(r, collectionMetadata)
+	if status != 0 {
+		http.Error(w, msg, status)
 		return
 	}
 
@@ -281,4 +274,40 @@ func DeleteDocumentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(map[string]interface{}{"success": true})
+}
+
+func checkCollectionAccess(r *http.Request, metadata sql.NullString) (int, string) {
+	if !metadata.Valid {
+		if !IsAuthenticated(r) {
+			return http.StatusUnauthorized, "Autenticação necessária"
+		}
+		return 0, ""
+	}
+
+	var meta struct {
+		IsActive *bool `json:"is_active"`
+		IsPublic *bool `json:"is_public"`
+	}
+	
+	if err := json.Unmarshal([]byte(metadata.String), &meta); err == nil {
+		if meta.IsActive != nil && !*meta.IsActive {
+			return http.StatusNotFound, "Coleção desativada"
+		}
+		
+		isPublic := false
+		if meta.IsPublic != nil {
+			isPublic = *meta.IsPublic
+		}
+		
+		if !isPublic && !IsAuthenticated(r) {
+			return http.StatusUnauthorized, "Autenticação necessária"
+		}
+	} else {
+		// Falha no parse do metadata, assume privado por padrão
+		if !IsAuthenticated(r) {
+			return http.StatusUnauthorized, "Autenticação necessária"
+		}
+	}
+	
+	return 0, ""
 }

@@ -1,34 +1,30 @@
 # Dimy CMS - AI Rules & Architecture Guidelines
 
-Welcome, AI Agent! You are working on **Dimy CMS**, a headless, modular CMS built with Next.js 16 (App Router), Prisma, and Tailwind CSS.
-The user wants you to easily extend and modify this codebase without breaking its core architecture or its visual identity. 
+Welcome, AI Agent! You are working on **Dimy CMS**, a headless, modular CMS.
+The user wants you to easily extend and modify this codebase without breaking its core architecture. 
 
 Follow these strict rules when making modifications:
 
-## 1. Project Architecture
-- **Framework**: Next.js 16 (App Router). Route handlers should use asynchronous `params` (`const slug = (await params).slug`).
-- **ORM**: Prisma (SQLite default). Schema is located in `prisma/schema.prisma`. 
-- **Styling**: Tailwind CSS with a "Fluent Design / Microsoft" aesthetic (Glassmorphism, Backdrop Blur, Mesh Gradients).
+## 1. Project Architecture (Backend is Go!)
+- **Core Engine**: Go (Golang 1.22+). The backend handles ALL routing, database queries, and API endpoints. 
+- **Database**: SQLite (dev) / PostgreSQL (production) using native `database/sql` drivers (`go-sqlite3` and `pgx`). **DO NOT USE PRISMA OR NODE.JS FOR BACKEND DATA**.
+- **Frontend Panel**: A Next.js 15 SPA in the `frontend/` directory. It uses `output: 'export'` to generate a static site that is embedded into the Go binary (`//go:embed`).
+- **No Server Actions**: The Next.js frontend is strictly a client-side SPA. Do not use Next.js `route.ts` or `"use server"` for data fetching. It must call the Go REST API (`/api/...`).
 
-## 2. Adding New Features & Sidebar Items
-Do **NOT** hardcode new modules directly into the `Sidebar.tsx` component.
-If the user asks you to add a new section, page, or integration to the menu:
-1. Open `src/dimy.config.ts`.
-2. Append your new route configuration to the `navItems` array within `dimy.config.ts`.
-3. Create the corresponding Next.js route in `src/app/...`.
+## 2. API Authentication & Permissions
+- **Admin Panel**: Uses a stateless JWT stored in an `HttpOnly` cookie (`dimy_session`).
+- **Headless API Clients**: Authenticate via `Authorization: Bearer <Token>`. Tokens are managed in the `api_keys` table.
+- **Content Reading**: Managed by `handlers/content.go`. Se uma coleção tem `is_public: true` em seu metadata, ela pode ser lida livremente por chamadas GET. Caso contrário, exige autenticação válida (Cookie de painel ou API Key).
+- **Middleware**: `handlers/middleware.go` contém a função `RequireAuth` (que verifica cookie e token) e o helper `IsAuthenticated`.
 
-## 3. Visual & Aesthetic Guidelines (CRITICAL)
-Dimy uses a premium, modern design. When creating new components or pages, you MUST maintain the aesthetic:
+## 3. Database Modifications
+- When modifying models, adjust the initial SQL migrations in `db/migrations.go`.
+- Use strictly parameterized queries (e.g. `WHERE id = $1`) to prevent SQL injection and support both SQLite and PostgreSQL.
+
+## 4. Visual & Aesthetic Guidelines (Frontend)
 - **Glassmorphism**: Use `bg-white/60 backdrop-blur-md border border-slate-200/50` for cards and panels.
-- **Shadows & Rounded Corners**: Use `rounded-2xl shadow-sm` for most container elements.
-- **Colors**: Rely on `text-gray-900` for headings, `text-gray-500` for descriptions, and `blue-600` for primary actions. Do not use generic solid colors for backgrounds; rely on the global mesh gradient provided by `DashboardLayout.tsx`.
+- **Shadows & Rounded Corners**: Use `rounded-2xl shadow-sm`.
+- **Colors**: Rely on `text-gray-900` for headings, `text-gray-500` for descriptions, and `blue-600` for primary actions. 
 - **Icons**: Always use `lucide-react` icons.
 
-## 4. Prisma & Database Updates
-- If you need to add new core tables to the CMS (not dynamic user collections, but system tables like Users, Settings), add them to `prisma/schema.prisma`.
-- The user's dynamic collections are stored generically in the `SchemaCollection`, `SchemaField`, and `Document` models. You usually do not need to modify the schema for user-created content.
-
-## 5. Server Actions
-All database mutations should be done via Server Actions (`'use server'`). Place new actions in `src/core/<module>/actions.ts`.
-
-By following these rules, you ensure that Dimy remains stable, beautifully designed, and highly extensible.
+By following these rules, you ensure that Dimy remains stable, secure, and purely driven by its lightning-fast Go engine.

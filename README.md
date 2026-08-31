@@ -10,7 +10,8 @@ O **Dimy** é um Sistema de Gerenciamento de Conteúdo focado em performance ext
 - **Frontend (Painel Administrativo):** SPA feita em [Next.js 15](https://nextjs.org/) estático embutida diretamente no binário via `//go:embed`.
 - **Banco de Dados Híbrido:** Suporte nativo e automático para **SQLite** (dev/local) ou **PostgreSQL** (produção/Supabase) usando drivers nativos do Go (`pgx` e `go-sqlite3`).
 - **Sistema de Plugins (Sandbox):** Extensões de usuário escritas em JavaScript moderno (ES6+/TS) executadas de forma isolada dentro do Go via **Goja** e transpiladas em runtime pelo **esbuild**.
-- **Autenticação:** Stateless JWT seguro (`HS256`) com cookies `HttpOnly` e senhas protegidas com `Bcrypt`.
+- **Autenticação:** Stateless JWT seguro (`HS256`) com cookies `HttpOnly` para o painel, e suporte robusto a **API Keys (Bearer Tokens)** para consumo Headless.
+- **Coleções Públicas e Privadas:** Controle de granularidade de acesso (Totalmente Público ou Bloqueado por Token) configurado diretamente na Coleção.
 - **Deploy Profissional:** Fluxo de distribuição otimizado via GitHub Actions (Docker/Bare Metal) sem atualizações automáticas inseguras.
 
 ---
@@ -48,6 +49,24 @@ O código fonte é dividido em duas partes: o motor Go e o painel Next.js.
    ```
    
 4. **Pronto!** Acesse `http://localhost:8080`. Se for o primeiro acesso, o banco SQLite `dev.db` será criado automaticamente e você entrará na tela de setup.
+
+---
+
+## 📡 Integração Headless (Consumindo a API)
+
+O Dimy CMS foi desenhado para funcionar como um backend independente para qualquer frontend (Next.js, Vue, Mobile, etc.).
+
+### 1. Coleções Públicas
+Se você marcar uma coleção como "Pública" no painel, os dados estarão acessíveis abertamente:
+```bash
+curl http://localhost:8080/api/content/collections/sua-colecao
+```
+
+### 2. Coleções Privadas (API Keys)
+Coleções privadas exigem autorização. Gere um token no painel administrativo e envie via cabeçalho `Authorization`:
+```bash
+curl -H "Authorization: Bearer <SEU_TOKEN>" http://localhost:8080/api/content/documents?collectionId=<ID>
+```
 
 ---
 

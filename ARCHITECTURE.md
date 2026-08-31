@@ -31,8 +31,8 @@ Esta é a documentação definitiva da Arquitetura atual do Dimy CMS. **Sempre r
 dimy-root/
 ├── main.go                 # Entrypoint Go. Inicia BD e API Web
 ├── api/                    # Configurações do Router (Servidor Web) e embed estático
-├── handlers/               # Endpoints REST e Middleware de autenticação
-├── models/                 # Tipagem e Mapeamento de entidades (ex: User, Document)
+├── handlers/               # Endpoints REST, Middlewares (`RequireAuth`) e Lógicas Auxiliares (ex: `checkCollectionAccess`)
+├── models/                 # Tipagem e Mapeamento de entidades (ex: User, Document, ApiKey)
 ├── db/                     # Conexão híbrida DB e Auto-Migrações SQL Raw
 ├── sandbox/                # Integração Goja/esbuild para Plugins Customizados
 ├── updater/                # Auto-update conectando via API do GitHub
@@ -48,3 +48,4 @@ dimy-root/
 1. **Sem Node.js no Backend:** Nunca instale bibliotecas `npm` ou crie rotas de servidor Next.js (`route.ts` ou `"use server"` actions) para interagir com o Banco de Dados. A API agora mora estritamente no pacote Go (`handlers/`).
 2. **Banco SQL Seguro:** Sempre faça uso das queries parametrizadas (ex: `WHERE email = $1`) no módulo de banco do Go para evitar injeções e falhas na mudança entre drivers PostgreSQL/SQLite.
 3. **Single Binary:** Não crie arquivos soltos ou templates HTML espalhados pelo backend. Tudo que é visual deve estar no `frontend/` para ser processado no build do Next e incorporado (Embedded) no Go.
+4. **Autenticação Headless Híbrida:** O backend suporta duas formas de autenticação: Cookie `dimy_session` (para o painel interno) e `Authorization: Bearer <Token>` da tabela `api_keys` (para clientes externos). O `handlers/middleware.go` gerencia isso globalmente para escritas, e `handlers/content.go` cuida da leitura pública/privada granular.

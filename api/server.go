@@ -43,9 +43,9 @@ func StartServer(port string, frontendFS fs.FS) error {
 	mux.HandleFunc("DELETE /api/schema/collections/{id}", handlers.RequireAuth(handlers.DeleteCollectionHandler))
 
 	// Content API
-	mux.HandleFunc("GET /api/content/collections/{slug}", handlers.RequireAuth(handlers.GetCollectionBySlugHandler))
-	mux.HandleFunc("GET /api/content/documents", handlers.RequireAuth(handlers.GetDocumentsHandler))
-	mux.HandleFunc("GET /api/content/documents/{id}", handlers.RequireAuth(handlers.GetDocumentHandler))
+	mux.HandleFunc("GET /api/content/collections/{slug}", handlers.GetCollectionBySlugHandler)
+	mux.HandleFunc("GET /api/content/documents", handlers.GetDocumentsHandler)
+	mux.HandleFunc("GET /api/content/documents/{id}", handlers.GetDocumentHandler)
 	mux.HandleFunc("POST /api/content/documents", handlers.RequireAuth(handlers.CreateDocumentHandler))
 	mux.HandleFunc("PUT /api/content/documents/{id}", handlers.RequireAuth(handlers.UpdateDocumentHandler))
 	mux.HandleFunc("DELETE /api/content/documents/{id}", handlers.RequireAuth(handlers.DeleteDocumentHandler))
