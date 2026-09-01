@@ -5,7 +5,7 @@ export function validateDocumentData(collection: any, data: any) {
     return { success: false, error: 'Coleção inválida.' };
   }
 
-  const fields = collection.fields || [];
+  const fields = data._fields || collection.fields || [];
 
   for (const field of fields) {
     const value = data[field.name];

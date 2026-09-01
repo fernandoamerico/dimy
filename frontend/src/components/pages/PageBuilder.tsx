@@ -406,15 +406,6 @@ export function PageBuilder({
               onChange={url => handleChange(field.name, url)} 
               placeholder="URL ou Upload da Imagem" 
             />
-            {formData[field.name] ? (
-              <div className="w-full h-48 rounded-xl border border-gray-200 dark:border-neutral-800 overflow-hidden bg-gray-50 dark:bg-neutral-950">
-                <img src={formData[field.name]} alt="Preview" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} />
-              </div>
-            ) : (
-              <div className="w-full h-24 rounded-xl border border-dashed border-gray-300 dark:border-neutral-700 bg-gray-50/50 dark:bg-neutral-950/50 flex flex-col items-center justify-center text-gray-400">
-                <ImageIcon className="w-6 h-6 mb-2 opacity-50" /><span className="text-xs">Insira uma URL ou faça upload</span>
-              </div>
-            )}
           </div>
         );
 

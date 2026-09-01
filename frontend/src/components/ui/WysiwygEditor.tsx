@@ -217,7 +217,7 @@ export function WysiwygEditor({ value, onChange, placeholder = 'Escreva seu text
       )}
 
       {/* Editor Area */}
-      <div className="relative min-h-[150px] p-4 text-gray-900 dark:text-gray-100 prose dark:prose-invert max-w-none [&_a]:text-blue-600 [&_a]:underline hover:[&_a]:text-blue-700 dark:[&_a]:text-emerald-400 dark:hover:[&_a]:text-emerald-300">
+      <div className="relative min-h-[150px] p-4 text-gray-900 dark:text-gray-100 [&_*]:dark:text-gray-100 prose dark:prose-invert max-w-none [&_a]:text-blue-600 [&_a]:underline hover:[&_a]:text-blue-700 dark:[&_a]:text-emerald-400 dark:hover:[&_a]:text-emerald-300">
         {isSourceMode ? (
           <textarea
             className="w-full min-h-[150px] bg-transparent resize-y outline-none font-mono text-sm text-gray-800 dark:text-gray-300"

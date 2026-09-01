@@ -4,8 +4,9 @@ import { useEffect, useState, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getCollectionBySlug, getDocuments, deleteDocument, createDocument } from '@/core/content/actions';
+import { duplicateDocument } from '@/core/content/actions'; // Add duplicate
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Plus, FileText, ArrowLeft, Trash2, Edit2, Search, Loader2 } from 'lucide-react';
+import { Plus, FileText, ArrowLeft, Trash2, Edit2, Search, Loader2, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
@@ -52,19 +53,19 @@ function PaginasListContent() {
 
   const handleCreateSection = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newSectionTitle || !newSectionSlug) return;
+    if (!newSectionTitle) return;
     setIsCreating(true);
+
+    let finalSlug = newSectionSlug.trim();
+    if (!finalSlug) finalSlug = newSectionTitle;
+    finalSlug = finalSlug.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\-]+/g, '-').replace(/(^-|-$)+/g, '');
 
     try {
       const res = await createDocument(collection.id, collection.slug, {
         title: newSectionTitle,
-        slug: newSectionSlug,
+        slug: finalSlug,
         status: 'draft',
-        content: {
-          assets: [],
-          styles: [],
-          pages: [{ frames: [{ component: { type: 'wrapper', components: [] } }] }]
-        }
+        _fields: []
       });
 
       if (res && res.success) {
@@ -79,6 +80,20 @@ function PaginasListContent() {
       toast.error('Ocorreu um erro ao criar a seção.');
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleDuplicateSection = async (docId: string) => {
+    try {
+      const res = await duplicateDocument(docId, collection.slug);
+      if (res.success) {
+        toast.success('Seção duplicada com sucesso!');
+        fetchContent();
+      } else {
+        toast.error('Erro ao duplicar seção.');
+      }
+    } catch {
+      toast.error('Ocorreu um erro ao duplicar a seção.');
     }
   };
 
@@ -115,7 +130,7 @@ function PaginasListContent() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsNewModalOpen(true)}
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-sm font-medium rounded-xl transition-colors shadow-sm shadow-blue-500/20"
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-xl transition-colors shadow-sm shadow-emerald-500/20"
             >
               <Plus className="w-4 h-4" />
               Nova Seção
@@ -137,7 +152,7 @@ function PaginasListContent() {
             </p>
             <button
               onClick={() => setIsNewModalOpen(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white font-medium rounded-xl transition-all shadow-sm shadow-blue-500/20 hover:shadow-blue-500/40"
+              className="flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl transition-all shadow-sm shadow-emerald-500/20 hover:shadow-emerald-500/40"
             >
               <Plus className="w-5 h-5" />
               Criar Primeira Seção
@@ -201,11 +216,17 @@ function PaginasListContent() {
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
                             <Link href={`/paginas/item?slug=${collection.slug}&id=${doc.id}`}
-                              className="p-2 text-blue-600 hover:bg-blue-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10 rounded-lg transition-colors flex items-center gap-2 font-medium"
+                              className="p-2 text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10 rounded-lg transition-colors flex items-center gap-2 font-medium"
                             >
                               <Edit2 className="w-4 h-4" />
                               <span className="hidden sm:inline">Editar Visual</span>
                             </Link>
+                            <button onClick={() => handleDuplicateSection(doc.id)}
+                              className="p-2 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-500/10 rounded-lg transition-colors"
+                              title="Duplicar"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </button>
                             <button onClick={() => setDeleteItem(doc.id)}
                               className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 rounded-lg transition-colors"
                               title="Excluir"
@@ -255,13 +276,16 @@ function PaginasListContent() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ID / Slug Interno</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ID / Slug Interno (Opcional)</label>
                   <input
                     type="text"
-                    required
                     value={newSectionSlug}
-                    onChange={(e) => setNewSectionSlug(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-black dark:text-white"
+                    onChange={(e) => {
+                      const formatted = e.target.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\-]+/g, '-');
+                      setNewSectionSlug(formatted);
+                    }}
+                    placeholder="Auto-gerado pelo título se vazio"
+                    className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-black dark:text-white"
                   />
                 </div>
                 <div className="pt-4 flex gap-3">
@@ -275,7 +299,7 @@ function PaginasListContent() {
                   <button
                     type="submit"
                     disabled={isCreating}
-                    className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
+                    className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
                   >
                     {isCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Criar Seção'}
                   </button>

@@ -137,3 +137,22 @@ export async function deleteDocument(id: string, slug: string) {
     return { success: false, error: error.message };
   }
 }
+
+export async function duplicateDocument(id: string, collectionSlug: string) {
+  try {
+    const doc = await getDocument(id);
+    if (!doc) return { success: false, error: 'Documento não encontrado' };
+
+    const col = await getCollectionBySlug(collectionSlug);
+    if (!col) return { success: false, error: 'Coleção não encontrada' };
+
+    const newData = { ...doc.data };
+    newData.title = `${newData.title || 'Cópia'} (Cópia)`;
+    newData.slug = `${newData.slug || 'copia'}-${Math.floor(Date.now() / 1000)}`;
+
+    return await createDocument(col.id, col.slug, newData);
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
