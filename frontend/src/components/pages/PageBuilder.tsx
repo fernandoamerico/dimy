@@ -169,7 +169,7 @@ export function PageBuilder({
 
   const [galleryLibraryOpenFor, setGalleryLibraryOpenFor] = useState<string | null>(null);
 
-  const [fields, setFields] = useState<any[]>(collection.fields || []);
+  const [fields, setFields] = useState<any[]>(pageDoc?.data?._fields || collection.fields || []);
 
   // Metadata states
   const [showInSidebar, setShowInSidebar] = useState(!!initialMeta.show_in_sidebar);
@@ -205,7 +205,7 @@ export function PageBuilder({
     const updatedMeta = buildMetadata(overrides);
     const res = await updateCollection(collection.id, {
       name: collectionName, slug: collection.slug, icon: collection.icon,
-      metadata: updatedMeta, fields,
+      metadata: updatedMeta, fields: collection.fields || [],
     });
     if (res.success) {
       collection.metadata = updatedMeta;
@@ -225,7 +225,7 @@ export function PageBuilder({
     await saveMetadata();
     
     // Prune formData to only include keys from active fields
-    const prunedData: Record<string, any> = {};
+    const prunedData: Record<string, any> = { _fields: fields };
     fields.forEach(f => {
       if (formData[f.name] !== undefined) {
         prunedData[f.name] = formData[f.name];
@@ -263,17 +263,8 @@ export function PageBuilder({
     };
     
     const updatedFields = [...fields, newFieldObj];
-    const res = await updateCollection(collection.id, {
-      name: collectionName, slug: collection.slug, icon: collection.icon,
-      metadata: collection.metadata, fields: updatedFields,
-    });
-    
-    if (res.success) {
-      setFields(updatedFields);
-      toast.success(`Bloco "${newFieldObj.label}" adicionado!`);
-    } else {
-      toast.error('Erro ao adicionar bloco: ' + res.error);
-    }
+    setFields(updatedFields);
+    toast.success(`Bloco "${newFieldObj.label}" adicionado!`);
     setIsSubmitting(false);
   };
 
@@ -295,21 +286,12 @@ export function PageBuilder({
     const newFieldObj = { ...field, name, label, order: fields.length };
     const updatedFields = [...fields, newFieldObj];
     
-    const res = await updateCollection(collection.id, {
-      name: collectionName, slug: collection.slug, icon: collection.icon,
-      metadata: collection.metadata, fields: updatedFields,
-    });
-    
-    if (res.success) {
-      setFields(updatedFields);
-      // Copy data as well
-      if (formData[field.name] !== undefined) {
-        setFormData(prev => ({ ...prev, [name]: prev[field.name] }));
-      }
-      toast.success(`Bloco duplicado!`);
-    } else {
-      toast.error('Erro ao duplicar bloco.');
+    setFields(updatedFields);
+    // Copy data as well
+    if (formData[field.name] !== undefined) {
+      setFormData(prev => ({ ...prev, [name]: prev[field.name] }));
     }
+    toast.success(`Bloco duplicado!`);
     setIsSubmitting(false);
   };
 
@@ -321,17 +303,8 @@ export function PageBuilder({
     const newFields = [...fields];
     newFields[index] = { ...newFields[index], label: newLabel };
 
-    const res = await updateCollection(collection.id, {
-      name: collectionName, slug: collection.slug, icon: collection.icon,
-      metadata: collection.metadata, fields: newFields,
-    });
-
-    if (res.success) {
-      setFields(newFields);
-      toast.success('Nome do bloco atualizado!');
-    } else {
-      toast.error('Erro ao atualizar nome do bloco.');
-    }
+    setFields(newFields);
+    toast.success('Nome do bloco atualizado!');
     setIsSubmitting(false);
   };
 
@@ -359,26 +332,17 @@ export function PageBuilder({
     const newFields = [...fields];
     newFields[index] = { ...newFields[index], name: newName };
 
-    const res = await updateCollection(collection.id, {
-      name: collectionName, slug: collection.slug, icon: collection.icon,
-      metadata: collection.metadata, fields: newFields,
-    });
-
-    if (res.success) {
-      setFields(newFields);
-      // Migrate formData key
-      if (formData[oldName] !== undefined) {
-        setFormData(prev => {
-          const newData = { ...prev };
-          newData[newName] = newData[oldName];
-          delete newData[oldName];
-          return newData;
-        });
-      }
-      toast.success('Chave da API atualizada!');
-    } else {
-      toast.error('Erro ao atualizar chave da API.');
+    setFields(newFields);
+    // Migrate formData key
+    if (formData[oldName] !== undefined) {
+      setFormData(prev => {
+        const newData = { ...prev };
+        newData[newName] = newData[oldName];
+        delete newData[oldName];
+        return newData;
+      });
     }
+    toast.success('Chave da API atualizada!');
     setIsSubmitting(false);
   };
 
@@ -388,20 +352,14 @@ export function PageBuilder({
     if (!fieldToDelete) return;
     setIsSubmitting(true);
     const updatedFields = fields.filter(f => f.name !== fieldToDelete);
-    const res = await updateCollection(collection.id, {
-      name: collectionName, slug: collection.slug, icon: collection.icon,
-      metadata: collection.metadata, fields: updatedFields,
+    setFields(updatedFields);
+    setFormData(prev => {
+      const newData = { ...prev };
+      delete newData[fieldToDelete];
+      return newData;
     });
-    if (res.success) {
-      setFields(updatedFields);
-      setFormData(prev => {
-        const newData = { ...prev };
-        delete newData[fieldToDelete];
-        return newData;
-      });
-      toast.success('Bloco removido!');
-      setFieldToDelete(null);
-    } else { toast.error('Erro ao remover bloco.'); }
+    toast.success('Bloco removido!');
+    setFieldToDelete(null);
     setIsSubmitting(false);
   };
 
@@ -413,10 +371,6 @@ export function PageBuilder({
     [newFields[index], newFields[swapIdx]] = [newFields[swapIdx], newFields[index]];
     newFields.forEach((f, i) => f.order = i);
     setFields(newFields);
-    await updateCollection(collection.id, {
-      name: collectionName, slug: collection.slug, icon: collection.icon,
-      metadata: collection.metadata, fields: newFields,
-    });
   };
 
   // ─── Toggle Helper ────────────────────────────────────────────────────────
@@ -540,7 +494,7 @@ export function PageBuilder({
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 min-w-0 w-full">
         <div className="flex items-center gap-4 min-w-0 flex-1">
-          <Link href="/paginas" className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors shrink-0">
+          <Link href={`/paginas/list?slug=${collection.slug}`} className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors shrink-0">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div className="min-w-0 flex-1 pr-8 lg:pr-24">

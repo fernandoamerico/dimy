@@ -103,19 +103,9 @@ func RunMigrations(db *sql.DB, driver string) error {
 	db.Exec(`ALTER TABLE schema_fields ADD COLUMN options TEXT;`)
 
 	// Pre-install default modules
-	preInstalledModules := []string{
-		"business_info",
-		"supabase_config",
-		"schema_sliders",
-		"core_publications",
-		"core_pages",
-	}
-
-	for _, moduleID := range preInstalledModules {
-		// Use ON CONFLICT DO NOTHING to support both PostgreSQL and SQLite 3.24+
-		query := fmt.Sprintf(`INSERT INTO extensions (id, enabled) VALUES ('%s', true) ON CONFLICT(id) DO NOTHING;`, moduleID)
-		db.Exec(query)
-	}
+	// Core extensions (core_dashboard, core_settings, core_extensions, core_media)
+	// are always active by frontend logic and do not need DB rows.
+	// All other modules are available in the Marketplace for the user to install.
 
 	return nil
 }

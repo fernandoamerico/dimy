@@ -105,10 +105,10 @@ export default function PagesListPage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <FileText className="w-6 h-6 text-blue-600 dark:text-emerald-400" />
-              Páginas
+              Páginas (Categorias)
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Crie e estruture páginas únicas como Sobre Nós, Contato, Home, etc.
+              Crie e estruture suas páginas (ex: Home, Sobre Nós). Em cada página, você poderá adicionar múltiplas seções.
             </p>
           </div>
           
@@ -130,7 +130,7 @@ export default function PagesListPage() {
               Nenhuma página criada
             </h3>
             <p className="text-gray-500 dark:text-gray-400 max-w-md mb-8">
-              Você ainda não possui nenhuma página única. Crie sua primeira página, como "Sobre Nós", para começar a montar a estrutura visual.
+              Você ainda não possui nenhuma página principal. Crie sua primeira página, como "Home", para depois adicionar seções a ela.
             </p>
             <button
               onClick={() => setIsModalOpen(true)}
@@ -150,7 +150,7 @@ export default function PagesListPage() {
 
               return (
                 <div key={page.id} className="group flex flex-col bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 dark:shadow-sm dark:hover:shadow-md hover:border-blue-200 dark:hover:border-emerald-500/30 transition-all overflow-hidden relative">
-                  <Link href={`/paginas/item?slug=${page.slug}`} className="p-5 flex-1 block">
+                  <Link href={`/paginas/list?slug=${page.slug}`} className="p-5 flex-1 block">
                     <div className="flex items-center justify-between mb-4">
                       <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-neutral-800 flex items-center justify-center text-gray-600 dark:text-neutral-400 group-hover:text-blue-600 dark:group-hover:text-emerald-400 group-hover:bg-blue-50 dark:group-hover:bg-emerald-500/10 transition-colors">
                         <FileText className="w-5 h-5" />
@@ -167,7 +167,7 @@ export default function PagesListPage() {
                       {page.name}
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
-                      {meta.description || 'Página única estática.'}
+                      {meta.description || 'Página baseada em seções.'}
                     </p>
                   </Link>
                   <div className="px-5 py-3 bg-gray-50 dark:bg-neutral-950 border-t border-slate-100 dark:border-neutral-800 flex justify-between items-center relative z-10">

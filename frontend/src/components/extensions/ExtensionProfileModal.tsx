@@ -388,6 +388,36 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
                     e.preventDefault();
                     setIsWorking(true);
                     const formData = new FormData(e.currentTarget);
+                    
+                    const accountId = formData.get('r2_account_id') as string;
+                    const bucket = formData.get('r2_bucket') as string;
+                    const accessKey = formData.get('r2_access_key') as string;
+                    const secretKey = formData.get('r2_secret_key') as string;
+
+                    try {
+                      const testRes = await fetch('/api/system/test-r2', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          r2_account_id: accountId,
+                          r2_bucket: bucket,
+                          r2_access_key: accessKey,
+                          r2_secret_key: secretKey
+                        })
+                      });
+                      
+                      if (!testRes.ok) {
+                        const errMsg = await testRes.text();
+                        toast.error('Conexão falhou: ' + errMsg + '. As configurações NÃO foram salvas.');
+                        setIsWorking(false);
+                        return;
+                      }
+                    } catch (err) {
+                      toast.error('Erro de rede ao testar conexão. As configurações NÃO foram salvas.');
+                      setIsWorking(false);
+                      return;
+                    }
+
                     try {
                       for (let [key, value] of formData.entries()) {
                         await fetch('/api/system/config', {
@@ -396,7 +426,7 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
                           body: JSON.stringify({ key, value })
                         });
                       }
-                      toast.success('Configurações salvas com sucesso!');
+                      toast.success('Conexão verificada e configurações salvas com sucesso!');
                     } catch (err) {
                       toast.error('Erro ao salvar as configurações.');
                     }
@@ -464,15 +494,43 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
                     e.preventDefault();
                     setIsWorking(true);
                     const formData = new FormData(e.currentTarget);
+                    
+                    const url = formData.get('supabase_storage_url') as string;
+                    const key = formData.get('supabase_storage_key') as string;
+                    const bucket = formData.get('supabase_storage_bucket') as string;
+                    
                     try {
-                      for (let [key, value] of formData.entries()) {
+                      const testRes = await fetch('/api/system/test-supabase', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          supabase_storage_url: url,
+                          supabase_storage_key: key,
+                          supabase_storage_bucket: bucket
+                        })
+                      });
+                      
+                      if (!testRes.ok) {
+                        const errMsg = await testRes.text();
+                        toast.error('Conexão falhou: ' + errMsg + '. As configurações NÃO foram salvas.');
+                        setIsWorking(false);
+                        return;
+                      }
+                    } catch (err) {
+                      toast.error('Erro de rede ao testar conexão. As configurações NÃO foram salvas.');
+                      setIsWorking(false);
+                      return;
+                    }
+
+                    try {
+                      for (let [formKey, formValue] of formData.entries()) {
                         await fetch('/api/system/config', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ key, value })
+                          body: JSON.stringify({ key: formKey, value: formValue })
                         });
                       }
-                      toast.success('Configurações salvas com sucesso!');
+                      toast.success('Conexão verificada e configurações salvas com sucesso!');
                     } catch (err) {
                       toast.error('Erro ao salvar as configurações.');
                     }
@@ -501,9 +559,25 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
                     <button
                       type="button"
                       onClick={async () => {
+                        const keyInput = document.querySelector<HTMLInputElement>('input[name="supabase_storage_key"]');
+                        const keyValue = keyInput?.value || '';
+                        
+                        if (!supabaseUrl || !keyValue || !supabaseBucket) {
+                          toast.error('Preencha todos os campos antes de testar.');
+                          return;
+                        }
+
                         const loadingToast = toast.loading('Testando conexão com o Supabase...');
                         try {
-                          const res = await fetch('/api/system/test-supabase');
+                          const res = await fetch('/api/system/test-supabase', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              supabase_storage_url: supabaseUrl,
+                              supabase_storage_key: keyValue,
+                              supabase_storage_bucket: supabaseBucket
+                            })
+                          });
                           if (res.ok) {
                             toast.success('Conexão estabelecida com sucesso!', { id: loadingToast });
                           } else {

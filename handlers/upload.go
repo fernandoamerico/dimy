@@ -267,41 +267,28 @@ func uploadToSupabase(file io.Reader, filename string, contentType string) (stri
 	return publicUrl, nil
 }
 
+type TestSupabasePayload struct {
+	URL        string `json:"supabase_storage_url"`
+	Key        string `json:"supabase_storage_key"`
+	BucketName string `json:"supabase_storage_bucket"`
+}
+
 func TestSupabaseConnectionHandler(w http.ResponseWriter, r *http.Request) {
-	var supabaseUrl, supabaseKey, bucketName string
-
-	rows, err := db.Instance.Query(`
-		SELECT key, value FROM system_configs 
-		WHERE key IN ('supabase_storage_url', 'supabase_storage_key', 'supabase_storage_bucket')
-	`)
-	if err != nil {
-		http.Error(w, "Erro ao buscar credenciais no banco", http.StatusInternalServerError)
-		return
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var k, v string
-		rows.Scan(&k, &v)
-		switch k {
-		case "supabase_storage_url":
-			supabaseUrl = v
-		case "supabase_storage_key":
-			supabaseKey = v
-		case "supabase_storage_bucket":
-			bucketName = v
-		}
-	}
-
-	if supabaseUrl == "" || supabaseKey == "" || bucketName == "" {
-		http.Error(w, "Credenciais incompletas. Preencha todos os campos e salve antes de testar.", http.StatusBadRequest)
+	var payload TestSupabasePayload
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		http.Error(w, "JSON inválido", http.StatusBadRequest)
 		return
 	}
 
-	supabaseUrl = strings.TrimRight(supabaseUrl, "/")
+	if payload.URL == "" || payload.Key == "" || payload.BucketName == "" {
+		http.Error(w, "Credenciais incompletas. Preencha todos os campos.", http.StatusBadRequest)
+		return
+	}
+
+	supabaseUrl := strings.TrimRight(payload.URL, "/")
 	
 	// Test by getting bucket details
-	testUrl := fmt.Sprintf("%s/storage/v1/bucket/%s", supabaseUrl, bucketName)
+	testUrl := fmt.Sprintf("%s/storage/v1/bucket/%s", supabaseUrl, payload.BucketName)
 
 	req, err := http.NewRequest("GET", testUrl, nil)
 	if err != nil {
@@ -309,7 +296,7 @@ func TestSupabaseConnectionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req.Header.Set("Authorization", "Bearer "+supabaseKey)
+	req.Header.Set("Authorization", "Bearer "+payload.Key)
 
 	client := &http.Client{Timeout: 15 * time.Second}
 	resp, err := client.Do(req)
@@ -327,6 +314,57 @@ func TestSupabaseConnectionHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Conexão bem-sucedida!"))
+}
+
+type TestR2Payload struct {
+	AccountID  string `json:"r2_account_id"`
+	BucketName string `json:"r2_bucket"`
+	AccessKey  string `json:"r2_access_key"`
+	SecretKey  string `json:"r2_secret_key"`
+}
+
+func TestR2ConnectionHandler(w http.ResponseWriter, r *http.Request) {
+	var payload TestR2Payload
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		http.Error(w, "JSON inválido", http.StatusBadRequest)
+		return
+	}
+
+	if payload.AccountID == "" || payload.BucketName == "" || payload.AccessKey == "" || payload.SecretKey == "" {
+		http.Error(w, "Credenciais incompletas. Preencha todos os campos.", http.StatusBadRequest)
+		return
+	}
+
+	r2Resolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+		return aws.Endpoint{
+			URL: fmt.Sprintf("https://%s.r2.cloudflarestorage.com", payload.AccountID),
+		}, nil
+	})
+
+	cfg, err := config.LoadDefaultConfig(r.Context(),
+		config.WithEndpointResolverWithOptions(r2Resolver),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(payload.AccessKey, payload.SecretKey, "")),
+		config.WithRegion("auto"),
+	)
+	if err != nil {
+		http.Error(w, "Erro ao configurar AWS SDK: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	client := s3.NewFromConfig(cfg)
+	
+	// Test by checking bucket existence / getting bucket location
+	_, err = client.HeadBucket(r.Context(), &s3.HeadBucketInput{
+		Bucket: aws.String(payload.BucketName),
+	})
+	
+	if err != nil {
+		http.Error(w, "Erro de conexão com o bucket R2: "+err.Error(), http.StatusBadGateway)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Conexão com R2 bem-sucedida!"))
 }
 
 func DeleteFromSupabase(filename string) error {

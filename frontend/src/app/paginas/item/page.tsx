@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { getCollectionBySlug, getDocuments, createDocument } from '@/core/content/actions';
+import { getCollectionBySlug, getDocument } from '@/core/content/actions';
 import { notFound, useRouter, useSearchParams } from 'next/navigation';
 import { PageBuilder } from '@/components/pages/PageBuilder';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -10,6 +10,7 @@ function PageBuilderContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const slug = searchParams.get('slug') as string;
+  const id = searchParams.get('id') as string;
   const [collection, setCollection] = useState<any>(null);
   const [document, setDocument] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -17,9 +18,14 @@ function PageBuilderContent() {
   useEffect(() => {
     async function loadData() {
       try {
+        if (!slug || !id) {
+          router.push('/paginas');
+          return;
+        }
+
         const col = await getCollectionBySlug(slug);
         if (!col) {
-          router.push('/404');
+          router.push('/paginas');
           return;
         }
 
@@ -30,22 +36,18 @@ function PageBuilderContent() {
         } catch (e) {}
 
         if (!isPage) {
-          router.push('/404');
+          router.push('/paginas');
           return;
         }
 
-        const docs = await getDocuments(col.id);
-        let doc = docs.length > 0 ? docs[0] : null;
-
+        const doc = await getDocument(id);
         if (!doc) {
-          const res = await createDocument(col.id, col.slug, {});
-          if (res.success && res.document) {
-            doc = res.document;
-          }
+          router.push(`/paginas/list?slug=${slug}`);
+          return;
         }
 
         setCollection(col);
-        setDocument(doc || {}); // fallback if creation failed
+        setDocument(doc);
       } catch (err) {
         console.error(err);
       } finally {
@@ -54,7 +56,7 @@ function PageBuilderContent() {
     }
 
     loadData();
-  }, [slug, router]);
+  }, [slug, id, router]);
 
   if (loading) {
     return (

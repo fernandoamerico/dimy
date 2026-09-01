@@ -57,8 +57,8 @@ export default function CreatePageModal({
 
       if (res.success) {
         onClose();
-        // Redirect directly to the page builder
-        router.push(`/paginas/item?slug=${slug}`);
+        // Redirect to the sections list of this category
+        router.push(`/paginas/list?slug=${slug}`);
       } else {
         setError(res.error || 'Erro ao criar página.');
       }
