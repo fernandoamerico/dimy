@@ -205,31 +205,19 @@ export function PageBuilder({
     });
   };
 
-  const saveMetadata = async (overrides: Record<string, any> = {}) => {
-    const updatedMeta = buildMetadata(overrides);
-    const res = await updateCollection(collection.id, {
-      name: collectionName, slug: collectionSlug, icon: collection.icon,
-      metadata: updatedMeta, fields: collection.fields || [],
-    });
-    if (res.success) {
-      collection.metadata = updatedMeta;
-      return true;
-    }
-    return false;
-  };
-
-  const handleChange = (fieldName: string, value: any) => {
-    setFormData(prev => ({ ...prev, [fieldName]: value }));
-  };
-
   // ─── Save Page ────────────────────────────────────────────────────────────
   const handleSavePage = async () => {
     setIsSubmitting(true);
-    // Save metadata first
-    await saveMetadata();
     
-    // Prune formData to only include keys from active fields
-    const prunedData: Record<string, any> = { _fields: fields };
+    // Prune formData to only include keys from active fields, plus base properties
+    const prunedData: Record<string, any> = { 
+      _fields: fields,
+      title: formData.title,
+      slug: formData.slug,
+      status: formData.status,
+      css, customCss
+    };
+    
     fields.forEach(f => {
       if (formData[f.name] !== undefined) {
         prunedData[f.name] = formData[f.name];
@@ -595,87 +583,44 @@ export function PageBuilder({
           </div>
 
           {/* SETTINGS */}
-          <Panel title="Configurações" icon={Settings} iconColor="text-gray-400" defaultOpen>
+          <Panel title="Configurações da Seção" icon={Settings} iconColor="text-gray-400" defaultOpen>
             <div className="space-y-4">
               <div>
-                <label className="text-xs font-semibold text-gray-500 dark:text-neutral-400 uppercase tracking-wider block mb-2">Nome da Página</label>
+                <label className="text-xs font-semibold text-gray-500 dark:text-neutral-400 uppercase tracking-wider block mb-2">Título da Seção</label>
                 <input
                   type="text"
-                  value={collectionName}
-                  onChange={(e) => setCollectionName(e.target.value)}
+                  value={formData.title || ''}
+                  onChange={(e) => handleChange('title', e.target.value)}
                   onBlur={handleSavePage}
-                  className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 transition-colors"
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors"
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-gray-500 dark:text-neutral-400 uppercase tracking-wider block mb-2">Slug da Página (URL)</label>
+                <label className="text-xs font-semibold text-gray-500 dark:text-neutral-400 uppercase tracking-wider block mb-2">ID / Slug Interno</label>
                 <input
                   type="text"
-                  value={collectionSlug}
+                  value={formData.slug || ''}
                   onChange={(e) => {
                     const formatted = e.target.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\-]+/g, '-');
-                    setCollectionSlug(formatted);
+                    handleChange('slug', formatted);
                   }}
-                  onBlur={async () => {
-                    await handleSavePage();
-                    if (collectionSlug !== collection.slug) {
-                      router.replace(`/paginas/item?slug=${collectionSlug}&id=${pageDoc.id}`);
-                    }
-                  }}
-                  className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 transition-colors font-mono"
+                  onBlur={handleSavePage}
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors font-mono"
                 />
               </div>
               <div className="pt-4 border-t border-gray-100 dark:border-neutral-800 space-y-3">
                 <div className="flex items-center justify-between">
-                <div><span className="block text-sm font-medium text-gray-900 dark:text-white">Página Ativa</span><span className="block text-xs text-gray-500 dark:text-gray-400">Desativa a rota da API</span></div>
-                <Toggle checked={isActive} onChange={v => handleToggle('is_active', v, setIsActive, 'Página ativada!', 'Página desativada.')} />
-              </div>
-              <div className="flex items-center justify-between">
-                <div><span className="block text-sm font-medium text-gray-900 dark:text-white">Rota Pública</span><span className="block text-xs text-gray-500 dark:text-gray-400">Exige autenticação se privada</span></div>
-                <Toggle checked={isPublic} onChange={v => handleToggle('is_public', v, setIsPublic, 'Rota pública!', 'Rota agora exige login.')} />
-              </div>
-              <div className="flex items-center justify-between">
-                <div><span className="block text-sm font-medium text-gray-900 dark:text-white">Exibir no Menu Lateral</span><span className="block text-xs text-gray-500 dark:text-gray-400">Fixar atalho direto no Sidebar</span></div>
-                  <Toggle checked={showInSidebar} onChange={v => handleToggle('show_in_sidebar', v, setShowInSidebar, 'Adicionado ao menu lateral!', 'Removido do menu lateral.')} />
+                  <div><span className="block text-sm font-medium text-gray-900 dark:text-white">Seção Ativa</span><span className="block text-xs text-gray-500 dark:text-gray-400">Exibir seção no site</span></div>
+                  <Toggle checked={formData.status === 'published'} onChange={v => {
+                    handleChange('status', v ? 'published' : 'draft');
+                    toast.success(v ? 'Seção ativada!' : 'Seção desativada.');
+                  }} />
                 </div>
               </div>
             </div>
           </Panel>
 
-          {/* SEO */}
-          <Panel title="SEO" icon={Search} iconColor="text-orange-500">
-            <div className="space-y-3">
-              <div><label className="text-xs font-medium text-gray-600 dark:text-gray-400">Meta Título</label>
-                <input type="text" value={seo.title} onChange={e => setSeo({ ...seo, title: e.target.value })}
-                  className="w-full mt-1 px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg text-sm text-gray-900 dark:text-white" /></div>
-              <div><label className="text-xs font-medium text-gray-600 dark:text-gray-400">Meta Descrição</label>
-                <textarea value={seo.description} onChange={e => setSeo({ ...seo, description: e.target.value })} rows={3}
-                  className="w-full mt-1 px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg text-sm text-gray-900 dark:text-white resize-none" /></div>
-              <div><label className="text-xs font-medium text-gray-600 dark:text-gray-400">Palavras-chave</label>
-                <input type="text" value={seo.keywords} onChange={e => setSeo({ ...seo, keywords: e.target.value })} placeholder="blog, empresa, sobre"
-                  className="w-full mt-1 px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg text-sm text-gray-900 dark:text-white" /></div>
-              <div><label className="text-xs font-medium text-gray-600 dark:text-gray-400">URL Canônica</label>
-                <input type="url" value={seo.canonical} onChange={e => setSeo({ ...seo, canonical: e.target.value })} placeholder="https://..."
-                  className="w-full mt-1 px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg text-sm text-gray-900 dark:text-white" /></div>
-            </div>
-          </Panel>
 
-          {/* COVER */}
-          <Panel title="Capa" icon={ImagePlus} iconColor="text-pink-500">
-            <div className="space-y-3">
-              <div><label className="text-xs font-medium text-gray-600 dark:text-gray-400">URL ou Arquivo da Imagem de Capa</label>
-                <ImageUploader value={cover.image} onChange={(url) => setCover({ ...cover, image: url })} className="mt-1" />
-              </div>
-              {cover.image && (
-                <div className="w-full h-32 rounded-xl border border-gray-200 dark:border-neutral-800 overflow-hidden bg-gray-50 dark:bg-neutral-950">
-                  <img src={cover.image} alt={cover.alt || 'Cover'} className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} />
-                </div>
-              )}
-              <div><label className="text-xs font-medium text-gray-600 dark:text-gray-400">Texto Alternativo (Alt)</label>
-                <input type="text" value={cover.alt} onChange={e => setCover({ ...cover, alt: e.target.value })} placeholder="Descrição da imagem"
-                  className="w-full mt-1 px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg text-sm text-gray-900 dark:text-white" /></div>
-            </div>
-          </Panel>
 
           {/* CSS BASIC */}
           <Panel title="CSS Básico" icon={Paintbrush} iconColor="text-cyan-500">

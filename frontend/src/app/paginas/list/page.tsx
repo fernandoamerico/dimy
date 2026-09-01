@@ -266,9 +266,11 @@ function PaginasListContent() {
                     required
                     value={newSectionTitle}
                     onChange={(e) => {
-                      setNewSectionTitle(e.target.value);
-                      if (!newSectionSlug || newSectionSlug === e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')) {
-                        setNewSectionSlug(e.target.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''));
+                      const val = e.target.value;
+                      const oldFormatted = newSectionTitle.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\-]+/g, '-').replace(/(^-|-$)+/g, '');
+                      setNewSectionTitle(val);
+                      if (!newSectionSlug || newSectionSlug === oldFormatted) {
+                        setNewSectionSlug(val.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\-]+/g, '-').replace(/(^-|-$)+/g, ''));
                       }
                     }}
                     className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-black dark:text-white"

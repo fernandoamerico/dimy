@@ -32,8 +32,9 @@ export function validateDocumentData(collection: any, data: any) {
   }
 
   // Keep all system fields (starting with _)
+  const baseFields = ['title', 'slug', 'status', 'cover', 'seo'];
   for (const key in data) {
-    if (key.startsWith('_')) {
+    if (key.startsWith('_') || baseFields.includes(key)) {
       validData[key] = data[key];
     }
   }

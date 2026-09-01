@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { getCollections, deleteCollection, duplicateCollection } from '@/core/schema/actions';
-import { FileText, Plus, Layers, Folder, Layout, Trash2, X, AlertTriangle, Copy } from 'lucide-react';
+import { FileText, Plus, Layers, Folder, Layout, Trash2, X, AlertTriangle, Copy, Settings } from 'lucide-react';
 import CreatePageModal from '@/components/pages/CreatePageModal';
+import EditPageModal from '@/components/pages/EditPageModal';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -18,6 +19,9 @@ export default function PagesListPage() {
   const [pageToDelete, setPageToDelete] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDuplicating, setIsDuplicating] = useState<string | null>(null);
+  
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [pageToEdit, setPageToEdit] = useState<any>(null);
 
   const handleDuplicate = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -176,6 +180,18 @@ export default function PagesListPage() {
                     </div>
                     <div className="flex gap-2">
                       <button 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setPageToEdit(page);
+                          setIsEditModalOpen(true);
+                        }}
+                        className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors"
+                        title="Configurações da Página"
+                      >
+                        <Settings className="w-4 h-4" />
+                      </button>
+                      <button 
                         onClick={(e) => handleDuplicate(page.id, e)}
                         disabled={isDuplicating === page.id}
                         className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors disabled:opacity-50"
@@ -206,6 +222,19 @@ export default function PagesListPage() {
         <CreatePageModal 
           isOpen={isModalOpen} 
           onClose={() => setIsModalOpen(false)} 
+        />
+        
+        <EditPageModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setPageToEdit(null);
+          }}
+          page={pageToEdit}
+          onSuccess={() => {
+            toast.success('Página atualizada com sucesso!');
+            fetchPages();
+          }}
         />
 
         {/* Delete Confirmation Modal */}
