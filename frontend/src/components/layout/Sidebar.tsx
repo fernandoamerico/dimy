@@ -167,6 +167,8 @@ export function Sidebar({
               // Item genérico (ex: /produtos). Fica ativo apenas se não estivermos dentro de uma coleção específica.
               if (item.href === '/banners') {
                 isActive = !!pathname?.startsWith('/banners');
+              } else if (item.href === '/paginas') {
+                isActive = !!pathname?.startsWith('/paginas');
               } else {
                 isActive = !!pathname?.startsWith(item.href) && !currentSlug;
               }

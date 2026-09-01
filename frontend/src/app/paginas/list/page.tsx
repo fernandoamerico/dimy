@@ -3,10 +3,10 @@
 import { useEffect, useState, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getCollectionBySlug, getDocuments, deleteDocument, createDocument } from '@/core/content/actions';
-import { duplicateDocument } from '@/core/content/actions'; // Add duplicate
+import { getCollectionBySlug, getDocuments, deleteDocument, createDocument, duplicateDocument } from '@/core/content/actions';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Plus, FileText, ArrowLeft, Trash2, Edit2, Search, Loader2, Copy } from 'lucide-react';
+import EditPageModal from '@/components/pages/EditPageModal';
+import { Plus, FileText, ArrowLeft, Trash2, Edit2, Search, Loader2, Copy, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
@@ -18,6 +18,7 @@ function PaginasListContent() {
   const [documents, setDocuments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [deleteItem, setDeleteItem] = useState<string | null>(null);
 
   // Filtros
@@ -128,6 +129,13 @@ function PaginasListContent() {
           </div>
           
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsEditModalOpen(true)}
+              className="flex items-center justify-center p-2 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-xl transition-colors border border-transparent hover:border-emerald-200 dark:hover:border-emerald-900/50"
+              title="Configurações da Página"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
             <button
               onClick={() => setIsNewModalOpen(true)}
               className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-xl transition-colors shadow-sm shadow-emerald-500/20"
@@ -250,7 +258,16 @@ function PaginasListContent() {
           </div>
         )}
 
-        {/* Modal Nova Seção */}
+        {/* Modals */}
+        <EditPageModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          page={collection}
+          onSuccess={() => {
+            fetchData();
+          }}
+        />
+
         {isNewModalOpen && createPortal(
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/70 backdrop-blur-md">
             <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-2xl shadow-xl border border-slate-200 dark:border-neutral-800 overflow-hidden">
