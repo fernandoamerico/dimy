@@ -163,13 +163,17 @@ export function PageBuilder({
   })();
 
   const [collectionName, setCollectionName] = useState(collection.name);
+  const [collectionSlug, setCollectionSlug] = useState(collection.slug);
 
   const [formData, setFormData] = useState<Record<string, any>>(pageDoc?.data || {});
   const [activeTab, setActiveTab] = useState<'content' | 'settings' | 'seo'>('content');
 
   const [galleryLibraryOpenFor, setGalleryLibraryOpenFor] = useState<string | null>(null);
 
-  const [fields, setFields] = useState<any[]>(pageDoc?.data?._fields || collection.fields || []);
+  const [fields, setFields] = useState<any[]>(() => {
+    const initialFields = pageDoc?.data?._fields || collection.fields || [];
+    return initialFields.map((f: any) => ({ ...f, _id: f._id || Math.random().toString(36).substring(2, 9) }));
+  });
 
   // Metadata states
   const [showInSidebar, setShowInSidebar] = useState(!!initialMeta.show_in_sidebar);
@@ -204,7 +208,7 @@ export function PageBuilder({
   const saveMetadata = async (overrides: Record<string, any> = {}) => {
     const updatedMeta = buildMetadata(overrides);
     const res = await updateCollection(collection.id, {
-      name: collectionName, slug: collection.slug, icon: collection.icon,
+      name: collectionName, slug: collectionSlug, icon: collection.icon,
       metadata: updatedMeta, fields: collection.fields || [],
     });
     if (res.success) {
@@ -259,6 +263,7 @@ export function PageBuilder({
     }
 
     const newFieldObj = {
+      _id: Math.random().toString(36).substring(2, 9),
       name, label, type: blockType, required: false, order: fields.length,
     };
     
@@ -283,7 +288,7 @@ export function PageBuilder({
       name = label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9_]+/g, '_');
     }
 
-    const newFieldObj = { ...field, name, label, order: fields.length };
+    const newFieldObj = { ...field, _id: Math.random().toString(36).substring(2, 9), name, label, order: fields.length };
     const updatedFields = [...fields, newFieldObj];
     
     setFields(updatedFields);
@@ -309,26 +314,12 @@ export function PageBuilder({
   };
 
   // ─── Update Field API Name ────────────────────────────────────────────────
-  const handleUpdateFieldName = async (index: number, rawNewName: string) => {
-    // Format string to be a valid JSON key
+  const handleUpdateFieldName = (index: number, rawNewName: string) => {
     let newName = rawNewName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9_]+/g, '_');
-    if (!newName.trim()) {
-      toast.error('A chave da API não pode ser vazia.');
-      return;
-    }
     
-    if (fields[index].name === newName) return; // No change
-    
-    setIsSubmitting(true);
-    
-    // Ensure uniqueness
-    if (fields.some((f, i) => i !== index && f.name === newName)) {
-      toast.error('Já existe um bloco com essa chave (ID) na API.');
-      setIsSubmitting(false);
-      return;
-    }
-
     const oldName = fields[index].name;
+    if (oldName === newName) return;
+    
     const newFields = [...fields];
     newFields[index] = { ...newFields[index], name: newName };
 
@@ -342,8 +333,6 @@ export function PageBuilder({
         return newData;
       });
     }
-    toast.success('Chave da API atualizada!');
-    setIsSubmitting(false);
   };
 
 
@@ -530,7 +519,7 @@ export function PageBuilder({
             fields.map((field, index) => {
               const FieldIcon = ICON_MAP[field.type] || Type;
               return (
-                <div key={field.name} className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md dark:border dark:border-neutral-800 rounded-2xl p-5 dark:shadow-sm transition-all hover:border-blue-300 dark:hover:border-emerald-500/50">
+                <div key={field._id} className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md dark:border dark:border-neutral-800 rounded-2xl p-5 dark:shadow-sm transition-all hover:border-blue-300 dark:hover:border-emerald-500/50">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2">
                     <div className="flex items-center gap-2 flex-1 w-full max-w-sm">
                       <FieldIcon className={`w-4 h-4 shrink-0 ${COLOR_MAP[field.type] || 'text-gray-400'}`} />
@@ -553,12 +542,7 @@ export function PageBuilder({
                         <input
                           type="text"
                           value={field.name}
-                          onChange={(e) => {
-                            const newFields = [...fields];
-                            newFields[index] = { ...newFields[index], name: e.target.value };
-                            setFields(newFields);
-                          }}
-                          onBlur={(e) => handleUpdateFieldName(index, e.target.value)}
+                          onChange={(e) => handleUpdateFieldName(index, e.target.value)}
                           onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
                           className="text-[10px] bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-300 px-2 py-0.5 pl-6 rounded-md font-mono w-24 sm:w-32 focus:w-40 transition-all border border-transparent hover:border-gray-300 dark:hover:border-neutral-600 focus:border-violet-500 focus:outline-none focus:bg-white dark:focus:bg-neutral-900"
                           title="Chave do JSON (API)"
@@ -630,6 +614,24 @@ export function PageBuilder({
                   onChange={(e) => setCollectionName(e.target.value)}
                   onBlur={handleSavePage}
                   className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 transition-colors"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-500 dark:text-neutral-400 uppercase tracking-wider block mb-2">Slug da Página (URL)</label>
+                <input
+                  type="text"
+                  value={collectionSlug}
+                  onChange={(e) => {
+                    const formatted = e.target.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\-]+/g, '-');
+                    setCollectionSlug(formatted);
+                  }}
+                  onBlur={async () => {
+                    await handleSavePage();
+                    if (collectionSlug !== collection.slug) {
+                      router.replace(`/paginas/item?slug=${collectionSlug}&id=${pageDoc.id}`);
+                    }
+                  }}
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 transition-colors font-mono"
                 />
               </div>
               <div className="pt-4 border-t border-gray-100 dark:border-neutral-800 space-y-3">
