@@ -205,6 +205,10 @@ export function PageBuilder({
     });
   };
 
+  const handleChange = (fieldName: string, value: any) => {
+    setFormData(prev => ({ ...prev, [fieldName]: value }));
+  };
+
   // ─── Save Page ────────────────────────────────────────────────────────────
   const handleSavePage = async () => {
     setIsSubmitting(true);
