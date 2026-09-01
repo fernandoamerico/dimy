@@ -40,8 +40,10 @@ export async function createCollection(data: CreateCollectionInput) {
       body: JSON.stringify(data)
     });
     
-    const contentType = res.headers.get('content-type');
-    const respData = contentType && contentType.includes('application/json') ? await res.json() : {};
+    let respData: any = {};
+    try {
+      respData = await res.json();
+    } catch (e) {}
     
     if (!res.ok) {
       let errMsg = respData.error;
@@ -67,8 +69,10 @@ export async function deleteCollection(id: string) {
       method: 'DELETE',
     });
     
-    const contentType = res.headers.get('content-type');
-    const respData = contentType && contentType.includes('application/json') ? await res.json() : {};
+    let respData: any = {};
+    try {
+      respData = await res.json();
+    } catch (e) {}
     
     if (!res.ok) {
       throw new Error(respData.error || await res.text().catch(() => 'Erro na API'));
@@ -102,8 +106,10 @@ export async function updateCollection(id: string, data: CreateCollectionInput) 
       body: JSON.stringify(data)
     });
     
-    const contentType = res.headers.get('content-type');
-    const respData = contentType && contentType.includes('application/json') ? await res.json() : {};
+    let respData: any = {};
+    try {
+      respData = await res.json();
+    } catch (e) {}
     
     if (!res.ok) {
       throw new Error(respData.error || await res.text().catch(() => 'Erro na API'));
