@@ -261,7 +261,6 @@ export function PageBuilder({
     
     const updatedFields = [...fields, newFieldObj];
     setFields(updatedFields);
-    toast.success(`Bloco "${newFieldObj.label}" adicionado!`);
     setIsSubmitting(false);
   };
 
@@ -288,7 +287,6 @@ export function PageBuilder({
     if (formData[field.name] !== undefined) {
       setFormData(prev => ({ ...prev, [name]: prev[field.name] }));
     }
-    toast.success(`Bloco duplicado!`);
     setIsSubmitting(false);
   };
 
@@ -301,7 +299,6 @@ export function PageBuilder({
     newFields[index] = { ...newFields[index], label: newLabel };
 
     setFields(newFields);
-    toast.success('Nome do bloco atualizado!');
     setIsSubmitting(false);
   };
 
@@ -354,13 +351,6 @@ export function PageBuilder({
     setFields(newFields);
   };
 
-  // ─── Toggle Helper ────────────────────────────────────────────────────────
-  const handleToggle = async (key: string, value: boolean, setter: (v: boolean) => void, msgOn: string, msgOff: string) => {
-    setter(value);
-    const ok = await saveMetadata({ [key]: value });
-    if (ok) toast.success(value ? msgOn : msgOff);
-    else { setter(!value); toast.error('Erro ao atualizar.'); }
-  };
 
   // ─── Build JSON preview ───────────────────────────────────────────────────
   const buildJsonPreview = () => JSON.stringify({
@@ -617,7 +607,6 @@ export function PageBuilder({
                   <div><span className="block text-sm font-medium text-gray-900 dark:text-white">Seção Ativa</span><span className="block text-xs text-gray-500 dark:text-gray-400">Exibir seção no site</span></div>
                   <Toggle checked={formData.status === 'published'} onChange={v => {
                     handleChange('status', v ? 'published' : 'draft');
-                    toast.success(v ? 'Seção ativada!' : 'Seção desativada.');
                   }} />
                 </div>
               </div>
