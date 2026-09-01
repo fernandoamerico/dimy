@@ -135,7 +135,25 @@ export async function duplicateCollection(id: string) {
         })) : []
     };
     
-    return await createCollection(newCat);
+    const newCollectionRes = await createCollection(newCat);
+    if (!newCollectionRes.success || !newCollectionRes.collection) {
+       return newCollectionRes;
+    }
+
+    // Duplicate documents inside this collection
+    try {
+      const { getDocuments, createDocument } = await import('@/core/content/actions');
+      const docs = await getDocuments(col.id);
+      if (docs && docs.length > 0) {
+        for (const doc of docs) {
+           await createDocument(newCollectionRes.collection.id, newCat.slug, doc.data);
+        }
+      }
+    } catch (e) {
+      console.error('Erro ao duplicar documentos internos', e);
+    }
+    
+    return newCollectionRes;
   } catch (error: any) {
     return { success: false, error: error.message };
   }
