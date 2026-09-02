@@ -1,7 +1,7 @@
 import { 
   Type, List, LayoutTemplate, Image as ImageIcon, 
   Link2, Table, MousePointerClick, ListChecks, 
-  CheckSquare, ToggleLeft, Hash, Minus
+  CheckSquare, ToggleLeft, Hash, Minus, Share2
 } from 'lucide-react';
 
 export const BLOCK_TYPES = [
@@ -18,6 +18,7 @@ export const BLOCK_TYPES = [
   { type: 'toggle', label: 'Liga/Desliga', icon: ToggleLeft, color: 'lime', description: 'Interruptor verdadeiro ou falso' },
   { type: 'number', label: 'Número', icon: Hash, color: 'blue', description: 'Campo de valor numérico' },
   { type: 'divider', label: 'Divisor', icon: Minus, color: 'slate', description: 'Linha separadora visual' },
+  { type: 'social_links', label: 'Redes Sociais', icon: Share2, color: 'indigo', description: 'Lista de ícones com links' },
 ];
 
 export const COLOR_MAP: Record<string, string> = {
@@ -25,7 +26,7 @@ export const COLOR_MAP: Record<string, string> = {
   image: 'text-amber-500', gallery: 'text-orange-500', url: 'text-sky-500',
   table: 'text-rose-500', button: 'text-indigo-500', select: 'text-cyan-500', 
   multiselect: 'text-teal-500', toggle: 'text-lime-500', number: 'text-blue-500',
-  divider: 'text-slate-500'
+  divider: 'text-slate-500', social_links: 'text-indigo-500'
 };
 
 export const BG_MAP: Record<string, string> = {
@@ -47,7 +48,7 @@ export const ICON_MAP: Record<string, any> = {
   text: Type, richText: List, wysiwyg: LayoutTemplate,
   image: ImageIcon, gallery: ImageIcon, url: Link2, table: Table, button: MousePointerClick,
   select: ListChecks, multiselect: CheckSquare, toggle: ToggleLeft,
-  number: Hash, divider: Minus
+  number: Hash, divider: Minus, social_links: Share2
 };
 
 export const BADGE_MAP: Record<string, string> = {
@@ -63,5 +64,6 @@ export const BADGE_MAP: Record<string, string> = {
   multiselect: 'bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-400',
   toggle: 'bg-lime-100 text-lime-700 dark:bg-lime-500/20 dark:text-lime-400',
   number: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
-  divider: 'bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-400'
+  divider: 'bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-400',
+  social_links: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400'
 };

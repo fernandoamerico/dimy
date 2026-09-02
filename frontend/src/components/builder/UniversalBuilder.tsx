@@ -8,7 +8,7 @@ import { slugify } from '@/core/utils/slug';
 import { 
   Plus, Settings, Trash2, ArrowUp, ArrowDown, 
   ArrowLeft, Copy, Code, ListChecks, CheckSquare, X as XIcon, ArrowUpDown,
-  LayoutTemplate, Image as ImageIcon, List, MousePointerClick
+  LayoutTemplate, Image as ImageIcon, List, MousePointerClick, Share2
 } from 'lucide-react';
 import { BLOCK_TYPES, COLOR_MAP, BG_MAP, ICON_MAP, BADGE_MAP } from '@/core/blocks/BlockRegistry';
 import { toast } from 'sonner';
@@ -139,7 +139,6 @@ export function UniversalBuilder({
 
     if (res.success) {
       setFields(updatedFields);
-      toast.success('Bloco adicionado!');
     } else {
       toast.error('Erro ao adicionar bloco.');
     }
@@ -171,7 +170,6 @@ export function UniversalBuilder({
 
     if (res.success) {
       setFields(updatedFields);
-      toast.success(`Bloco duplicado!`);
     } else {
       toast.error('Erro ao duplicar bloco.');
     }
@@ -204,7 +202,6 @@ export function UniversalBuilder({
 
     if (res.success) {
       setFields(newFields);
-      toast.success('Nome do bloco atualizado!');
     } else {
       toast.error('Erro ao atualizar nome do bloco.');
     }
@@ -253,7 +250,6 @@ export function UniversalBuilder({
     if (res.success) {
       setFields(newFields);
       setEditingOriginalValue(null);
-      toast.success('Chave da API atualizada!');
     } else {
       toast.error('Erro ao atualizar chave da API.');
       const reverted = [...fields];
@@ -275,7 +271,6 @@ export function UniversalBuilder({
     });
     if (res.success) {
       setFields(updatedFields);
-      toast.success('Bloco removido!');
       setFieldToDelete(null);
     } else { toast.error('Erro ao remover bloco.'); }
     setIsSubmitting(false);
@@ -283,9 +278,13 @@ export function UniversalBuilder({
 
   // ─── Reorder ──────────────────────────────────────────────────────────────
   const moveField = async (index: number, direction: 'up' | 'down') => {
+    setIsSubmitting(true);
     const newFields = [...fields];
     const swapIdx = direction === 'up' ? index - 1 : index + 1;
-    if (swapIdx < 0 || swapIdx >= newFields.length) return;
+    if (swapIdx < 0 || swapIdx >= newFields.length) {
+      setIsSubmitting(false);
+      return;
+    }
     [newFields[index], newFields[swapIdx]] = [newFields[swapIdx], newFields[index]];
     newFields.forEach((f, i) => f.order = i);
     setFields(newFields);
@@ -293,14 +292,16 @@ export function UniversalBuilder({
       name: collectionName, slug: collection.slug, icon: collection.icon,
       metadata: collection.metadata, fields: newFields,
     });
+    setIsSubmitting(false);
   };
 
   // ─── Toggle Helper ────────────────────────────────────────────────────────
   const handleToggle = async (key: string, value: boolean, setter: (v: boolean) => void, msgOn: string, msgOff: string) => {
     setter(value);
+    setIsSubmitting(true);
     const ok = await saveMetadata({ [key]: value });
-    if (ok) toast.success(value ? msgOn : msgOff);
-    else { setter(!value); toast.error('Erro ao atualizar.'); }
+    if (!ok) { setter(!value); toast.error('Erro ao atualizar.'); }
+    setIsSubmitting(false);
   };
 
   // ─── Build JSON preview ───────────────────────────────────────────────────
@@ -328,6 +329,7 @@ export function UniversalBuilder({
 
   // ─── Update Field Options (for select/multiselect) ───────────────────────
   const handleUpdateFieldOptions = async (index: number, options: string[]) => {
+    setIsSubmitting(true);
     const newFields = [...fields];
     newFields[index] = { ...newFields[index], options };
     setFields(newFields);
@@ -335,6 +337,7 @@ export function UniversalBuilder({
       name: collectionName, slug: collection.slug, icon: collection.icon,
       metadata: collection.metadata, fields: newFields,
     });
+    setIsSubmitting(false);
   };
 
   // ─── Render field editor ──────────────────────────────────────────────────
@@ -358,6 +361,8 @@ export function UniversalBuilder({
         return <div className={`${inputClass} h-24 flex-col`}><List className="w-5 h-5 mb-2 opacity-50"/> Tabela será preenchida pelo usuário.</div>;
       case 'button':
         return <div className={`${inputClass} h-16 flex-col`}><MousePointerClick className="w-5 h-5 mb-1 opacity-50"/>Botão será preenchido pelo usuário.</div>;
+      case 'social_links':
+        return <div className={`${inputClass} h-16 flex-col`}><Share2 className="w-5 h-5 mb-1 opacity-50"/>Links de Redes Sociais serão preenchidos pelo usuário.</div>;
 
       case 'toggle':
         return (
@@ -565,9 +570,14 @@ export function UniversalBuilder({
           </div>
         </div>
         <div className="flex items-center gap-3">
+          {isSubmitting && (
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium animate-pulse">
+              Salvando...
+            </span>
+          )}
           <button onClick={handleSaveCategory} disabled={isSubmitting}
             className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-sm font-semibold rounded-xl transition-all shadow-sm shadow-blue-500/20 hover:shadow-blue-500/40 disabled:opacity-50">
-            {isSubmitting ? 'Salvando...' : 'Salvar Configurações'}
+            Salvar Configurações
           </button>
         </div>
       </div>

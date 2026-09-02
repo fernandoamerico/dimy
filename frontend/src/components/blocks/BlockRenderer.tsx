@@ -220,6 +220,71 @@ export function BlockRenderer({ field, value, onChange }: BlockRendererProps) {
         />
       );
 
+    case 'social_links': {
+      const rawVal = value;
+      const linksVal = Array.isArray(rawVal) ? rawVal : [];
+      const platforms = ['Facebook', 'Instagram', 'LinkedIn', 'X / Twitter', 'YouTube', 'TikTok', 'Site', 'Outro'];
+      return (
+        <div className="space-y-3">
+          {linksVal.map((link: any, idx: number) => (
+            <div key={idx} className="flex flex-col sm:flex-row items-center gap-3">
+              <select
+                value={link.platform || ''}
+                onChange={e => {
+                  const newLinks = [...linksVal];
+                  newLinks[idx] = { ...newLinks[idx], platform: e.target.value };
+                  onChange(newLinks);
+                }}
+                className={`${inputClass} sm:w-1/3 appearance-none cursor-pointer`}
+              >
+                <option value="" disabled>Plataforma...</option>
+                {platforms.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+              
+              <div className="flex w-full sm:flex-1 items-center gap-2">
+                <input 
+                  type="url" 
+                  value={link.url || ''} 
+                  onChange={e => {
+                    const newLinks = [...linksVal];
+                    newLinks[idx] = { ...newLinks[idx], url: e.target.value };
+                    onChange(newLinks);
+                  }}
+                  onBlur={e => {
+                    const v = e.target.value.trim();
+                    if (v && !/^https?:\/\//i.test(v)) {
+                      const newLinks = [...linksVal];
+                      newLinks[idx] = { ...newLinks[idx], url: `https://${v}` };
+                      onChange(newLinks);
+                    }
+                  }}
+                  placeholder="https://..." 
+                  className={inputClass} 
+                />
+                <button 
+                  onClick={() => {
+                    const newLinks = linksVal.filter((_, i) => i !== idx);
+                    onChange(newLinks);
+                  }}
+                  className="p-3 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded shrink-0 transition-colors"
+                  title="Remover"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          ))}
+          
+          <button 
+            onClick={() => onChange([...linksVal, { platform: '', url: '' }])}
+            className="text-sm font-medium text-blue-600 dark:text-emerald-400 hover:underline flex items-center gap-1 mt-2"
+          >
+            + Adicionar Link Social
+          </button>
+        </div>
+      );
+    }
+
     case 'divider':
       return (
         <div className="flex items-center gap-4 py-4 text-slate-400 dark:text-slate-500">

@@ -25,8 +25,18 @@ export function TitleUpdater() {
     
     const slug = searchParams?.get('slug');
     if (slug) {
-      // Capitalize first letter of slug
-      const slugTitle = slug.charAt(0).toUpperCase() + slug.slice(1);
+      let cleanSlug = slug;
+      const prefixesToRemove = ['post-category-', 'product-category-', 'page-category-'];
+      for (const prefix of prefixesToRemove) {
+        if (cleanSlug.startsWith(prefix)) {
+          cleanSlug = cleanSlug.replace(prefix, '');
+          break;
+        }
+      }
+      const slugTitle = cleanSlug
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
       title = `${slugTitle} | Dimy`;
     }
 
