@@ -74,6 +74,10 @@ export function BlockRenderer({ field, value, onChange }: BlockRendererProps) {
           type="url" 
           value={value || ''} 
           onChange={e => onChange(e.target.value)}
+          onBlur={e => {
+            const v = e.target.value.trim();
+            if (v && !/^https?:\/\//i.test(v)) onChange(`https://${v}`);
+          }}
           placeholder="https://exemplo.com" 
           className={inputClass} 
         />
@@ -124,7 +128,12 @@ export function BlockRenderer({ field, value, onChange }: BlockRendererProps) {
         <div className="flex flex-col sm:flex-row items-center gap-3">
           <input type="text" value={btnVal.label || btnVal.text || ''} onChange={e => onChange({ ...btnVal, label: e.target.value, text: e.target.value })}
             placeholder="Texto do Botão" className={inputClass} />
-          <input type="url" value={btnVal.url || btnVal.href || ''} onChange={e => onChange({ ...btnVal, url: e.target.value, href: e.target.value })}
+          <input type="url" value={btnVal.url || btnVal.href || ''} 
+            onChange={e => onChange({ ...btnVal, url: e.target.value, href: e.target.value })}
+            onBlur={e => {
+              const v = e.target.value.trim();
+              if (v && !/^https?:\/\//i.test(v)) onChange({ ...btnVal, url: `https://${v}`, href: `https://${v}` });
+            }}
             placeholder="URL de Destino" className={inputClass} />
         </div>
       );
@@ -132,7 +141,7 @@ export function BlockRenderer({ field, value, onChange }: BlockRendererProps) {
 
     case 'toggle': {
       const rawVal = value;
-      const togVal = typeof rawVal === 'boolean' ? rawVal : false;
+      const togVal = rawVal === true || rawVal === 'true';
       return (
         <div className="flex items-center gap-3">
           <button
@@ -215,7 +224,13 @@ export function BlockRenderer({ field, value, onChange }: BlockRendererProps) {
       return (
         <div className="flex items-center gap-4 py-4 text-slate-400 dark:text-slate-500">
           <div className="flex-1 border-t border-slate-200 dark:border-neutral-700 border-dashed"></div>
-          <Minus size={16} />
+          <input 
+            type="text" 
+            value={typeof value === 'string' ? value : (field.label || 'Divisor')} 
+            onChange={e => onChange(e.target.value)}
+            className="text-sm font-medium px-2 text-center bg-transparent border-none focus:outline-none w-auto min-w-[100px] text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded transition-colors"
+            placeholder="Nome (opcional)"
+          />
           <div className="flex-1 border-t border-slate-200 dark:border-neutral-700 border-dashed"></div>
         </div>
       );
