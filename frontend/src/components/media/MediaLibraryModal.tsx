@@ -218,16 +218,14 @@ export function MediaLibraryModal({
               <button onClick={selectAll} className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
                 Selecionar todos
               </button>
-              {!isSelectionMode && (
-                <button
-                  onClick={handleBulkDelete}
-                  disabled={selectedIds.size === 0 || isDeletingBulk}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-lg font-medium transition-colors"
-                >
-                  {isDeletingBulk ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                  Excluir Selecionados
-                </button>
-              )}
+              <button
+                onClick={handleBulkDelete}
+                disabled={selectedIds.size === 0 || isDeletingBulk}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-lg font-medium transition-colors"
+              >
+                {isDeletingBulk ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                Excluir Selecionados
+              </button>
               <button
                 onClick={exitMultiSelect}
                 className="flex items-center gap-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-neutral-700 dark:hover:bg-neutral-600 text-gray-700 dark:text-gray-200 rounded-lg font-medium transition-colors ml-auto"
@@ -420,15 +418,13 @@ export function MediaLibraryModal({
                 </div>
               </div>
 
-              {!isSelectionMode && (
-                <button
-                  onClick={handleDelete}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-900/20 rounded-xl transition-colors"
-                >
-                  <Trash className="w-4 h-4" />
-                  Excluir Permanentemente
-                </button>
-              )}
+              <button
+                onClick={handleDelete}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+              >
+                <Trash className="w-4 h-4" />
+                Excluir Permanentemente
+              </button>
             </div>
 
             {/* Insert button for selection mode */}
