@@ -12,6 +12,7 @@ const CONFIG_KEYS = [
   'business_name',
   'business_cnpj',
   'business_logo',
+  'business_logos', // New Array JSON
   'business_phones', // New Array JSON
   'business_phone',  // Legacy migration
   'business_emails', // New Array JSON
@@ -27,6 +28,11 @@ const CONFIG_KEYS = [
   'business_social_custom' // New Array JSON
 ];
 
+interface LogoVariant {
+  id: string;
+  url: string;
+}
+
 interface PhoneInfo {
   countryCode: string;
   number: string;
@@ -40,9 +46,9 @@ interface CustomSocial {
 export default function MeuNegocioPage() {
   // Scalar fields (name, cnpj, single strings)
   const [form, setForm] = useState<Record<string, string>>({});
-  const [logo, setLogo] = useState('');
   
   // Dynamic Arrays
+  const [logos, setLogos] = useState<LogoVariant[]>([]);
   const [phones, setPhones] = useState<PhoneInfo[]>([{ countryCode: '55', number: '' }]);
   const [emails, setEmails] = useState<string[]>(['']);
   const [customSocials, setCustomSocials] = useState<CustomSocial[]>([]);
@@ -110,7 +116,17 @@ export default function MeuNegocioPage() {
         business_twitter: results.business_twitter || '',
         business_tiktok: results.business_tiktok || '',
       });
-      setLogo(results.business_logo || '');
+      
+      // Parse Logos
+      let parsedLogos: LogoVariant[] = [];
+      try {
+        if (results.business_logos) {
+          parsedLogos = JSON.parse(results.business_logos);
+        } else if (results.business_logo) {
+          parsedLogos = [{ id: 'logo-principal', url: results.business_logo }];
+        }
+      } catch {}
+      setLogos(parsedLogos);
     }
     load();
   }, []);
@@ -148,7 +164,7 @@ export default function MeuNegocioPage() {
       
       const payload = { 
         ...form, 
-        business_logo: logo,
+        business_logos: JSON.stringify(logos.filter(l => l.url.trim() !== '')),
         business_phones: JSON.stringify(phones.filter(p => p.number.trim() !== '')),
         business_emails: JSON.stringify(emails.filter(e => e.trim() !== '')),
         business_social_custom: JSON.stringify(customSocials.filter(c => c.title.trim() !== '' && c.url.trim() !== ''))
@@ -245,13 +261,60 @@ export default function MeuNegocioPage() {
               </div>
             </div>
 
-            <div className="space-y-2 pt-2 border-t border-gray-50 dark:border-neutral-800/50">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Logo Principal</label>
-              <ImageUploader 
-                value={logo} 
-                onChange={setLogo} 
-                placeholder="Clique ou arraste a logo aqui" 
-              />
+            <div className="space-y-4 pt-4 border-t border-gray-50 dark:border-neutral-800/50">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Logos e Variações</label>
+                <button
+                  type="button"
+                  onClick={() => setLogos([...logos, { id: '', url: '' }])}
+                  className="text-xs font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:underline"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Adicionar Logo
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                {logos.length === 0 && (
+                  <p className="text-sm text-gray-500 italic">Nenhuma logo adicionada.</p>
+                )}
+                {logos.map((logo, index) => (
+                  <div key={index} className="flex gap-4 items-start p-4 bg-gray-50 dark:bg-neutral-900/50 rounded-xl border border-gray-100 dark:border-neutral-800">
+                    <div className="w-32 shrink-0">
+                      <ImageUploader 
+                        value={logo.url} 
+                        onChange={(url) => {
+                          const newLogos = [...logos];
+                          newLogos[index].url = url;
+                          setLogos(newLogos);
+                        }} 
+                        placeholder="Imagem" 
+                      />
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <input
+                        type="text"
+                        value={logo.id}
+                        onChange={(e) => {
+                          const newLogos = [...logos];
+                          newLogos[index].id = e.target.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9_]+/g, '_');
+                          setLogos(newLogos);
+                        }}
+                        placeholder="ID (ex: logo_branca, logo_rodape)"
+                        className="w-full px-3 py-2 bg-white dark:bg-neutral-950 border border-gray-200 dark:border-neutral-700/80 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
+                      />
+                      <p className="text-xs text-gray-500">Este ID pode ser usado nos blocos do Page Builder para carregar a versão correta da logo.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setLogos(logos.filter((_, i) => i !== index))}
+                      className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                      title="Remover logo"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 

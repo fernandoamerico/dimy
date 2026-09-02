@@ -93,7 +93,7 @@ export function PageBuilder({
   const [cover, setCover] = useState(initialMeta.cover || { image: '', alt: '' });
 
   // CSS
-  const [css, setCss] = useState(initialMeta.css || { font: 'Inter', textColor: '#333333', bgColor: '#ffffff', margin: '0', padding: '20px' });
+  const [css, setCss] = useState(initialMeta.css || { font: '', textColor: '', bgColor: '', margin: '', padding: '' });
   const [customCss, setCustomCss] = useState(initialMeta.customCss || '');
 
   // ─── Helpers ──────────────────────────────────────────────────────────────
