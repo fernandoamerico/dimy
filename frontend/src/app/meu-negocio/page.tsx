@@ -278,8 +278,8 @@ export default function MeuNegocioPage() {
                   <p className="text-sm text-gray-500 italic">Nenhuma logo adicionada.</p>
                 )}
                 {logos.map((logo, index) => (
-                  <div key={index} className="flex gap-4 items-start p-4 bg-gray-50 dark:bg-neutral-900/50 rounded-xl border border-gray-100 dark:border-neutral-800">
-                    <div className="w-32 shrink-0">
+                  <div key={index} className="flex flex-col sm:flex-row gap-4 items-start p-4 bg-gray-50 dark:bg-neutral-900/50 rounded-xl border border-gray-100 dark:border-neutral-800">
+                    <div className="w-full sm:w-48 shrink-0">
                       <ImageUploader 
                         value={logo.url} 
                         onChange={(url) => {
