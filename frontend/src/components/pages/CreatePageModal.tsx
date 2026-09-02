@@ -17,6 +17,7 @@ export default function CreatePageModal({
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
+    slug: '',
     description: '',
     isPublic: true,
     showInSidebar: false,
@@ -30,8 +31,12 @@ export default function CreatePageModal({
     setLoading(true);
     setError('');
 
-    // Generate slug from name
-    const slug = 'page-' + formData.name
+    let finalSlug = formData.slug.trim();
+    if (!finalSlug) {
+      finalSlug = formData.name;
+    }
+    
+    finalSlug = finalSlug
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
@@ -49,7 +54,7 @@ export default function CreatePageModal({
     try {
       const res = await createCollection({
         name: formData.name,
-        slug,
+        slug: finalSlug,
         icon: 'Layout',
         metadata,
         fields: [], // Start with no fields, the builder handles it
@@ -58,7 +63,7 @@ export default function CreatePageModal({
       if (res.success) {
         onClose();
         // Redirect to the sections list of this category
-        router.push(`/paginas/list?slug=${slug}`);
+        router.push(`/paginas/list?slug=${finalSlug}`);
       } else {
         setError(res.error || 'Erro ao criar página.');
       }
@@ -100,9 +105,45 @@ export default function CreatePageModal({
               type="text"
               required
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) => {
+                const newName = e.target.value;
+                const autoSlug = newName
+                  .toLowerCase()
+                  .normalize('NFD')
+                  .replace(/[\u0300-\u036f]/g, '')
+                  .replace(/[^a-z0-9]+/g, '-')
+                  .replace(/(^-|-$)+/g, '');
+                
+                setFormData(prev => ({
+                  ...prev,
+                  name: newName,
+                  // Only auto-update slug if the user hasn't typed a custom one that differs from the auto-generated
+                  slug: prev.slug === '' || prev.slug === prev.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') ? autoSlug : prev.slug
+                }));
+              }}
               className="w-full px-4 py-2.5 bg-gray-50 dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-blue-600/20 dark:focus:ring-emerald-500/20 focus:border-blue-600 dark:focus:border-emerald-500 outline-none transition-all text-gray-900 dark:text-white"
               placeholder="Digite o nome da página..."
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Slug da URL (Automático)
+            </label>
+            <input
+              type="text"
+              value={formData.slug}
+              onChange={(e) => {
+                const formatted = e.target.value
+                  .toLowerCase()
+                  .normalize('NFD')
+                  .replace(/[\u0300-\u036f]/g, '')
+                  .replace(/[^a-z0-9\-]+/g, '-')
+                  .replace(/(^-|-$)+/g, '');
+                setFormData({ ...formData, slug: formatted });
+              }}
+              className="w-full px-4 py-2.5 bg-gray-50 dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-blue-600/20 dark:focus:ring-emerald-500/20 focus:border-blue-600 dark:focus:border-emerald-500 outline-none transition-all text-gray-900 dark:text-white font-mono text-sm"
+              placeholder="ex: sobre-nos"
             />
           </div>
 
