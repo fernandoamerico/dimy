@@ -7,7 +7,8 @@ import { updateCollection, getCollections } from '@/core/schema/actions';
 import { slugify } from '@/core/utils/slug';
 import { 
   Plus, Settings, Trash2, ArrowUp, ArrowDown, 
-  ArrowLeft, Copy, Code, ListChecks, CheckSquare, X as XIcon, ArrowUpDown
+  ArrowLeft, Copy, Code, ListChecks, CheckSquare, X as XIcon, ArrowUpDown,
+  LayoutTemplate, Image as ImageIcon, List, MousePointerClick
 } from 'lucide-react';
 import { BLOCK_TYPES, COLOR_MAP, BG_MAP, ICON_MAP, BADGE_MAP } from '@/core/blocks/BlockRegistry';
 import { toast } from 'sonner';
