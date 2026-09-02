@@ -140,7 +140,6 @@ export function UniversalBuilder({
     if (res.success) {
       setFields(updatedFields);
       toast.success('Bloco adicionado!');
-      setIsAddingField(false);
     } else {
       toast.error('Erro ao adicionar bloco.');
     }
