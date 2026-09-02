@@ -6,65 +6,18 @@ import { useRouter } from 'next/navigation';
 import { updateDocument } from '@/core/content/actions';
 import { updateCollection } from '@/core/schema/actions';
 import {
-  ArrowLeft, Save, Plus, Type, Image as ImageIcon, AlignLeft, Settings,
+  ArrowLeft, Save, Plus, Settings,
   Trash2, Code, Copy, Check, ChevronDown, ChevronUp, ArrowUp, ArrowDown,
-  Link2, Images, Table, MousePointerClick, FileEdit, Search, Paintbrush,
-  FileCode, Power, Globe, ImagePlus, Bold, Italic, Underline, Strikethrough, List, ListOrdered, Library, Minus
+  FileEdit, Search, Paintbrush, FileCode, Power, Globe, ImagePlus
 } from 'lucide-react';
+import { BLOCK_TYPES, COLOR_MAP, BG_MAP, ICON_MAP, BADGE_MAP } from '@/core/blocks/BlockRegistry';
+import { BlockRenderer } from '@/components/blocks/BlockRenderer';
 import Link from 'next/link';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { ImageUploader } from '@/components/ui/ImageUploader';
 import { GalleryBlockEditor } from '@/components/ui/GalleryBlockEditor';
 import { MediaLibraryModal } from '@/components/media/MediaLibraryModal';
 import { toast } from 'sonner';
-
-// ─── Block Type Definitions ─────────────────────────────────────────────────
-const BLOCK_TYPES = [
-  { type: 'text',     label: 'Texto Curto',    description: 'Títulos, subtítulos e nomes',              icon: Type,               color: 'blue' },
-  { type: 'richText', label: 'Texto Longo',    description: 'Conteúdo de múltiplas linhas',             icon: AlignLeft,          color: 'emerald' },
-  { type: 'wysiwyg',  label: 'Editor WYSIWYG', description: 'Editor visual com formatação rica',        icon: FileEdit,           color: 'indigo' },
-  { type: 'image',    label: 'Imagem',         description: 'Upload ou URL de uma imagem',              icon: ImageIcon,          color: 'purple' },
-  { type: 'gallery',  label: 'Galeria',        description: 'Múltiplas imagens agrupadas',              icon: Images,             color: 'pink' },
-  { type: 'url',      label: 'URL / Link',     description: 'Um link externo ou interno',               icon: Link2,              color: 'sky' },
-  { type: 'table',    label: 'Tabela',         description: 'Dados tabulares simples',                  icon: Table,              color: 'amber' },
-  { type: 'button',   label: 'Botão',          description: 'Botão com texto e link de destino',        icon: MousePointerClick,  color: 'rose' },
-  { type: 'divider',  label: 'Divisor',        description: 'Linha separadora visual',                  icon: Minus,              color: 'slate' },
-];
-
-const ICON_MAP: Record<string, any> = {
-  text: Type, richText: AlignLeft, wysiwyg: FileEdit, image: ImageIcon,
-  gallery: Images, url: Link2, table: Table, button: MousePointerClick, divider: Minus
-};
-
-const COLOR_MAP: Record<string, string> = {
-  text: 'text-blue-500', richText: 'text-emerald-500', wysiwyg: 'text-indigo-500',
-  image: 'text-purple-500', gallery: 'text-pink-500', url: 'text-sky-500',
-  table: 'text-amber-500', button: 'text-rose-500', divider: 'text-slate-500',
-};
-
-const BADGE_MAP: Record<string, string> = {
-  text: 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400',
-  richText: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
-  wysiwyg: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400',
-  image: 'bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400',
-  gallery: 'bg-pink-50 text-pink-600 dark:bg-pink-500/10 dark:text-pink-400',
-  url: 'bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400',
-  table: 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400',
-  button: 'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400',
-  divider: 'bg-slate-50 text-slate-600 dark:bg-slate-500/10 dark:text-slate-400',
-};
-
-const BG_MAP: Record<string, string> = {
-  blue: 'bg-blue-50 dark:bg-blue-500/10 text-blue-500 dark:text-blue-400 border-blue-200 dark:border-blue-900/50',
-  emerald: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/50',
-  indigo: 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 border-indigo-200 dark:border-indigo-900/50',
-  purple: 'bg-purple-50 dark:bg-purple-500/10 text-purple-500 dark:text-purple-400 border-purple-200 dark:border-purple-900/50',
-  pink: 'bg-pink-50 dark:bg-pink-500/10 text-pink-500 dark:text-pink-400 border-pink-200 dark:border-pink-900/50',
-  sky: 'bg-sky-50 dark:bg-sky-500/10 text-sky-500 dark:text-sky-400 border-sky-200 dark:border-sky-900/50',
-  amber: 'bg-amber-50 dark:bg-amber-500/10 text-amber-500 dark:text-amber-400 border-amber-200 dark:border-amber-900/50',
-  rose: 'bg-rose-50 dark:bg-rose-500/10 text-rose-500 dark:text-rose-400 border-rose-200 dark:border-rose-900/50',
-  slate: 'bg-slate-50 dark:bg-slate-500/10 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-900/50',
-};
 
 const GOOGLE_FONTS = ['Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins', 'Raleway', 'Outfit', 'Nunito', 'Oswald', 'Source Sans 3', 'Playfair Display'];
 
@@ -80,10 +33,8 @@ function Toggle({ checked, onChange, disabled }: { checked: boolean; onChange: (
 }
 
 // ─── Collapsible Panel ──────────────────────────────────────────────────────
-function Panel({ title, icon: Icon, iconColor, defaultOpen, children }: {
-  title: string; icon: any; iconColor: string; defaultOpen?: boolean; children: React.ReactNode;
-}) {
-  const [open, setOpen] = useState(defaultOpen ?? false);
+function Panel({ title, icon: Icon, iconColor, children, defaultOpen = true }: { title: string, icon: any, iconColor?: string, children: React.ReactNode, defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="bg-white dark:bg-neutral-900 rounded-2xl dark:shadow-sm dark:border dark:border-neutral-800 overflow-hidden">
       <button onClick={() => setOpen(!open)}
@@ -94,54 +45,6 @@ function Panel({ title, icon: Icon, iconColor, defaultOpen, children }: {
         {open ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
       </button>
       {open && <div className="px-5 pb-5 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">{children}</div>}
-    </div>
-  );
-}
-
-// ─── Simple WYSIWYG Editor ──────────────────────────────────────────────────
-function SimpleWysiwyg({ value, onChange, placeholder }: { value: string, onChange: (v: string) => void, placeholder?: string }) {
-  const editorRef = useRef<HTMLDivElement>(null);
-  
-  // Set initial value only once to prevent cursor jumping
-  useEffect(() => {
-    if (editorRef.current && editorRef.current.innerHTML !== (value || '')) {
-      editorRef.current.innerHTML = value || '';
-    }
-  }, []);
-
-  const handleInput = () => {
-    if (editorRef.current) {
-      onChange(editorRef.current.innerHTML);
-    }
-  };
-
-  const execCmd = (cmd: string, arg?: string) => {
-    document.execCommand(cmd, false, arg);
-    editorRef.current?.focus();
-    handleInput();
-  };
-
-  return (
-    <div className="border border-gray-200 dark:border-neutral-800 rounded-xl overflow-hidden bg-white dark:bg-neutral-950 flex flex-col focus-within:ring-2 focus-within:ring-blue-500 dark:focus-within:ring-emerald-500 transition-all">
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-1 p-2 border-b border-gray-200 dark:border-neutral-800 bg-gray-100/50 dark:bg-neutral-900/50">
-        <button type="button" onClick={() => execCmd('bold')} className="p-1.5 hover:bg-white dark:hover:bg-neutral-800 rounded text-gray-700 dark:text-gray-300" title="Negrito"><Bold size={14}/></button>
-        <button type="button" onClick={() => execCmd('italic')} className="p-1.5 hover:bg-white dark:hover:bg-neutral-800 rounded text-gray-700 dark:text-gray-300" title="Itálico"><Italic size={14}/></button>
-        <button type="button" onClick={() => execCmd('underline')} className="p-1.5 hover:bg-white dark:hover:bg-neutral-800 rounded text-gray-700 dark:text-gray-300" title="Sublinhado"><Underline size={14}/></button>
-        <button type="button" onClick={() => execCmd('strikeThrough')} className="p-1.5 hover:bg-white dark:hover:bg-neutral-800 rounded text-gray-700 dark:text-gray-300" title="Riscado"><Strikethrough size={14}/></button>
-        <div className="w-px h-4 bg-gray-300 dark:bg-neutral-700 mx-1"></div>
-        <button type="button" onClick={() => execCmd('insertUnorderedList')} className="p-1.5 hover:bg-white dark:hover:bg-neutral-800 rounded text-gray-700 dark:text-gray-300" title="Lista"><List size={14}/></button>
-        <button type="button" onClick={() => execCmd('insertOrderedList')} className="p-1.5 hover:bg-white dark:hover:bg-neutral-800 rounded text-gray-700 dark:text-gray-300" title="Lista Numérica"><ListOrdered size={14}/></button>
-      </div>
-      {/* Editor ContentEditable */}
-      <div 
-        ref={editorRef}
-        contentEditable
-        onInput={handleInput}
-        onBlur={handleInput}
-        data-placeholder={placeholder}
-        className="p-4 min-h-[150px] outline-none text-sm text-gray-900 dark:text-white bg-white dark:bg-neutral-950 empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400 prose dark:prose-invert max-w-none [&_*]:!text-gray-900 [&_*]:dark:!text-white [&_*]:!bg-transparent"
-      />
     </div>
   );
 }
@@ -365,101 +268,13 @@ export function PageBuilder({
 
   // ─── Render field editor ──────────────────────────────────────────────────
   const renderFieldEditor = (field: any) => {
-    const inputClass = "w-full px-4 py-3 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 transition-all text-gray-900 dark:text-white";
-
-    switch (field.type) {
-      case 'text':
-        return <input type="text" value={formData[field.name] || ''} onChange={e => handleChange(field.name, e.target.value)}
-          placeholder={`Digite ${field.label.toLowerCase()}...`} className={inputClass} />;
-
-      case 'richText':
-        return <textarea value={formData[field.name] || ''} onChange={e => handleChange(field.name, e.target.value)}
-          placeholder={`Escreva o conteúdo para ${field.label.toLowerCase()}...`} rows={6} className={`${inputClass} resize-y`} />;
-
-      case 'wysiwyg':
-        return <SimpleWysiwyg 
-          value={formData[field.name] || ''} 
-          onChange={v => handleChange(field.name, v)} 
-          placeholder={`Digite o conteúdo formatado para ${field.label.toLowerCase()}...`} 
-        />;
-
-      case 'image':
-        return (
-          <div className="flex flex-col gap-3">
-            <ImageUploader 
-              value={formData[field.name] || ''} 
-              onChange={url => handleChange(field.name, url)} 
-              placeholder="URL ou Upload da Imagem" 
-            />
-          </div>
-        );
-
-      case 'gallery':
-        const galleryVal: string[] = formData[field.name] || [];
-        return (
-          <GalleryBlockEditor
-            urls={galleryVal}
-            onChange={(urls) => handleChange(field.name, urls)}
-          />
-        );
-
-      case 'url':
-        return <input type="url" value={formData[field.name] || ''} onChange={e => handleChange(field.name, e.target.value)}
-          placeholder="https://exemplo.com" className={inputClass} />;
-
-      case 'table':
-        const tableVal: string[][] = formData[field.name] || [['', ''], ['', '']];
-        return (
-          <div className="space-y-2">
-            <div className="overflow-x-auto rounded-xl dark:border dark:border-neutral-700 bg-white dark:bg-neutral-900 dark:shadow-sm">
-              <table className="w-full text-sm border-collapse">
-                <tbody>
-                  {tableVal.map((row: string[], ri: number) => (
-                    <tr key={ri} className="border-b border-gray-300 dark:border-neutral-700 last:border-b-0 group">
-                      {row.map((cell: string, ci: number) => (
-                        <td key={ci} className="p-0 border-r border-gray-300 dark:border-neutral-700 last:border-r-0 relative">
-                          <input type="text" value={cell}
-                            onChange={e => { const t = tableVal.map((r: string[]) => [...r]); t[ri][ci] = e.target.value; handleChange(field.name, t); }}
-                            className="w-full px-4 py-2.5 bg-transparent focus:outline-none focus:bg-blue-50/50 dark:focus:bg-emerald-500/10 hover:bg-gray-50 dark:hover:bg-neutral-800 text-gray-900 dark:text-white text-sm transition-colors" />
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => handleChange(field.name, [...tableVal, new Array(tableVal[0]?.length || 2).fill('')])}
-                className="text-xs text-blue-600 dark:text-emerald-400 hover:underline">+ Linha</button>
-              <button onClick={() => handleChange(field.name, tableVal.map((r: string[]) => [...r, '']))}
-                className="text-xs text-blue-600 dark:text-emerald-400 hover:underline">+ Coluna</button>
-            </div>
-          </div>
-        );
-
-      case 'button':
-        const btnVal = formData[field.name] || { text: '', href: '' };
-        return (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <input type="text" value={btnVal.text} placeholder="Texto do botão"
-              onChange={e => handleChange(field.name, { ...btnVal, text: e.target.value })} className={inputClass} />
-            <input type="url" value={btnVal.href} placeholder="Link de destino (URL)"
-              onChange={e => handleChange(field.name, { ...btnVal, href: e.target.value })} className={inputClass} />
-          </div>
-        );
-
-      case 'divider':
-        return (
-          <div className="flex items-center gap-4 py-4 text-slate-400 dark:text-slate-500">
-            <div className="flex-1 border-t border-slate-200 dark:border-neutral-700 border-dashed"></div>
-            <Minus size={16} />
-            <div className="flex-1 border-t border-slate-200 dark:border-neutral-700 border-dashed"></div>
-          </div>
-        );
-
-      default:
-        return <input type="text" value={formData[field.name] || ''} onChange={e => handleChange(field.name, e.target.value)} className={inputClass} />;
-    }
+    return (
+      <BlockRenderer 
+        field={field} 
+        value={formData[field.name]} 
+        onChange={(val) => handleChange(field.name, val)} 
+      />
+    );
   };
 
   // ─── RENDER ───────────────────────────────────────────────────────────────

@@ -9,6 +9,7 @@ import { ImageUploader } from '@/components/ui/ImageUploader';
 import { GalleryBlockEditor } from '@/components/ui/GalleryBlockEditor';
 import { WysiwygEditor } from '@/components/ui/WysiwygEditor';
 import { MediaLibraryModal } from '@/components/media/MediaLibraryModal';
+import { BlockRenderer } from '@/components/blocks/BlockRenderer';
 import { TagSelector } from '@/components/ui/TagSelector';
 import { toast } from 'sonner';
 import {
@@ -192,130 +193,13 @@ export function ProductEditor({
 
   // ─── Render extra field editor ─────────────────────────────────────────────
   const renderFieldEditor = (field: any) => {
-    const inputClass = "w-full px-4 py-3 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 transition-all text-gray-900 dark:text-white";
-
-    switch (field.type) {
-      case 'text':
-        return <input type="text" value={formData[field.name] || ''} onChange={e => handleChange(field.name, e.target.value)}
-          placeholder={`Digite ${field.label.toLowerCase()}...`} className={inputClass} />;
-
-      case 'richText':
-        return <textarea value={formData[field.name] || ''} onChange={e => handleChange(field.name, e.target.value)}
-          placeholder={`Escreva...`} rows={6} className={`${inputClass} resize-y`} />;
-
-      case 'wysiwyg':
-        return <WysiwygEditor value={formData[field.name] || ''} onChange={val => handleChange(field.name, val)} />;
-
-      case 'image':
-        return (
-          <div className="space-y-3">
-            <ImageUploader value={formData[field.name] || ''} onChange={url => handleChange(field.name, url)} placeholder="URL ou Upload" />
-          </div>
-        );
-
-      case 'gallery': {
-        const rawVal = formData[field.name];
-        const galleryVal: string[] = Array.isArray(rawVal) ? rawVal : [];
-        return (
-          <GalleryBlockEditor
-            urls={galleryVal}
-            onChange={(urls) => handleChange(field.name, urls)}
-          />
-        );
-      }
-
-      case 'url':
-        const urlVal = typeof formData[field.name] === 'string' ? formData[field.name] : '';
-        return <input type="url" value={urlVal} onChange={e => handleChange(field.name, e.target.value)} placeholder="https://..." className={inputClass} />;
-
-      case 'table': {
-        const rawVal = formData[field.name];
-        const tableVal: string[][] = Array.isArray(rawVal) ? rawVal : [['', ''], ['', '']];
-        return (
-          <div className="space-y-3">
-            <div className="border border-gray-300 dark:border-neutral-700 rounded-xl overflow-hidden">
-              <table className="w-full text-sm">
-                <tbody>
-                  {tableVal.map((row: string[], ri: number) => (
-                    <tr key={ri} className="border-b border-gray-300 dark:border-neutral-700 last:border-b-0">
-                      {row.map((col: string, ci: number) => (
-                        <td key={ci} className="p-0 border-r border-gray-300 dark:border-neutral-700 last:border-r-0">
-                          <input type="text" value={col} onChange={e => { const t = tableVal.map((r: string[]) => [...r]); t[ri]![ci] = e.target.value; handleChange(field.name, t); }} className="w-full px-4 py-2.5 bg-transparent focus:outline-none focus:bg-blue-50/50 dark:focus:bg-emerald-500/10 text-gray-900 dark:text-white text-sm" />
-                        </td>
-                      ))}
-                      <td className="p-1 w-10 text-center"><button onClick={() => { if (tableVal.length > 1) handleChange(field.name, tableVal.filter((_: any, i: number) => i !== ri)); }} className="p-1 text-red-400 hover:text-red-600 rounded disabled:opacity-30" disabled={tableVal.length <= 1}><Trash2 className="w-3.5 h-3.5" /></button></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="flex gap-4">
-              <button onClick={() => handleChange(field.name, [...tableVal, new Array(tableVal[0]?.length || 2).fill('')])} className="text-sm font-medium text-blue-600 dark:text-emerald-400 hover:underline">+ Linha</button>
-              <button onClick={() => handleChange(field.name, tableVal.map((r: string[]) => [...r, '']))} className="text-sm font-medium text-blue-600 dark:text-emerald-400 hover:underline">+ Coluna</button>
-            </div>
-          </div>
-        );
-      }
-
-      case 'button': {
-        const rawVal = formData[field.name];
-        const btnVal = (typeof rawVal === 'object' && rawVal !== null && !Array.isArray(rawVal)) ? rawVal : { label: '', url: '' };
-        return (
-          <div className="flex items-center gap-3">
-            <input type="text" value={btnVal.label} onChange={e => handleChange(field.name, { ...btnVal, label: e.target.value })} placeholder="Texto do Botão" className={inputClass} />
-            <input type="url" value={btnVal.url} onChange={e => handleChange(field.name, { ...btnVal, url: e.target.value })} placeholder="URL de Destino" className={inputClass} />
-          </div>
-        );
-      }
-
-      case 'toggle': {
-        const rawVal = formData[field.name];
-        const togVal = typeof rawVal === 'boolean' ? rawVal : false;
-        return (
-          <div className="flex items-center gap-3">
-            <button type="button" onClick={() => handleChange(field.name, !togVal)}
-              className={`w-12 h-6 rounded-full relative transition-colors ${togVal ? 'bg-lime-500' : 'bg-gray-200 dark:bg-neutral-700'}`}>
-              <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${togVal ? 'translate-x-6' : 'translate-x-0'}`} />
-            </button>
-            <span className="text-sm text-gray-700 dark:text-gray-300">{togVal ? 'Ligado' : 'Desligado'}</span>
-          </div>
-        );
-      }
-
-      case 'select': {
-        const opts: string[] = field.options || [];
-        const rawVal = formData[field.name];
-        const selVal = typeof rawVal === 'string' ? rawVal : '';
-        return (
-          <select value={selVal} onChange={e => handleChange(field.name, e.target.value)} className={`${inputClass} cursor-pointer`}>
-            <option value="">Selecione uma opção...</option>
-            {opts.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
-          </select>
-        );
-      }
-
-      case 'multiselect': {
-        const opts: string[] = field.options || [];
-        const rawVal = formData[field.name];
-        const multiVal: string[] = Array.isArray(rawVal) ? rawVal : [];
-        const toggleOpt = (opt: string) => {
-          handleChange(field.name, multiVal.includes(opt) ? multiVal.filter((v: string) => v !== opt) : [...multiVal, opt]);
-        };
-        return (
-          <div className="flex flex-wrap gap-2 p-3 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl min-h-[48px]">
-            {opts.length === 0 && <span className="text-sm text-gray-400 italic">Nenhuma opção definida no esqueleto.</span>}
-            {opts.map((opt: string) => (
-              <button key={opt} type="button" onClick={() => toggleOpt(opt)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${multiVal.includes(opt) ? 'bg-teal-500 text-white border-teal-500' : 'bg-white dark:bg-neutral-900 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-neutral-700 hover:border-teal-400'}`}>
-                {opt}
-              </button>
-            ))}
-          </div>
-        );
-      }
-
-      default: return null;
-    }
+    return (
+      <BlockRenderer 
+        field={field} 
+        value={formData[field.name]} 
+        onChange={(val) => handleChange(field.name, val)} 
+      />
+    );
   };
 
   // ─── Input style shared ────────────────────────────────────────────────────
