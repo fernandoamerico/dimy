@@ -40,21 +40,14 @@ export async function createCollection(data: CreateCollectionInput) {
       body: JSON.stringify(data)
     });
     
+    const text = await res.text();
     let respData: any = {};
     try {
-      respData = await res.json();
+      respData = JSON.parse(text);
     } catch (e) {}
     
     if (!res.ok) {
-      let errMsg = respData.error;
-      if (!errMsg) {
-        try {
-          errMsg = await res.text();
-        } catch (e) {
-          errMsg = 'Erro na API';
-        }
-      }
-      return { success: false, error: errMsg };
+      return { success: false, error: respData.error || text || 'Erro na API' };
     }
     
     return { success: true, collection: respData };
@@ -69,13 +62,14 @@ export async function deleteCollection(id: string) {
       method: 'DELETE',
     });
     
+    const text = await res.text();
     let respData: any = {};
     try {
-      respData = await res.json();
+      respData = JSON.parse(text);
     } catch (e) {}
     
     if (!res.ok) {
-      throw new Error(respData.error || await res.text().catch(() => 'Erro na API'));
+      return { success: false, error: respData.error || text || 'Erro na API' };
     }
     
     return { success: true };
