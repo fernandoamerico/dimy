@@ -17,10 +17,12 @@ func RequireAuth(next http.HandlerFunc) http.HandlerFunc {
 		if strings.HasPrefix(authHeader, "Bearer ") {
 			tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
 			var active bool
-			err := db.Instance.QueryRow("SELECT active FROM api_keys WHERE key = $1", tokenStr).Scan(&active)
+			var role string
+			err := db.Instance.QueryRow("SELECT active, role FROM api_keys WHERE key = $1", tokenStr).Scan(&active, &role)
 			if err == nil && active {
 				// Inject api-key identifier into context
 				ctx := context.WithValue(r.Context(), "user_id", "api_key")
+				ctx = context.WithValue(ctx, "user_role", role)
 				next.ServeHTTP(w, r.WithContext(ctx))
 				return
 			}
@@ -50,8 +52,17 @@ func RequireAuth(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		// Inject userID into context
+		// Fetch user role from DB to ensure it's up to date and valid
+		var role string
+		err = db.Instance.QueryRow("SELECT role FROM users WHERE id = $1", claims.UserID).Scan(&role)
+		if err != nil {
+			http.Error(w, "Sessão inválida ou usuário removido", http.StatusUnauthorized)
+			return
+		}
+
+		// Inject userID and role into context
 		ctx := context.WithValue(r.Context(), "user_id", claims.UserID)
+		ctx = context.WithValue(ctx, "user_role", role)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 }
@@ -90,3 +101,34 @@ func IsAuthenticated(r *http.Request) bool {
 
 	return true
 }
+
+// RequireRole enforces that the user has one of the specified roles.
+// It expects RequireAuth to have already populated "user_role" in the context.
+// The 'admin' role is always granted access.
+func RequireRole(allowedRoles ...string) func(http.HandlerFunc) http.HandlerFunc {
+	return func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			userRole, ok := r.Context().Value("user_role").(string)
+			if !ok || userRole == "" {
+				http.Error(w, "Não autorizado: Cargo não encontrado", http.StatusUnauthorized)
+				return
+			}
+
+			// Admin has access to everything
+			if userRole == "admin" {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			for _, role := range allowedRoles {
+				if userRole == role {
+					next.ServeHTTP(w, r)
+					return
+				}
+			}
+
+			http.Error(w, "Acesso negado: Cargo insuficiente", http.StatusForbidden)
+		}
+	}
+}
+

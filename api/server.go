@@ -22,49 +22,56 @@ func StartServer(port string, frontendFS fs.FS) error {
 	mux.HandleFunc("PUT /api/auth/me", handlers.RequireAuth(handlers.UpdateMeHandler))
 	
 	mux.HandleFunc("GET /api/config", handlers.GetConfigHandler)
-	mux.HandleFunc("GET /api/system/config", handlers.RequireAuth(handlers.GetSystemConfigHandler))
-	mux.HandleFunc("POST /api/system/config", handlers.RequireAuth(handlers.SetSystemConfigHandler))
-	mux.HandleFunc("POST /api/system/test-supabase", handlers.RequireAuth(handlers.TestSupabaseConnectionHandler))
-	mux.HandleFunc("POST /api/system/test-r2", handlers.RequireAuth(handlers.TestR2ConnectionHandler))
-	mux.HandleFunc("GET /api/system/test-database", handlers.RequireAuth(handlers.TestDatabaseConnectionHandler))
+	mux.HandleFunc("GET /api/system/config", handlers.RequireAuth(handlers.RequireRole("auditor")(handlers.GetSystemConfigHandler)))
+	mux.HandleFunc("POST /api/system/config", handlers.RequireAuth(handlers.RequireRole()(handlers.SetSystemConfigHandler))) // Apenas admin
+	mux.HandleFunc("POST /api/system/test-supabase", handlers.RequireAuth(handlers.RequireRole()(handlers.TestSupabaseConnectionHandler)))
+	mux.HandleFunc("POST /api/system/test-r2", handlers.RequireAuth(handlers.RequireRole()(handlers.TestR2ConnectionHandler)))
+	mux.HandleFunc("GET /api/system/test-database", handlers.RequireAuth(handlers.RequireRole()(handlers.TestDatabaseConnectionHandler)))
 	mux.HandleFunc("GET /api/business", handlers.GetBusinessInfoHandler)
 	mux.HandleFunc("GET /api/system/update", handlers.RequireAuth(handlers.CheckUpdateHandler))
 	mux.HandleFunc("GET /api/system/version", handlers.RequireAuth(handlers.GetSystemVersionHandler))
 	mux.HandleFunc("GET /api/system/status", handlers.RequireAuth(handlers.GetSystemStatusHandler))
 
 	// API Keys
-	mux.HandleFunc("GET /api/system/api-keys", handlers.RequireAuth(handlers.GetApiKeysHandler))
-	mux.HandleFunc("POST /api/system/api-keys", handlers.RequireAuth(handlers.CreateApiKeyHandler))
-	mux.HandleFunc("DELETE /api/system/api-keys/{id}", handlers.RequireAuth(handlers.DeleteApiKeyHandler))
+	mux.HandleFunc("GET /api/system/api-keys", handlers.RequireAuth(handlers.RequireRole("auditor")(handlers.GetApiKeysHandler)))
+	mux.HandleFunc("POST /api/system/api-keys", handlers.RequireAuth(handlers.RequireRole()(handlers.CreateApiKeyHandler)))
+	mux.HandleFunc("DELETE /api/system/api-keys/{id}", handlers.RequireAuth(handlers.RequireRole()(handlers.DeleteApiKeyHandler)))
+
+	// Users API
+	mux.HandleFunc("GET /api/users", handlers.RequireAuth(handlers.RequireRole("it_manager", "auditor")(handlers.ListUsersHandler)))
+	mux.HandleFunc("POST /api/users", handlers.RequireAuth(handlers.RequireRole("it_manager")(handlers.CreateUserHandler)))
+	mux.HandleFunc("PUT /api/users/{id}", handlers.RequireAuth(handlers.RequireRole("it_manager")(handlers.UpdateUserHandler)))
+	mux.HandleFunc("DELETE /api/users/{id}", handlers.RequireAuth(handlers.RequireRole("it_manager")(handlers.DeleteUserHandler)))
 
 	// Extensions API
-	mux.HandleFunc("GET /api/extensions", handlers.RequireAuth(handlers.GetExtensionsHandler))
-	mux.HandleFunc("POST /api/extensions/install", handlers.RequireAuth(handlers.InstallExtensionHandler))
-	mux.HandleFunc("POST /api/extensions/toggle/{id}", handlers.RequireAuth(handlers.ToggleExtensionHandler))
-	mux.HandleFunc("POST /api/extensions/uninstall/{id}", handlers.RequireAuth(handlers.UninstallExtensionHandler))
+	mux.HandleFunc("GET /api/extensions", handlers.RequireAuth(handlers.RequireRole("it_manager", "auditor")(handlers.GetExtensionsHandler)))
+	mux.HandleFunc("POST /api/extensions/install", handlers.RequireAuth(handlers.RequireRole("it_manager")(handlers.InstallExtensionHandler)))
+	mux.HandleFunc("POST /api/extensions/toggle/{id}", handlers.RequireAuth(handlers.RequireRole("it_manager")(handlers.ToggleExtensionHandler)))
+	mux.HandleFunc("POST /api/extensions/uninstall/{id}", handlers.RequireAuth(handlers.RequireRole("it_manager")(handlers.UninstallExtensionHandler)))
+	
 	// Schema API
-	mux.HandleFunc("GET /api/schema/collections", handlers.RequireAuth(handlers.GetCollectionsHandler))
-	mux.HandleFunc("GET /api/schema/collections/{id}", handlers.RequireAuth(handlers.GetCollectionByIdHandler))
-	mux.HandleFunc("POST /api/schema/collections", handlers.RequireAuth(handlers.CreateCollectionHandler))
-	mux.HandleFunc("PUT /api/schema/collections/{id}", handlers.RequireAuth(handlers.UpdateCollectionHandler))
-	mux.HandleFunc("DELETE /api/schema/collections/{id}", handlers.RequireAuth(handlers.DeleteCollectionHandler))
+	mux.HandleFunc("GET /api/schema/collections", handlers.RequireAuth(handlers.RequireRole("manager", "auditor")(handlers.GetCollectionsHandler)))
+	mux.HandleFunc("GET /api/schema/collections/{id}", handlers.RequireAuth(handlers.RequireRole("manager", "auditor")(handlers.GetCollectionByIdHandler)))
+	mux.HandleFunc("POST /api/schema/collections", handlers.RequireAuth(handlers.RequireRole("manager")(handlers.CreateCollectionHandler)))
+	mux.HandleFunc("PUT /api/schema/collections/{id}", handlers.RequireAuth(handlers.RequireRole("manager")(handlers.UpdateCollectionHandler)))
+	mux.HandleFunc("DELETE /api/schema/collections/{id}", handlers.RequireAuth(handlers.RequireRole("manager")(handlers.DeleteCollectionHandler)))
 
 	// Content API
 	mux.HandleFunc("GET /api/content/collections/{slug}", handlers.GetCollectionBySlugHandler)
 	mux.HandleFunc("GET /api/content/documents", handlers.GetDocumentsHandler)
 	mux.HandleFunc("GET /api/content/documents/{id}", handlers.GetDocumentHandler)
-	mux.HandleFunc("POST /api/content/documents", handlers.RequireAuth(handlers.CreateDocumentHandler))
-	mux.HandleFunc("PUT /api/content/documents/{id}", handlers.RequireAuth(handlers.UpdateDocumentHandler))
-	mux.HandleFunc("DELETE /api/content/documents/{id}", handlers.RequireAuth(handlers.DeleteDocumentHandler))
+	mux.HandleFunc("POST /api/content/documents", handlers.RequireAuth(handlers.RequireRole("manager")(handlers.CreateDocumentHandler)))
+	mux.HandleFunc("PUT /api/content/documents/{id}", handlers.RequireAuth(handlers.RequireRole("manager")(handlers.UpdateDocumentHandler)))
+	mux.HandleFunc("DELETE /api/content/documents/{id}", handlers.RequireAuth(handlers.RequireRole("manager")(handlers.DeleteDocumentHandler)))
 	
 	// Upload API
-	mux.HandleFunc("POST /api/upload", handlers.RequireAuth(handlers.UploadHandler))
+	mux.HandleFunc("POST /api/upload", handlers.RequireAuth(handlers.RequireRole("manager")(handlers.UploadHandler)))
 	
 	// Media API
-	mux.HandleFunc("GET /api/media", handlers.RequireAuth(handlers.ListMediaHandler))
-	mux.HandleFunc("GET /api/media/stats", handlers.RequireAuth(handlers.GetMediaStatsHandler))
-	mux.HandleFunc("PUT /api/media/{id}", handlers.RequireAuth(handlers.UpdateMediaHandler))
-	mux.HandleFunc("DELETE /api/media/{id}", handlers.RequireAuth(handlers.DeleteMediaHandler))
+	mux.HandleFunc("GET /api/media", handlers.RequireAuth(handlers.RequireRole("manager", "auditor")(handlers.ListMediaHandler)))
+	mux.HandleFunc("GET /api/media/stats", handlers.RequireAuth(handlers.RequireRole("manager", "auditor")(handlers.GetMediaStatsHandler)))
+	mux.HandleFunc("PUT /api/media/{id}", handlers.RequireAuth(handlers.RequireRole("manager")(handlers.UpdateMediaHandler)))
+	mux.HandleFunc("DELETE /api/media/{id}", handlers.RequireAuth(handlers.RequireRole("manager")(handlers.DeleteMediaHandler)))
 
 	// Embed Static Frontend SPA
 	staticDir, err := fs.Sub(frontendFS, "frontend/out")

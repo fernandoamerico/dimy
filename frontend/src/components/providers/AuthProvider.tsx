@@ -1,13 +1,32 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { fetchAPI } from '@/core/api'
+
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+};
+
+type AuthContextType = {
+  user: User | null;
+  isLoading: boolean;
+};
+
+const AuthContext = createContext<AuthContextType>({ user: null, isLoading: true });
+
+export function useAuth() {
+  return useContext(AuthContext);
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
   const [isChecking, setIsChecking] = useState(true)
+  const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
     async function checkAuthAndSetup() {
@@ -27,7 +46,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // 2. Se estiver configurado, checa se o usuário está logado
         try {
-          await fetchAPI('/auth/me')
+          const userData = await fetchAPI('/auth/me')
+          setUser(userData)
           // Se não deu erro, o usuário está logado.
           // Se ele tentar acessar /login ou /setup, joga pro dashboard
           if (pathname === '/login' || pathname === '/login/' || pathname === '/setup' || pathname === '/setup/') {
@@ -65,5 +85,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     )
   }
 
-  return <>{children}</>
+  return (
+    <AuthContext.Provider value={{ user, isLoading: isChecking }}>
+      {children}
+    </AuthContext.Provider>
+  )
 }

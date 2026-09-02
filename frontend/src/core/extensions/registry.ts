@@ -44,6 +44,16 @@ export const EXTENSION_REGISTRY: ExtensionDef[] = [
       { label: 'Biblioteca', href: '/midias', iconName: 'Images', requiredPermissions: [] }
     ]
   },
+  {
+    id: 'core_team',
+    name: 'Equipe',
+    description: 'Gestão de membros da equipe e cargos.',
+    type: 'core',
+    isEssential: true,
+    navItems: [
+      { label: 'Equipe', href: '/equipe', iconName: 'Users', requiredPermissions: [] }
+    ]
+  },
 
   // ---------------------------------------------------------
   // MODULES — instalados via loja

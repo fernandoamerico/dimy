@@ -25,6 +25,7 @@ import {
   Images
 } from 'lucide-react';
 import { dimyConfig } from '@/dimy.config';
+import { usePermissions } from '@/core/hooks/usePermissions';
 
 import { useTranslation } from 'react-i18next';
 
@@ -42,6 +43,7 @@ export function Sidebar({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [combinedNavItems, setCombinedNavItems] = useState<any[]>([]);
+  const { canManageExtensions, canManageSystem, canManageUsers, canManageSchema } = usePermissions();
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -54,7 +56,13 @@ export function Sidebar({
         getSidebarOrder()
       ]);
       
-      const formattedNavs = navs.map((n: any) => ({ ...n, id: n.href, type: 'nav' }));
+      const formattedNavs = navs.map((n: any) => ({ ...n, id: n.href, type: 'nav' })).filter((n: any) => {
+        if (n.href === '/aplicativos' && !canManageExtensions) return false;
+        if (n.href === '/configuracoes' && !canManageSystem) return false;
+        if (n.href === '/schema' && !canManageSchema) return false;
+        if (n.href === '/equipe' && !canManageUsers) return false;
+        return true;
+      });
       
       // Filter out page collections and publications that don't have show_in_sidebar enabled
       const visibleCols = cols.filter((c: any) => {
@@ -110,7 +118,7 @@ export function Sidebar({
       setCombinedNavItems(combined);
     }
     fetchData();
-  }, []);
+  }, [canManageExtensions, canManageSystem, canManageUsers, canManageSchema]);
 
   return (
     <>
@@ -177,7 +185,7 @@ export function Sidebar({
             }
             
             // Map icon string to Lucide component
-            const iconsMap: any = { LayoutDashboard, Settings, Blocks: Layers, Newspaper, Layers, Briefcase, FileText, Package, Images };
+            const iconsMap: any = { LayoutDashboard, Settings, Blocks: Layers, Newspaper, Layers, Briefcase, FileText, Package, Images, Users };
             const IconComponent = iconsMap[item.iconName] || Folder;
             
             let displayLabel = item.label;
