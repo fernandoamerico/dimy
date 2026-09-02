@@ -164,11 +164,13 @@ export function Sidebar({
               const itemSlug = new URLSearchParams(item.href.split('?')[1]).get('slug');
               isActive = currentSlug === itemSlug;
             } else {
-              // Item genérico (ex: /produtos). Fica ativo apenas se não estivermos dentro de uma coleção específica.
-              if (item.href === '/banners') {
-                isActive = !!pathname?.startsWith('/banners');
-              } else if (item.href === '/paginas') {
-                isActive = !!pathname?.startsWith('/paginas');
+              // Item genérico (ex: /produtos). Fica ativo apenas se estivermos nessa rota principal.
+              if (item.href === '/banners' || item.href === '/paginas' || item.href === '/publicacoes' || item.href === '/produtos') {
+                isActive = !!pathname?.startsWith(item.href);
+                // Se houver currentSlug e existir uma col no sidebar com esse slug, não destacamos o genérico
+                if (currentSlug && combinedNavItems.some(i => i.type === 'col' && new URLSearchParams(i.href.split('?')[1]).get('slug') === currentSlug)) {
+                  isActive = false;
+                }
               } else {
                 isActive = !!pathname?.startsWith(item.href) && !currentSlug;
               }
