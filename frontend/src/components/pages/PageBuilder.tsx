@@ -122,7 +122,7 @@ function SimpleWysiwyg({ value, onChange, placeholder }: { value: string, onChan
   };
 
   return (
-    <div className="border border-gray-200 dark:border-neutral-800 rounded-xl overflow-hidden bg-gray-50 dark:bg-neutral-950 flex flex-col focus-within:ring-2 focus-within:ring-blue-500 dark:focus-within:ring-emerald-500 transition-all">
+    <div className="border border-gray-200 dark:border-neutral-800 rounded-xl overflow-hidden bg-white dark:bg-neutral-950 flex flex-col focus-within:ring-2 focus-within:ring-blue-500 dark:focus-within:ring-emerald-500 transition-all">
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-1 p-2 border-b border-gray-200 dark:border-neutral-800 bg-gray-100/50 dark:bg-neutral-900/50">
         <button type="button" onClick={() => execCmd('bold')} className="p-1.5 hover:bg-white dark:hover:bg-neutral-800 rounded text-gray-700 dark:text-gray-300" title="Negrito"><Bold size={14}/></button>
@@ -140,7 +140,7 @@ function SimpleWysiwyg({ value, onChange, placeholder }: { value: string, onChan
         onInput={handleInput}
         onBlur={handleInput}
         data-placeholder={placeholder}
-        className="p-4 min-h-[150px] outline-none text-sm text-gray-900 dark:text-white empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400 prose dark:prose-invert max-w-none"
+        className="p-4 min-h-[150px] outline-none text-sm text-gray-900 dark:text-white bg-white dark:bg-neutral-950 empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400 prose dark:prose-invert max-w-none [&_*]:!text-gray-900 [&_*]:dark:!text-white [&_*]:!bg-transparent"
       />
     </div>
   );
