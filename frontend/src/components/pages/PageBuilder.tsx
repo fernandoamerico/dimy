@@ -9,7 +9,7 @@ import {
   ArrowLeft, Save, Plus, Type, Image as ImageIcon, AlignLeft, Settings,
   Trash2, Code, Copy, Check, ChevronDown, ChevronUp, ArrowUp, ArrowDown,
   Link2, Images, Table, MousePointerClick, FileEdit, Search, Paintbrush,
-  FileCode, Power, Globe, ImagePlus, Bold, Italic, Underline, Strikethrough, List, ListOrdered, Library
+  FileCode, Power, Globe, ImagePlus, Bold, Italic, Underline, Strikethrough, List, ListOrdered, Library, Minus
 } from 'lucide-react';
 import Link from 'next/link';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -28,17 +28,18 @@ const BLOCK_TYPES = [
   { type: 'url',      label: 'URL / Link',     description: 'Um link externo ou interno',               icon: Link2,              color: 'sky' },
   { type: 'table',    label: 'Tabela',         description: 'Dados tabulares simples',                  icon: Table,              color: 'amber' },
   { type: 'button',   label: 'Botão',          description: 'Botão com texto e link de destino',        icon: MousePointerClick,  color: 'rose' },
+  { type: 'divider',  label: 'Divisor',        description: 'Linha separadora visual',                  icon: Minus,              color: 'slate' },
 ];
 
 const ICON_MAP: Record<string, any> = {
   text: Type, richText: AlignLeft, wysiwyg: FileEdit, image: ImageIcon,
-  gallery: Images, url: Link2, table: Table, button: MousePointerClick,
+  gallery: Images, url: Link2, table: Table, button: MousePointerClick, divider: Minus
 };
 
 const COLOR_MAP: Record<string, string> = {
   text: 'text-blue-500', richText: 'text-emerald-500', wysiwyg: 'text-indigo-500',
   image: 'text-purple-500', gallery: 'text-pink-500', url: 'text-sky-500',
-  table: 'text-amber-500', button: 'text-rose-500',
+  table: 'text-amber-500', button: 'text-rose-500', divider: 'text-slate-500',
 };
 
 const BADGE_MAP: Record<string, string> = {
@@ -50,6 +51,7 @@ const BADGE_MAP: Record<string, string> = {
   url: 'bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400',
   table: 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400',
   button: 'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400',
+  divider: 'bg-slate-50 text-slate-600 dark:bg-slate-500/10 dark:text-slate-400',
 };
 
 const BG_MAP: Record<string, string> = {
@@ -61,6 +63,7 @@ const BG_MAP: Record<string, string> = {
   sky: 'bg-sky-50 dark:bg-sky-500/10 text-sky-500 dark:text-sky-400 border-sky-200 dark:border-sky-900/50',
   amber: 'bg-amber-50 dark:bg-amber-500/10 text-amber-500 dark:text-amber-400 border-amber-200 dark:border-amber-900/50',
   rose: 'bg-rose-50 dark:bg-rose-500/10 text-rose-500 dark:text-rose-400 border-rose-200 dark:border-rose-900/50',
+  slate: 'bg-slate-50 dark:bg-slate-500/10 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-900/50',
 };
 
 const GOOGLE_FONTS = ['Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins', 'Raleway', 'Outfit', 'Nunito', 'Oswald', 'Source Sans 3', 'Playfair Display'];
@@ -442,6 +445,15 @@ export function PageBuilder({
               onChange={e => handleChange(field.name, { ...btnVal, text: e.target.value })} className={inputClass} />
             <input type="url" value={btnVal.href} placeholder="Link de destino (URL)"
               onChange={e => handleChange(field.name, { ...btnVal, href: e.target.value })} className={inputClass} />
+          </div>
+        );
+
+      case 'divider':
+        return (
+          <div className="flex items-center gap-4 py-4 text-slate-400 dark:text-slate-500">
+            <div className="flex-1 border-t border-slate-200 dark:border-neutral-700 border-dashed"></div>
+            <Minus size={16} />
+            <div className="flex-1 border-t border-slate-200 dark:border-neutral-700 border-dashed"></div>
           </div>
         );
 
