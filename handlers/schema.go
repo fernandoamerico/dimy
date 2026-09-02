@@ -145,6 +145,18 @@ func CreateCollectionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var exists int
+	err := db.Instance.QueryRow("SELECT 1 FROM schema_collections WHERE slug = $1", payload.Slug).Scan(&exists)
+	if err == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusConflict)
+		json.NewEncoder(w).Encode(map[string]interface{}{"error": "Já existe uma coleção ou página com este slug."})
+		return
+	} else if err != sql.ErrNoRows {
+		http.Error(w, "Erro ao verificar slug", http.StatusInternalServerError)
+		return
+	}
+
 	tx, err := db.Instance.Begin()
 	if err != nil {
 		http.Error(w, "Erro ao iniciar transação", http.StatusInternalServerError)
@@ -195,6 +207,18 @@ func UpdateCollectionHandler(w http.ResponseWriter, r *http.Request) {
 	var payload CreateCollectionPayload
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(w, "JSON inválido", http.StatusBadRequest)
+		return
+	}
+
+	var exists int
+	err := db.Instance.QueryRow("SELECT 1 FROM schema_collections WHERE slug = $1 AND id != $2", payload.Slug, id).Scan(&exists)
+	if err == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusConflict)
+		json.NewEncoder(w).Encode(map[string]interface{}{"error": "Já existe uma coleção ou página com este slug."})
+		return
+	} else if err != sql.ErrNoRows {
+		http.Error(w, "Erro ao verificar slug", http.StatusInternalServerError)
 		return
 	}
 
