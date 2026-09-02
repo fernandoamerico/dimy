@@ -20,7 +20,36 @@ export function SidebarOrderManager() {
       ]);
 
       const formattedNavs = navs.map((n: any) => ({ id: n.href, label: n.label, type: 'nav' }));
-      const formattedCols = cols.map((c: any) => ({ id: `/content/list?slug=${c.slug}`, label: c.name, type: 'col' }));
+      
+      const visibleCols = cols.filter((c: any) => {
+        if (!c.metadata) return false;
+        try {
+          const meta = JSON.parse(c.metadata);
+          if (meta.is_product) return true;
+          
+          if ((meta.is_page || meta.is_publication || meta.is_banner) && !meta.show_in_sidebar) {
+            return false;
+          }
+          if (meta.hide_from_sidebar) return false;
+        } catch (e) {}
+        return true;
+      });
+
+      const formattedCols = visibleCols.map((c: any) => {
+        let isProduct = false;
+        let isPublication = false;
+        try {
+          const meta = JSON.parse(c.metadata);
+          isProduct = meta.is_product === true;
+          isPublication = meta.is_publication === true;
+        } catch (e) {}
+        
+        let baseUrl = '/content/list';
+        if (isProduct) baseUrl = '/produtos/lista';
+        else if (isPublication) baseUrl = '/publicacoes/list';
+
+        return { id: `${baseUrl}?slug=${c.slug}`, label: c.name, type: 'col' };
+      });
       
       const combined = [...formattedNavs, ...formattedCols];
 
