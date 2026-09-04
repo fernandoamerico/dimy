@@ -232,7 +232,13 @@ export function PageBuilder({
       setFormData(prev => {
         const newData = { ...prev };
         newData[newName] = newData[oldName];
-        delete newData[oldName];
+        
+        // Só deleta a chave antiga se nenhum outro bloco ainda estiver usando ela
+        const isOldNameStillUsed = newFields.some(f => f.name === oldName);
+        if (!isOldNameStillUsed) {
+          delete newData[oldName];
+        }
+        
         return newData;
       });
     }
