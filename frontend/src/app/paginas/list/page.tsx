@@ -46,11 +46,17 @@ function PaginasListContent() {
     fetchContent();
   }, [slug]);
 
-  // Aplicação dos filtros
-  const filteredDocuments = documents.filter(doc => {
-    const title = doc.data?.title || 'Seção sem título';
-    return title.toLowerCase().includes(searchQuery.toLowerCase());
-  });
+  // Aplicação dos filtros e ordenação (mais antigo primeiro)
+  const filteredDocuments = documents
+    .filter(doc => {
+      const title = doc.data?.title || 'Seção sem título';
+      return title.toLowerCase().includes(searchQuery.toLowerCase());
+    })
+    .sort((a, b) => {
+      const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return dateA - dateB;
+    });
 
   const handleCreateSection = async (e: React.FormEvent) => {
     e.preventDefault();

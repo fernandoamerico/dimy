@@ -59,6 +59,7 @@ export function PageBuilder({
 }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [savingMode, setSavingMode] = useState<'draft' | 'publish' | null>(null);
   const [isAddingField, setIsAddingField] = useState(false);
   const [fieldToDelete, setFieldToDelete] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -116,15 +117,18 @@ export function PageBuilder({
   };
 
   // ─── Save Page ────────────────────────────────────────────────────────────
-  const handleSavePage = async () => {
+  const handleSavePage = async (mode: 'draft' | 'publish') => {
     setIsSubmitting(true);
+    setSavingMode(mode);
+
+    const newStatus = mode === 'publish' ? 'published' : 'draft';
     
     // Prune formData to only include keys from active fields, plus base properties
     const prunedData: Record<string, any> = { 
       _fields: fields,
       title: formData.title,
       slug: formData.slug,
-      status: formData.status,
+      status: newStatus,
       css, customCss
     };
     
@@ -134,15 +138,19 @@ export function PageBuilder({
       }
     });
 
+    // Update local formData status to reflect the saved value
+    setFormData(prev => ({ ...prev, status: newStatus }));
+
     // Save document data
     const result = await updateDocument(pageDoc.id, collection.slug, prunedData);
     if (result.success) {
-      toast.success('Página salva com sucesso!');
+      toast.success(mode === 'publish' ? 'Seção publicada com sucesso!' : 'Rascunho salvo com sucesso!');
       router.refresh();
     } else {
-      toast.error('Erro ao salvar página: ' + result.error);
+      toast.error('Erro ao salvar: ' + result.error);
     }
     setIsSubmitting(false);
+    setSavingMode(null);
   };
 
   // ─── Add Block ────────────────────────────────────────────────────────────
@@ -298,10 +306,30 @@ export function PageBuilder({
             <p className="text-gray-500 dark:text-gray-400 mt-0.5 text-sm">Page Builder</p>
           </div>
         </div>
-        <button onClick={handleSavePage} disabled={isSubmitting}
-          className="px-5 py-2.5 text-white bg-blue-600 dark:bg-emerald-500 rounded-xl hover:bg-blue-700 dark:hover:bg-emerald-600 font-medium transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2 w-full sm:w-auto justify-center">
-          <Save className="w-4 h-4" /> Salvar Página
-        </button>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <button
+            onClick={() => handleSavePage('draft')}
+            disabled={isSubmitting}
+            className="flex-1 sm:flex-none px-4 py-2.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-700 font-medium transition-colors disabled:opacity-50 flex items-center gap-2 justify-center text-sm"
+          >
+            {savingMode === 'draft' ? (
+              <><div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> Salvando...</>
+            ) : (
+              <><Save className="w-4 h-4" /> Salvar Rascunho</>
+            )}
+          </button>
+          <button
+            onClick={() => handleSavePage('publish')}
+            disabled={isSubmitting}
+            className="flex-1 sm:flex-none px-4 py-2.5 text-white bg-blue-600 dark:bg-emerald-500 rounded-xl hover:bg-blue-700 dark:hover:bg-emerald-600 font-medium transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2 justify-center text-sm"
+          >
+            {savingMode === 'publish' ? (
+              <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Publicando...</>
+            ) : (
+              <><Globe className="w-4 h-4" /> Salvar e Publicar</>
+            )}
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -412,7 +440,7 @@ export function PageBuilder({
                   type="text"
                   value={formData.title || ''}
                   onChange={(e) => handleChange('title', e.target.value)}
-                  onBlur={handleSavePage}
+                  onBlur={() => handleSavePage('draft')}
                   className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors"
                 />
               </div>
@@ -425,7 +453,7 @@ export function PageBuilder({
                     const formatted = e.target.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\-]+/g, '-');
                     handleChange('slug', formatted);
                   }}
-                  onBlur={handleSavePage}
+                  onBlur={() => handleSavePage('draft')}
                   className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors font-mono"
                 />
               </div>
