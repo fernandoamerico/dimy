@@ -13,8 +13,8 @@ RUN cd frontend && npm ci
 
 # Copy remaining frontend files and build
 COPY frontend/ ./frontend/
-COPY prisma/ ./prisma/
-RUN cd frontend && npx prisma generate --schema=../prisma/schema.prisma && BUILD_FOR_GO=true npm run build
+COPY prisma/ ./frontend/prisma/
+RUN cd frontend && npx prisma generate && BUILD_FOR_GO=true npm run build
 
 # ==========================================
 # Stage 2: Build the Go Backend
