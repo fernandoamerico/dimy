@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { getCollectionBySlug, getDocuments, deleteDocument, createDocument, duplicateDocument } from '@/core/content/actions';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import EditPageModal from '@/components/pages/EditPageModal';
-import { Plus, FileText, ArrowLeft, Trash2, Edit2, Search, Loader2, Copy, Settings } from 'lucide-react';
+import { Plus, FileText, ArrowLeft, Trash2, Edit2, Search, Loader2, Copy, Settings, ArrowUp, ArrowDown } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
@@ -46,17 +46,61 @@ function PaginasListContent() {
     fetchContent();
   }, [slug]);
 
-  // Aplicação dos filtros e ordenação (mais antigo primeiro)
+  // Aplicação dos filtros e ordenação por order (ou data de criação como fallback)
   const filteredDocuments = documents
     .filter(doc => {
       const title = doc.data?.title || 'Seção sem título';
       return title.toLowerCase().includes(searchQuery.toLowerCase());
     })
     .sort((a, b) => {
+      const orderA = typeof a.data?.order === 'number' ? a.data.order : 999999;
+      const orderB = typeof b.data?.order === 'number' ? b.data.order : 999999;
+      if (orderA !== orderB) return orderA - orderB;
+      
+      // Fallback
       const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
       return dateA - dateB;
     });
+
+  const moveSection = async (index: number, direction: 'up' | 'down') => {
+    if (searchQuery) {
+      toast.error('Limpe a busca antes de reordenar.');
+      return;
+    }
+    
+    const newDocs = [...filteredDocuments];
+    const swapIdx = direction === 'up' ? index - 1 : index + 1;
+    if (swapIdx < 0 || swapIdx >= newDocs.length) return;
+
+    // Swap locally
+    const docA = newDocs[index];
+    const docB = newDocs[swapIdx];
+
+    // Certifique-se de que eles têm uma ordem 
+    const orderA = typeof docA.data?.order === 'number' ? docA.data.order : index;
+    const orderB = typeof docB.data?.order === 'number' ? docB.data.order : swapIdx;
+
+    const dataA = { ...docA.data, order: orderB };
+    const dataB = { ...docB.data, order: orderA };
+
+    // Optmistic update
+    setDocuments(prev => prev.map(d => {
+      if (d.id === docA.id) return { ...d, data: dataA };
+      if (d.id === docB.id) return { ...d, data: dataB };
+      return d;
+    }));
+
+    try {
+      await Promise.all([
+        updateDocument(docA.id, collection.slug, dataA),
+        updateDocument(docB.id, collection.slug, dataB)
+      ]);
+    } catch (e) {
+      toast.error('Erro ao salvar a ordem das seções');
+      fetchContent(); // Revert
+    }
+  };
 
   const handleCreateSection = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -199,7 +243,7 @@ function PaginasListContent() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-neutral-800">
-                  {filteredDocuments.length > 0 ? filteredDocuments.map((doc) => {
+                  {filteredDocuments.length > 0 ? filteredDocuments.map((doc, index) => {
                     const title = doc.data?.title || 'Sem título';
                     const docSlug = doc.data?.slug || doc.id;
                     const isPublished = doc.data?.status === 'published';
@@ -235,6 +279,20 @@ function PaginasListContent() {
                               <Edit2 className="w-4 h-4" />
                               <span className="hidden sm:inline">Editar Visual</span>
                             </Link>
+                            
+                            {!searchQuery && (
+                              <div className="flex items-center mx-2 border-x border-gray-200 dark:border-neutral-700 px-2">
+                                <button onClick={() => moveSection(index, 'up')} disabled={index === 0}
+                                  className="p-1.5 text-gray-400 hover:text-blue-500 dark:hover:text-emerald-400 disabled:opacity-30 rounded transition-colors" title="Mover para cima">
+                                  <ArrowUp className="w-4 h-4" />
+                                </button>
+                                <button onClick={() => moveSection(index, 'down')} disabled={index === filteredDocuments.length - 1}
+                                  className="p-1.5 text-gray-400 hover:text-blue-500 dark:hover:text-emerald-400 disabled:opacity-30 rounded transition-colors" title="Mover para baixo">
+                                  <ArrowDown className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
+
                             <button onClick={() => handleDuplicateSection(doc.id)}
                               className="p-2 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-500/10 rounded-lg transition-colors"
                               title="Duplicar"
