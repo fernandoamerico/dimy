@@ -198,6 +198,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		Name:     "dimy_session",
 		Value:    "",
 		Expires:  time.Unix(0, 0),
+		MaxAge:   -1,
 		HttpOnly: true,
 		Secure:   os.Getenv("NODE_ENV") == "production",
 		SameSite: http.SameSiteLaxMode,

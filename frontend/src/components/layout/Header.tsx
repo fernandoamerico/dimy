@@ -6,6 +6,14 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { logout } from '@/core/api';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/components/providers/AuthProvider';
+
+const roleLabels: Record<string, string> = {
+  admin: 'Administrador',
+  manager: 'Gerente',
+  it_manager: 'Gerente de TI',
+  auditor: 'Auditor',
+};
 
 export function Header({ 
   isSidebarCollapsed,
@@ -15,6 +23,7 @@ export function Header({
   setIsMobileSidebarOpen: (v: boolean) => void;
 }) {
   const pathname = usePathname();
+  const { user } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { t, i18n } = useTranslation();
@@ -41,6 +50,16 @@ export function Header({
     const nextLang = i18n.language === 'pt-BR' ? 'en-US' : 'pt-BR';
     i18n.changeLanguage(nextLang);
     localStorage.setItem('i18nextLng', nextLang);
+  };
+
+  const handleLogout = async () => {
+    setIsDropdownOpen(false);
+    try {
+      await logout();
+    } catch (err) {
+      console.error('Erro ao realizar logout', err);
+    }
+    window.location.href = '/login';
   };
 
   return (
@@ -97,11 +116,11 @@ export function Header({
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           >
             <div className="text-right hidden sm:block">
-              <div className="text-sm font-medium text-gray-700 dark:text-neutral-200">Administrador</div>
-              <div className="text-xs text-gray-500 dark:text-neutral-400">Dimy</div>
+              <div className="text-sm font-medium text-gray-700 dark:text-neutral-200">{user?.name || 'Administrador'}</div>
+              <div className="text-xs text-gray-500 dark:text-neutral-400">{user?.role ? (roleLabels[user.role] || user.role) : 'Dimy'}</div>
             </div>
             <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-neutral-800 flex items-center justify-center text-blue-700 dark:text-emerald-400 font-bold border border-blue-200 dark:border-neutral-700 hover:ring-2 hover:ring-blue-100 dark:hover:ring-neutral-700 transition-all">
-              AD
+              {user?.name ? user.name.substring(0, 2).toUpperCase() : 'AD'}
             </div>
           </div>
 
@@ -118,16 +137,14 @@ export function Header({
               
               <div className="h-px bg-gray-100 dark:bg-neutral-800 my-1"></div>
               
-              <form onSubmit={async (e) => { e.preventDefault(); await logout(); window.location.href = '/login'; }}>
-                <button 
-                  type="submit"
-                  onClick={() => setIsDropdownOpen(false)}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-left"
-                >
-                  <LogOut className="w-4 h-4" />
-                  {t('header.logout')}
-                </button>
-              </form>
+              <button 
+                type="button"
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-left"
+              >
+                <LogOut className="w-4 h-4" />
+                {t('header.logout')}
+              </button>
             </div>
           )}
         </div>
