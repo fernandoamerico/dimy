@@ -7,7 +7,6 @@ import { getCollectionBySlug, getDocuments, deleteDocument, createDocument } fro
 import { getCollections } from '@/core/schema/actions';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Plus, Settings, FileText, ArrowLeft, Trash2, Edit2, Search, Filter, ChevronLeft, ChevronRight, X, Copy } from 'lucide-react';
-import { DeleteCategoryModal } from '@/components/publications/DeleteCategoryModal';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
@@ -29,9 +28,7 @@ function PublicationItemsContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // Exclusão de categoria
-  const [allCategories, setAllCategories] = useState<any[]>([]);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
 
   const fetchContent = async () => {
     setLoading(true);
@@ -44,14 +41,6 @@ function PublicationItemsContent() {
     const docs = await getDocuments(col.id);
     setDocuments(docs);
     
-    const collections = await getCollections();
-    setAllCategories(collections.filter((c: any) => {
-      try {
-        const meta = JSON.parse(c.metadata || '{}');
-        return meta.is_publication === true;
-      } catch (e) { return false; }
-    }));
-
     setLoading(false);
   };
 
@@ -163,14 +152,6 @@ function PublicationItemsContent() {
           </div>
           
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsDeleteModalOpen(true)}
-              className="flex items-center gap-2 px-3 py-2 bg-transparent hover:bg-red-50 dark:hover:bg-red-500/10 text-red-600 dark:text-red-400 text-sm font-medium rounded-xl transition-colors"
-              title="Excluir Categoria"
-            >
-              <Trash2 className="w-4 h-4" />
-              Excluir Categoria
-            </button>
             <Link 
               href={`/publicacoes/configuracoes?slug=${collection?.slug}`}
               className="flex items-center gap-2 px-4 py-2 bg-transparent hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-xl transition-colors"
@@ -392,13 +373,7 @@ function PublicationItemsContent() {
           </div>
         )}
 
-        <DeleteCategoryModal 
-          isOpen={isDeleteModalOpen}
-          onClose={() => setIsDeleteModalOpen(false)}
-          category={collection}
-          allCategories={allCategories}
-          onSuccess={() => router.push('/publicacoes')}
-        />
+
 
         {deleteItem && createPortal(
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/70 backdrop-blur-md">

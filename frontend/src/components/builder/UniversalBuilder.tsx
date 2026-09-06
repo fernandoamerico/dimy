@@ -62,6 +62,7 @@ export function UniversalBuilder({
 
   // Blueprint toggles for publication features
   const [enableAuthor, setEnableAuthor] = useState(initialMeta.enable_author !== false);
+  const [enableSummary, setEnableSummary] = useState(initialMeta.enable_summary !== false);
   const [enableSeo, setEnableSeo] = useState(initialMeta.enable_seo !== false);
   const [enableCover, setEnableCover] = useState(initialMeta.enable_cover !== false);
   const [enableStatus, setEnableStatus] = useState(initialMeta.enable_status !== false);
@@ -82,6 +83,7 @@ export function UniversalBuilder({
     return JSON.stringify({
       ...currentMeta,
       enable_author: enableAuthor,
+      enable_summary: enableSummary,
       enable_seo: enableSeo,
       enable_cover: enableCover,
       enable_status: enableStatus,
@@ -479,6 +481,14 @@ export function UniversalBuilder({
             </button>
           </div>
           <div className="flex items-center justify-between">
+            <div><span className="block text-sm font-medium text-gray-900 dark:text-white">Resumo do Post</span><span className="block text-xs text-gray-500 dark:text-gray-400">Ativa o campo de resumo/excerpt</span></div>
+            <button 
+              onClick={() => handleToggle('enable_summary', !enableSummary, setEnableSummary, 'Resumo ativado!', 'Resumo desativado.')}
+              className={`w-10 h-5 rounded-full relative transition-colors ${enableSummary ? 'bg-blue-500' : 'bg-gray-200 dark:bg-neutral-700'}`}>
+              <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${enableSummary ? 'translate-x-5' : 'translate-x-0'}`} />
+            </button>
+          </div>
+          <div className="flex items-center justify-between">
             <div><span className="block text-sm font-medium text-gray-900 dark:text-white">Configurações SEO</span><span className="block text-xs text-gray-500 dark:text-gray-400">Title, Description, etc.</span></div>
             <button 
               onClick={() => handleToggle('enable_seo', !enableSeo, setEnableSeo, 'SEO ativado!', 'SEO desativado.')}
@@ -596,11 +606,11 @@ export function UniversalBuilder({
             type="button"
             onClick={() => setIsDeleteModalOpen(true)}
             disabled={isSubmitting}
-            className="flex items-center gap-2 px-4 py-2.5 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 border border-red-200 dark:border-red-900/50 text-sm font-semibold rounded-xl transition-all shadow-sm disabled:opacity-50"
+            className="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:underline transition-all disabled:opacity-50 px-2 py-1"
             title="Excluir Categoria"
           >
             <Trash2 className="w-4 h-4" />
-            <span className="hidden sm:inline">Excluir Categoria</span>
+            <span>Excluir Categoria</span>
           </button>
           <button onClick={handleSaveCategory} disabled={isSubmitting}
             className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-sm font-semibold rounded-xl transition-all shadow-sm shadow-blue-500/20 hover:shadow-blue-500/40 disabled:opacity-50">

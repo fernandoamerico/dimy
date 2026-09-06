@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateDocument, createDocument, getDocuments } from '@/core/content/actions';
 import { slugify } from '@/core/utils/slug';
+import { resolveTemplateVariables } from '@/core/utils/template';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { ImageUploader } from '@/components/ui/ImageUploader';
 import { GalleryBlockEditor } from '@/components/ui/GalleryBlockEditor';
@@ -12,7 +13,7 @@ import { MediaLibraryModal } from '@/components/media/MediaLibraryModal';
 import { BlockRenderer } from '@/components/blocks/BlockRenderer';
 import { 
   ArrowLeft, Type, Image as ImageIcon, 
-  List, MousePointerClick, Save, Trash2, Plus, Settings, Library, Hash, Globe, HelpCircle, X
+  List, MousePointerClick, Save, Trash2, Plus, Settings, Library, Hash, Globe, HelpCircle, X, FileText
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -41,25 +42,34 @@ export function PostEditor({
   const [status, setStatus] = useState<'draft' | 'published'>(formData._status || 'draft');
   const [publishDate, setPublishDate] = useState(formData._publishDate || new Date().toISOString().split('T')[0]);
   const [author, setAuthor] = useState(formData._author || '');
+  const [summary, setSummary] = useState(formData._summary || '');
   const [priority, setPriority] = useState<number | ''>(formData._priority ?? '');
   
   // SEO
-  const [seo, setSeo] = useState(formData._seo || { title: '', description: '', keywords: '' });
+  const [seo, setSeo] = useState(formData._seo || { title: '{title} | {site_name}', description: '{summary}', keywords: '' });
   const [showSeoHelp, setShowSeoHelp] = useState(false);
-
-  const seoVariables = [
-    { code: '{title}', label: 'Título da publicação' },
-    { code: '{slug}', label: 'Slug da URL' },
-    { code: '{author}', label: 'Autor' },
-    { code: '{date}', label: 'Data de publicação' },
-    { code: '{site_name}', label: 'Nome da categoria/site' },
-  ];
-  
-  // Cover
-  const [cover, setCover] = useState(formData._cover || { image: '', alt: '' });
 
   // Fields from collection
   const fields = collection.fields || [];
+
+  const baseVariables = [
+    { code: '{title}', label: 'Título da publicação' },
+    { code: '{slug}', label: 'Slug da URL' },
+    { code: '{author}', label: 'Autor' },
+    { code: '{summary}', label: 'Resumo do post' },
+    { code: '{date}', label: 'Data de publicação' },
+    { code: '{site_name}', label: 'Nome da categoria/site' },
+  ];
+
+  const blockVariables = fields.map((f: any) => ({
+    code: `{${f.name}}`,
+    label: `Bloco: ${f.label}`
+  }));
+
+  const seoVariables = [...baseVariables, ...blockVariables];
+  
+  // Cover
+  const [cover, setCover] = useState(formData._cover || { image: '', alt: '' });
 
   // Parse collection metadata to know which panels to show
   const meta = (() => {
@@ -94,6 +104,12 @@ export function PostEditor({
       return;
     }
 
+    const finalSeo = {
+      title: seo.title?.trim() ? seo.title.trim() : '{title} | {site_name}',
+      description: seo.description?.trim() ? seo.description.trim() : '{summary}',
+      keywords: seo.keywords || ''
+    };
+
     const dataToSave = {
       ...formData,
       _title: title,
@@ -101,8 +117,9 @@ export function PostEditor({
       _status: newStatus,
       _publishDate: publishDate,
       _author: author,
+      _summary: summary,
       _priority: priority,
-      _seo: seo,
+      _seo: finalSeo,
       _cover: cover,
     };
 
@@ -277,6 +294,21 @@ export function PostEditor({
             </div>
           )}
 
+          {meta.enable_summary !== false && (
+            <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><FileText className="w-4 h-4 text-blue-500" /> Resumo do Post</h3>
+              <div>
+                <textarea 
+                  value={summary} 
+                  onChange={e => setSummary(e.target.value)} 
+                  rows={3} 
+                  placeholder="Escreva um breve resumo da publicação..."
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 text-gray-900 dark:text-white text-sm resize-none" 
+                />
+              </div>
+            </div>
+          )}
+
           {meta.enable_cover !== false && (
             <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><ImageIcon className="w-4 h-4 text-amber-500" /> Capa</h3>
@@ -326,7 +358,7 @@ export function PostEditor({
                             <button
                               type="button"
                               onClick={() => {
-                                setSeo(prev => ({ ...prev, title: (prev.title ? prev.title + ' ' : '') + v.code }));
+                                setSeo((prev: any) => ({ ...prev, title: (prev.title ? prev.title + ' ' : '') + v.code }));
                                 toast.success(`Variável ${v.code} inserida no Meta Title!`);
                               }}
                               className="text-[10px] bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 dark:text-emerald-400 px-2 py-1 rounded-lg font-medium transition-colors"
@@ -357,7 +389,7 @@ export function PostEditor({
                       <button
                         key={v.code}
                         type="button"
-                        onClick={() => setSeo(prev => ({ ...prev, title: (prev.title ? prev.title + ' ' : '') + v.code }))}
+                        onClick={() => setSeo((prev: any) => ({ ...prev, title: (prev.title ? prev.title + ' ' : '') + v.code }))}
                         className="text-[10px] font-mono bg-gray-100 hover:bg-blue-50 hover:text-blue-600 dark:bg-neutral-800 dark:hover:bg-emerald-500/20 dark:hover:text-emerald-400 text-gray-600 dark:text-gray-400 px-1.5 py-0.5 rounded transition-colors"
                         title={`Inserir ${v.label}`}
                       >
@@ -382,13 +414,27 @@ export function PostEditor({
                       <button
                         key={v.code}
                         type="button"
-                        onClick={() => setSeo(prev => ({ ...prev, description: (prev.description ? prev.description + ' ' : '') + v.code }))}
+                        onClick={() => setSeo((prev: any) => ({ ...prev, description: (prev.description ? prev.description + ' ' : '') + v.code }))}
                         className="text-[10px] font-mono bg-gray-100 hover:bg-blue-50 hover:text-blue-600 dark:bg-neutral-800 dark:hover:bg-emerald-500/20 dark:hover:text-emerald-400 text-gray-600 dark:text-gray-400 px-1.5 py-0.5 rounded transition-colors"
                         title={`Inserir ${v.label}`}
                       >
                         + {v.code}
                       </button>
                     ))}
+                  </div>
+                </div>
+
+                {/* Live Resolved Preview */}
+                <div className="mt-3 p-3 bg-gray-50 dark:bg-neutral-950 rounded-xl border border-gray-100 dark:border-neutral-800 space-y-1">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Prévia no Google (Resultado Final):</span>
+                  <div className="text-sm font-semibold text-blue-600 dark:text-blue-400 truncate">
+                    {resolveTemplateVariables(seo.title || '{title} | {site_name}', { ...formData, _title: title, _slug: slug, _author: author, _summary: summary, _publishDate: publishDate }, collection.name) || 'Título da Publicação'}
+                  </div>
+                  <div className="text-[11px] text-emerald-600 dark:text-emerald-400 truncate font-mono">
+                    https://seusite.com/{slug || 'meu-post'}
+                  </div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed">
+                    {resolveTemplateVariables(seo.description || '{summary}', { ...formData, _title: title, _slug: slug, _author: author, _summary: summary, _publishDate: publishDate }, collection.name) || 'Descrição do post aparecerá aqui.'}
                   </div>
                 </div>
               </div>
