@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getCollectionBySlug, getDocuments, deleteDocument, createDocument, duplicateDocument } from '@/core/content/actions';
+import { getCollectionBySlug, getDocuments, deleteDocument, createDocument, duplicateDocument, updateDocument } from '@/core/content/actions';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import EditPageModal from '@/components/pages/EditPageModal';
 import { Plus, FileText, ArrowLeft, Trash2, Edit2, Search, Loader2, Copy, Settings, ArrowUp, ArrowDown } from 'lucide-react';
@@ -92,10 +92,14 @@ function PaginasListContent() {
     }));
 
     try {
-      await Promise.all([
+      const results = await Promise.all([
         updateDocument(docA.id, collection.slug, dataA),
         updateDocument(docB.id, collection.slug, dataB)
       ]);
+      
+      if (!results[0].success || !results[1].success) {
+        throw new Error(results[0].error || results[1].error || 'Falha na API');
+      }
     } catch (e) {
       toast.error('Erro ao salvar a ordem das seções');
       fetchContent(); // Revert
