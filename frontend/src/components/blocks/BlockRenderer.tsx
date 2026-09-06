@@ -9,9 +9,10 @@ interface BlockRendererProps {
   field: any;
   value: any;
   onChange: (value: any) => void;
+  readOnly?: boolean;
 }
 
-export function BlockRenderer({ field, value, onChange }: BlockRendererProps) {
+export function BlockRenderer({ field, value, onChange, readOnly = false }: BlockRendererProps) {
   const inputClass = "w-full px-4 py-3 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 transition-all text-gray-900 dark:text-white";
 
   switch (field.type) {
@@ -20,7 +21,8 @@ export function BlockRenderer({ field, value, onChange }: BlockRendererProps) {
         <input 
           type="text" 
           value={value || ''} 
-          onChange={e => onChange(e.target.value)}
+          onChange={e => !readOnly && onChange(e.target.value)}
+          readOnly={readOnly}
           placeholder={`Digite ${field.label.toLowerCase()}...`} 
           className={inputClass} 
         />
@@ -30,7 +32,8 @@ export function BlockRenderer({ field, value, onChange }: BlockRendererProps) {
       return (
         <textarea 
           value={value || ''} 
-          onChange={e => onChange(e.target.value)}
+          onChange={e => !readOnly && onChange(e.target.value)}
+          readOnly={readOnly}
           placeholder={`Escreva o conteúdo para ${field.label.toLowerCase()}...`} 
           rows={6} 
           className={`${inputClass} resize-y`} 
@@ -73,8 +76,10 @@ export function BlockRenderer({ field, value, onChange }: BlockRendererProps) {
         <input 
           type="url" 
           value={value || ''} 
-          onChange={e => onChange(e.target.value)}
+          onChange={e => !readOnly && onChange(e.target.value)}
+          readOnly={readOnly}
           onBlur={e => {
+            if (readOnly) return;
             const v = e.target.value.trim();
             if (v && !/^https?:\/\//i.test(v)) onChange(`https://${v}`);
           }}
@@ -96,27 +101,32 @@ export function BlockRenderer({ field, value, onChange }: BlockRendererProps) {
                     {row.map((col: string, ci: number) => (
                       <td key={ci} className="p-0 border-r border-gray-300 dark:border-neutral-700 last:border-r-0 relative">
                         <input type="text" value={col}
-                          onChange={e => { const t = tableVal.map((r: string[]) => [...r]); t[ri][ci] = e.target.value; onChange(t); }}
+                          readOnly={readOnly}
+                          onChange={e => { if (!readOnly && t[ri]) { const t = tableVal.map((r: string[]) => [...r]); if (t[ri]) t[ri][ci] = e.target.value; onChange(t); } }}
                           className="w-full px-4 py-2.5 bg-transparent focus:outline-none focus:bg-blue-50/50 dark:focus:bg-emerald-500/10 hover:bg-gray-50 dark:hover:bg-neutral-800 text-gray-900 dark:text-white text-sm transition-colors" />
                       </td>
                     ))}
-                    <td className="p-2 w-10 text-center">
-                      <button onClick={() => { if (tableVal.length > 1) { const t = tableVal.filter((_, i) => i !== ri); onChange(t); } }}
-                        className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded disabled:opacity-30" disabled={tableVal.length <= 1}><Trash2 className="w-3.5 h-3.5" /></button>
-                    </td>
+                    {!readOnly && (
+                      <td className="p-2 w-10 text-center">
+                        <button onClick={() => { if (tableVal.length > 1) { const t = tableVal.filter((_, i) => i !== ri); onChange(t); } }}
+                          className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded disabled:opacity-30" disabled={tableVal.length <= 1}><Trash2 className="w-3.5 h-3.5" /></button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <div className="flex gap-4">
-            <button onClick={() => onChange([...tableVal, new Array(tableVal[0]?.length || 2).fill('')])}
-              className="text-sm font-medium text-blue-600 dark:text-emerald-400 hover:underline flex items-center gap-1">+ Adicionar Linha</button>
-            <button onClick={() => onChange(tableVal.map((r: string[]) => [...r, '']))}
-              className="text-sm font-medium text-blue-600 dark:text-emerald-400 hover:underline flex items-center gap-1">+ Adicionar Coluna</button>
-            <button onClick={() => { if (tableVal[0].length > 1) onChange(tableVal.map((r: string[]) => r.slice(0, -1))) }}
-              disabled={tableVal[0].length <= 1} className="text-sm font-medium text-red-500 hover:underline flex items-center gap-1 ml-auto disabled:opacity-30">Remover Coluna</button>
-          </div>
+          {!readOnly && (
+            <div className="flex gap-4">
+              <button onClick={() => onChange([...tableVal, new Array(tableVal[0]?.length || 2).fill('')])}
+                className="text-sm font-medium text-blue-600 dark:text-emerald-400 hover:underline flex items-center gap-1">+ Adicionar Linha</button>
+              <button onClick={() => onChange(tableVal.map((r: string[]) => [...r, '']))}
+                className="text-sm font-medium text-blue-600 dark:text-emerald-400 hover:underline flex items-center gap-1">+ Adicionar Coluna</button>
+              <button onClick={() => { if (tableVal[0].length > 1) onChange(tableVal.map((r: string[]) => r.slice(0, -1))) }}
+                disabled={tableVal[0].length <= 1} className="text-sm font-medium text-red-500 hover:underline flex items-center gap-1 ml-auto disabled:opacity-30">Remover Coluna</button>
+            </div>
+          )}
         </div>
       );
     }
@@ -126,11 +136,15 @@ export function BlockRenderer({ field, value, onChange }: BlockRendererProps) {
       const btnVal = (typeof rawVal === 'object' && rawVal !== null && !Array.isArray(rawVal)) ? rawVal : { label: '', url: '' };
       return (
         <div className="flex flex-col sm:flex-row items-center gap-3">
-          <input type="text" value={btnVal.label || btnVal.text || ''} onChange={e => onChange({ ...btnVal, label: e.target.value, text: e.target.value })}
+          <input type="text" value={btnVal.label || btnVal.text || ''} 
+            readOnly={readOnly}
+            onChange={e => !readOnly && onChange({ ...btnVal, label: e.target.value, text: e.target.value })}
             placeholder="Texto do Botão" className={inputClass} />
           <input type="url" value={btnVal.url || btnVal.href || ''} 
-            onChange={e => onChange({ ...btnVal, url: e.target.value, href: e.target.value })}
+            readOnly={readOnly}
+            onChange={e => !readOnly && onChange({ ...btnVal, url: e.target.value, href: e.target.value })}
             onBlur={e => {
+              if (readOnly) return;
               const v = e.target.value.trim();
               if (v && !/^https?:\/\//i.test(v)) onChange({ ...btnVal, url: `https://${v}`, href: `https://${v}` });
             }}
@@ -146,8 +160,9 @@ export function BlockRenderer({ field, value, onChange }: BlockRendererProps) {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => onChange(!togVal)}
-            className={`w-12 h-6 rounded-full transition-colors relative ${togVal ? 'bg-blue-600 dark:bg-emerald-500' : 'bg-gray-300 dark:bg-neutral-700'}`}
+            disabled={readOnly}
+            onClick={() => !readOnly && onChange(!togVal)}
+            className={`w-12 h-6 rounded-full transition-colors relative ${togVal ? 'bg-blue-600 dark:bg-emerald-500' : 'bg-gray-300 dark:bg-neutral-700'} ${readOnly ? 'opacity-60 cursor-not-allowed' : ''}`}
           >
             <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${togVal ? 'translate-x-6' : 'translate-x-0'}`}></div>
           </button>
@@ -174,7 +189,9 @@ export function BlockRenderer({ field, value, onChange }: BlockRendererProps) {
                 <button
                   key={opt}
                   type="button"
+                  disabled={readOnly}
                   onClick={() => {
+                    if (readOnly) return;
                     const next = new Set(selectedSet);
                     if (next.has(opt)) next.delete(opt);
                     else next.add(opt);
@@ -184,7 +201,7 @@ export function BlockRenderer({ field, value, onChange }: BlockRendererProps) {
                     isSelected 
                       ? 'bg-blue-50 dark:bg-emerald-500/10 border-blue-200 dark:border-emerald-500/30 text-blue-700 dark:text-emerald-400 font-medium' 
                       : 'bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-neutral-600'
-                  }`}
+                  } ${readOnly ? 'cursor-not-allowed opacity-80' : ''}`}
                 >
                   {opt}
                 </button>
@@ -197,8 +214,9 @@ export function BlockRenderer({ field, value, onChange }: BlockRendererProps) {
         return (
           <select
             value={val}
-            onChange={(e) => onChange(e.target.value)}
-            className={`${inputClass} appearance-none cursor-pointer`}
+            disabled={readOnly}
+            onChange={(e) => !readOnly && onChange(e.target.value)}
+            className={`${inputClass} appearance-none cursor-pointer ${readOnly ? 'cursor-not-allowed opacity-80' : ''}`}
           >
             <option value="" disabled>Selecione uma opção...</option>
             {options.map((opt: string) => (
@@ -214,7 +232,8 @@ export function BlockRenderer({ field, value, onChange }: BlockRendererProps) {
         <input 
           type="number" 
           value={value ?? ''} 
-          onChange={e => onChange(e.target.value !== '' ? Number(e.target.value) : null)}
+          readOnly={readOnly}
+          onChange={e => !readOnly && onChange(e.target.value !== '' ? Number(e.target.value) : null)}
           placeholder={`0`} 
           className={inputClass} 
         />
@@ -230,12 +249,14 @@ export function BlockRenderer({ field, value, onChange }: BlockRendererProps) {
             <div key={idx} className="flex flex-col sm:flex-row items-center gap-3">
               <select
                 value={link.platform || ''}
+                disabled={readOnly}
                 onChange={e => {
+                  if (readOnly) return;
                   const newLinks = [...linksVal];
                   newLinks[idx] = { ...newLinks[idx], platform: e.target.value };
                   onChange(newLinks);
                 }}
-                className={`${inputClass} sm:w-1/3 appearance-none cursor-pointer`}
+                className={`${inputClass} sm:w-1/3 appearance-none cursor-pointer ${readOnly ? 'cursor-not-allowed opacity-80' : ''}`}
               >
                 <option value="" disabled>Plataforma...</option>
                 {platforms.map(p => <option key={p} value={p}>{p}</option>)}
@@ -245,12 +266,15 @@ export function BlockRenderer({ field, value, onChange }: BlockRendererProps) {
                 <input 
                   type="url" 
                   value={link.url || ''} 
+                  readOnly={readOnly}
                   onChange={e => {
+                    if (readOnly) return;
                     const newLinks = [...linksVal];
                     newLinks[idx] = { ...newLinks[idx], url: e.target.value };
                     onChange(newLinks);
                   }}
                   onBlur={e => {
+                    if (readOnly) return;
                     const v = e.target.value.trim();
                     if (v && !/^https?:\/\//i.test(v)) {
                       const newLinks = [...linksVal];
@@ -261,26 +285,30 @@ export function BlockRenderer({ field, value, onChange }: BlockRendererProps) {
                   placeholder="https://..." 
                   className={inputClass} 
                 />
-                <button 
-                  onClick={() => {
-                    const newLinks = linksVal.filter((_, i) => i !== idx);
-                    onChange(newLinks);
-                  }}
-                  className="p-3 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded shrink-0 transition-colors"
-                  title="Remover"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
+                {!readOnly && (
+                  <button 
+                    onClick={() => {
+                      const newLinks = linksVal.filter((_, i) => i !== idx);
+                      onChange(newLinks);
+                    }}
+                    className="p-3 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded shrink-0 transition-colors"
+                    title="Remover"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                )}
               </div>
             </div>
           ))}
           
-          <button 
-            onClick={() => onChange([...linksVal, { platform: '', url: '' }])}
-            className="text-sm font-medium text-blue-600 dark:text-emerald-400 hover:underline flex items-center gap-1 mt-2"
-          >
-            + Adicionar Link Social
-          </button>
+          {!readOnly && (
+            <button 
+              onClick={() => onChange([...linksVal, { platform: '', url: '' }])}
+              className="text-sm font-medium text-blue-600 dark:text-emerald-400 hover:underline flex items-center gap-1 mt-2"
+            >
+              + Adicionar Link Social
+            </button>
+          )}
         </div>
       );
     }
@@ -292,7 +320,8 @@ export function BlockRenderer({ field, value, onChange }: BlockRendererProps) {
           <input 
             type="text" 
             value={typeof value === 'string' ? value : (field.label || 'Divisor')} 
-            onChange={e => onChange(e.target.value)}
+            readOnly={readOnly}
+            onChange={e => !readOnly && onChange(e.target.value)}
             className="text-sm font-medium px-2 text-center bg-transparent border-none focus:outline-none w-auto min-w-[100px] text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded transition-colors"
             placeholder="Nome (opcional)"
           />
@@ -305,7 +334,8 @@ export function BlockRenderer({ field, value, onChange }: BlockRendererProps) {
         <input 
           type="text" 
           value={value || ''} 
-          onChange={e => onChange(e.target.value)}
+          readOnly={readOnly}
+          onChange={e => !readOnly && onChange(e.target.value)}
           className={inputClass} 
         />
       );

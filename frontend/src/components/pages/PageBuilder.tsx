@@ -336,6 +336,7 @@ export function PageBuilder({
         field={field} 
         value={formData[field.name]} 
         onChange={(val) => handleChange(field.name, val)} 
+        readOnly={!canEdit}
       />
     );
   };
@@ -395,7 +396,7 @@ export function PageBuilder({
         )}
       </div>
 
-      <div className={`grid grid-cols-1 lg:grid-cols-3 gap-8 ${!canEdit ? 'pointer-events-none opacity-90 select-none' : ''}`}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* ─── EDITOR AREA (left 2/3) ──────────────────────────────────────── */}
         <div className="lg:col-span-2 space-y-4">
           {fields.length === 0 ? (
@@ -417,36 +418,40 @@ export function PageBuilder({
                       <input
                         type="text"
                         value={field.label}
+                        readOnly={!canEdit}
                         onChange={(e) => {
+                          if (!canEdit) return;
                           const newFields = [...fields];
                           newFields[index] = { ...newFields[index], label: e.target.value };
                           setFields(newFields);
                         }}
-                        onBlur={(e) => handleUpdateFieldLabel(index, e.target.value)}
+                        onBlur={(e) => canEdit && handleUpdateFieldLabel(index, e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
                         className="flex-1 bg-transparent border-b border-transparent hover:border-gray-300 dark:hover:border-neutral-700 focus:border-blue-500 dark:focus:border-emerald-500 focus:outline-none text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wide px-1 py-0.5 transition-colors"
                       />
                     </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <div className="relative group hidden md:flex items-center">
-                        <span className="text-[10px] font-bold text-gray-400 absolute left-2 pointer-events-none">ID:</span>
-                        <FieldIdInput 
-                          field={field} 
-                          fields={fields} 
-                          index={index} 
-                          onUpdate={handleUpdateFieldName} 
-                        />
+                    {canEdit && (
+                      <div className="flex items-center gap-1 shrink-0">
+                        <div className="relative group hidden md:flex items-center">
+                          <span className="text-[10px] font-bold text-gray-400 absolute left-2 pointer-events-none">ID:</span>
+                          <FieldIdInput 
+                            field={field} 
+                            fields={fields} 
+                            index={index} 
+                            onUpdate={handleUpdateFieldName} 
+                          />
+                        </div>
+                        <button onClick={() => handleDuplicateField(field)} disabled={isSubmitting}
+                          className="p-1.5 text-gray-400 hover:text-blue-500 dark:hover:text-emerald-400 disabled:opacity-30 rounded transition-colors" title="Duplicar bloco"><Copy className="w-3.5 h-3.5" /></button>
+                        <div className="w-px h-4 bg-gray-200 dark:bg-neutral-800 mx-1 hidden sm:block"></div>
+                        <button onClick={() => moveField(index, 'up')} disabled={index === 0}
+                          className="p-1.5 text-gray-400 hover:text-blue-500 dark:hover:text-emerald-400 disabled:opacity-30 rounded transition-colors" title="Mover para cima"><ArrowUp className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => moveField(index, 'down')} disabled={index === fields.length - 1}
+                          className="p-1.5 text-gray-400 hover:text-blue-500 dark:hover:text-emerald-400 disabled:opacity-30 rounded transition-colors" title="Mover para baixo"><ArrowDown className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => setFieldToDelete(field.name)} disabled={isSubmitting}
+                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded transition-colors disabled:opacity-50" title="Remover bloco"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
-                      <button onClick={() => handleDuplicateField(field)} disabled={isSubmitting}
-                        className="p-1.5 text-gray-400 hover:text-blue-500 dark:hover:text-emerald-400 disabled:opacity-30 rounded transition-colors" title="Duplicar bloco"><Copy className="w-3.5 h-3.5" /></button>
-                      <div className="w-px h-4 bg-gray-200 dark:bg-neutral-800 mx-1 hidden sm:block"></div>
-                      <button onClick={() => moveField(index, 'up')} disabled={index === 0}
-                        className="p-1.5 text-gray-400 hover:text-blue-500 dark:hover:text-emerald-400 disabled:opacity-30 rounded transition-colors" title="Mover para cima"><ArrowUp className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => moveField(index, 'down')} disabled={index === fields.length - 1}
-                        className="p-1.5 text-gray-400 hover:text-blue-500 dark:hover:text-emerald-400 disabled:opacity-30 rounded transition-colors" title="Mover para baixo"><ArrowDown className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => setFieldToDelete(field.name)} disabled={isSubmitting}
-                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded transition-colors disabled:opacity-50" title="Remover bloco"><Trash2 className="w-3.5 h-3.5" /></button>
-                    </div>
+                    )}
                   </div>
                   {renderFieldEditor(field)}
                 </div>
@@ -458,39 +463,41 @@ export function PageBuilder({
         {/* ─── SIDEBAR (right 1/3) ─────────────────────────────────────────── */}
         <div className="space-y-4">
           {/* ADD BLOCK */}
-          <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800">
-            <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-              <Plus className="w-4 h-4 text-blue-500 dark:text-emerald-400" /> Adicionar Bloco
-            </h2>
+          {canEdit && (
+            <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800">
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                <Plus className="w-4 h-4 text-blue-500 dark:text-emerald-400" /> Adicionar Bloco
+              </h2>
 
-            {!isAddingField ? (
-              <button onClick={() => setIsAddingField(true)}
-                className="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 dark:bg-neutral-950 dark:hover:bg-neutral-800 border border-dashed border-gray-300 dark:border-neutral-700 rounded-xl text-gray-600 dark:text-neutral-300 font-medium transition-colors flex items-center justify-center gap-2 text-sm">
-                <Plus className="w-4 h-4" /> Novo Bloco
-              </button>
-            ) : (
-              <div className="space-y-3 animate-in fade-in slide-in-from-top-4 duration-300">
-                <div className="grid grid-cols-2 gap-2">
-                  {BLOCK_TYPES.map(bt => {
-                    const BtIcon = bt.icon;
-                    return (
-                      <button key={bt.type} onClick={() => handleAddBlock(bt.type, bt.label)} disabled={isSubmitting}
-                        className={`flex items-start gap-2.5 p-3 rounded-xl border transition-all text-left disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] ${BG_MAP[bt.color]}`}>
-                        <BtIcon className="w-5 h-5 mt-0.5 shrink-0" />
-                        <div className="min-w-0">
-                          <span className="block text-xs font-bold leading-tight">{bt.label}</span>
-                          <span className="block text-[10px] opacity-70 leading-tight mt-0.5">{bt.description}</span>
-                        </div>
-                      </button>
-                    );
-                  })}
+              {!isAddingField ? (
+                <button onClick={() => setIsAddingField(true)}
+                  className="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 dark:bg-neutral-950 dark:hover:bg-neutral-800 border border-dashed border-gray-300 dark:border-neutral-700 rounded-xl text-gray-600 dark:text-neutral-300 font-medium transition-colors flex items-center justify-center gap-2 text-sm">
+                  <Plus className="w-4 h-4" /> Novo Bloco
+                </button>
+              ) : (
+                <div className="space-y-3 animate-in fade-in slide-in-from-top-4 duration-300">
+                  <div className="grid grid-cols-2 gap-2">
+                    {BLOCK_TYPES.map(bt => {
+                      const BtIcon = bt.icon;
+                      return (
+                        <button key={bt.type} onClick={() => handleAddBlock(bt.type, bt.label)} disabled={isSubmitting}
+                          className={`flex items-start gap-2.5 p-3 rounded-xl border transition-all text-left disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] ${BG_MAP[bt.color]}`}>
+                          <BtIcon className="w-5 h-5 mt-0.5 shrink-0" />
+                          <div className="min-w-0">
+                            <span className="block text-xs font-bold leading-tight">{bt.label}</span>
+                            <span className="block text-[10px] opacity-70 leading-tight mt-0.5">{bt.description}</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button onClick={() => setIsAddingField(false)}
+                    className="w-full text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 py-2 transition-colors">Cancelar</button>
                 </div>
-
-                <button onClick={() => setIsAddingField(false)}
-                  className="w-full text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 py-2 transition-colors">Cancelar</button>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
           {/* SETTINGS */}
           <Panel title="Configurações da Seção" icon={Settings} iconColor="text-gray-400" defaultOpen>
@@ -500,8 +507,9 @@ export function PageBuilder({
                 <input
                   type="text"
                   value={formData.title || ''}
+                  readOnly={!canEdit}
                   onChange={(e) => handleChange('title', e.target.value)}
-                  onBlur={() => handleSavePage('draft')}
+                  onBlur={() => canEdit && handleSavePage('draft')}
                   className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors"
                 />
               </div>
@@ -510,18 +518,20 @@ export function PageBuilder({
                 <input
                   type="text"
                   value={formData.slug || ''}
+                  readOnly={!canEdit}
                   onChange={(e) => {
                     const formatted = e.target.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\-]+/g, '-');
                     handleChange('slug', formatted);
                   }}
-                  onBlur={() => handleSavePage('draft')}
+                  onBlur={() => canEdit && handleSavePage('draft')}
                   className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors font-mono"
                 />
               </div>
               <div className="pt-4 border-t border-gray-100 dark:border-neutral-800 space-y-3">
                 <div className="flex items-center justify-between">
                   <div><span className="block text-sm font-medium text-gray-900 dark:text-white">Seção Ativa</span><span className="block text-xs text-gray-500 dark:text-gray-400">Exibir seção no site</span></div>
-                  <Toggle checked={formData.status === 'published'} onChange={v => {
+                  <Toggle checked={formData.status === 'published'} disabled={!canEdit} onChange={v => {
+                    if (!canEdit) return;
                     handleChange('status', v ? 'published' : 'draft');
                   }} />
                 </div>
@@ -529,34 +539,32 @@ export function PageBuilder({
             </div>
           </Panel>
 
-
-
           {/* CSS BASIC */}
           <Panel title="CSS Básico" icon={Paintbrush} iconColor="text-cyan-500">
             <div className="space-y-3">
               <div><label className="text-xs font-medium text-gray-600 dark:text-gray-400">Fonte</label>
-                <select value={css.font} onChange={e => setCss({ ...css, font: e.target.value })}
+                <select value={css.font} disabled={!canEdit} onChange={e => setCss({ ...css, font: e.target.value })}
                   className="w-full mt-1 px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg text-sm text-gray-900 dark:text-white">
                   {GOOGLE_FONTS.map(f => <option key={f} value={f}>{f}</option>)}
                 </select></div>
               <div className="grid grid-cols-2 gap-3">
                 <div><label className="text-xs font-medium text-gray-600 dark:text-gray-400">Cor do Texto</label>
                   <div className="flex items-center gap-2 mt-1">
-                    <input type="color" value={css.textColor} onChange={e => setCss({ ...css, textColor: e.target.value })} className="w-8 h-8 rounded-md border border-gray-200 dark:border-neutral-800 cursor-pointer" />
-                    <input type="text" value={css.textColor} onChange={e => setCss({ ...css, textColor: e.target.value })} className="flex-1 px-2 py-1.5 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-md text-xs font-mono text-gray-900 dark:text-white" />
+                    <input type="color" value={css.textColor} disabled={!canEdit} onChange={e => setCss({ ...css, textColor: e.target.value })} className="w-8 h-8 rounded-md border border-gray-200 dark:border-neutral-800 cursor-pointer" />
+                    <input type="text" value={css.textColor} readOnly={!canEdit} onChange={e => setCss({ ...css, textColor: e.target.value })} className="flex-1 px-2 py-1.5 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-md text-xs font-mono text-gray-900 dark:text-white" />
                   </div></div>
                 <div><label className="text-xs font-medium text-gray-600 dark:text-gray-400">Cor de Fundo</label>
                   <div className="flex items-center gap-2 mt-1">
-                    <input type="color" value={css.bgColor} onChange={e => setCss({ ...css, bgColor: e.target.value })} className="w-8 h-8 rounded-md border border-gray-200 dark:border-neutral-800 cursor-pointer" />
-                    <input type="text" value={css.bgColor} onChange={e => setCss({ ...css, bgColor: e.target.value })} className="flex-1 px-2 py-1.5 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-md text-xs font-mono text-gray-900 dark:text-white" />
+                    <input type="color" value={css.bgColor} disabled={!canEdit} onChange={e => setCss({ ...css, bgColor: e.target.value })} className="w-8 h-8 rounded-md border border-gray-200 dark:border-neutral-800 cursor-pointer" />
+                    <input type="text" value={css.bgColor} readOnly={!canEdit} onChange={e => setCss({ ...css, bgColor: e.target.value })} className="flex-1 px-2 py-1.5 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-md text-xs font-mono text-gray-900 dark:text-white" />
                   </div></div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div><label className="text-xs font-medium text-gray-600 dark:text-gray-400">Margin</label>
-                  <input type="text" value={css.margin} onChange={e => setCss({ ...css, margin: e.target.value })} placeholder="0"
+                  <input type="text" value={css.margin} readOnly={!canEdit} onChange={e => setCss({ ...css, margin: e.target.value })} placeholder="0"
                     className="w-full mt-1 px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg text-sm font-mono text-gray-900 dark:text-white" /></div>
                 <div><label className="text-xs font-medium text-gray-600 dark:text-gray-400">Padding</label>
-                  <input type="text" value={css.padding} onChange={e => setCss({ ...css, padding: e.target.value })} placeholder="20px"
+                  <input type="text" value={css.padding} readOnly={!canEdit} onChange={e => setCss({ ...css, padding: e.target.value })} placeholder="20px"
                     className="w-full mt-1 px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg text-sm font-mono text-gray-900 dark:text-white" /></div>
               </div>
             </div>
@@ -564,7 +572,7 @@ export function PageBuilder({
 
           {/* CUSTOM CSS */}
           <Panel title="CSS Personalizado" icon={FileCode} iconColor="text-violet-500">
-            <textarea value={customCss} onChange={e => setCustomCss(e.target.value)} rows={8}
+            <textarea value={customCss} readOnly={!canEdit} onChange={e => setCustomCss(e.target.value)} rows={8}
               placeholder={`.minha-pagina {\n  background: linear-gradient(...);\n  border-radius: 12px;\n}`}
               className="w-full px-4 py-3 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 transition-all text-gray-900 dark:text-white font-mono text-xs resize-y" />
             <p className="text-[10px] text-gray-400 dark:text-neutral-500">O CSS será incluído no JSON da API para uso no frontend.</p>

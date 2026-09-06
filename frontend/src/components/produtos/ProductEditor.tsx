@@ -200,6 +200,7 @@ export function ProductEditor({
         field={field} 
         value={formData[field.name]} 
         onChange={(val) => handleChange(field.name, val)} 
+        readOnly={!canEdit}
       />
     );
   };
@@ -243,7 +244,7 @@ export function ProductEditor({
         )}
       </div>
 
-      <div className={`grid grid-cols-1 lg:grid-cols-3 gap-8 items-start ${!canEdit ? 'pointer-events-none opacity-90 select-none' : ''}`}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 
         {/* ─── EDITOR (left 2/3) ─────────────────────────────────────────── */}
         <div className="lg:col-span-2 space-y-6">
@@ -252,22 +253,28 @@ export function ProductEditor({
           <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800 space-y-4">
             <div>
               <label className="text-sm font-semibold text-gray-900 dark:text-white block mb-2">Nome do Produto *</label>
-              <input type="text" value={title} onChange={e => {
-                setTitle(e.target.value);
-                if (!isSlugManuallyEdited) {
-                  setSlug(slugify(e.target.value));
-                }
-              }}
+              <input type="text" value={title} 
+                readOnly={!canEdit}
+                onChange={e => {
+                  if (!canEdit) return;
+                  setTitle(e.target.value);
+                  if (!isSlugManuallyEdited) {
+                    setSlug(slugify(e.target.value));
+                  }
+                }}
                 placeholder="Ex: Pacote Consultoria, Camiseta Básica..."
                 className={`${inputCls} text-lg font-medium`} />
             </div>
             
             <div>
               <label className="text-sm font-semibold text-gray-900 dark:text-white block mb-2">Slug (URL Amigável)</label>
-              <input type="text" value={slug} onChange={e => {
-                setSlug(e.target.value);
-                setIsSlugManuallyEdited(true);
-              }}
+              <input type="text" value={slug} 
+                readOnly={!canEdit}
+                onChange={e => {
+                  if (!canEdit) return;
+                  setSlug(e.target.value);
+                  setIsSlugManuallyEdited(true);
+                }}
                 placeholder="ex: camiseta-basica"
                 className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 transition-all text-gray-500 dark:text-gray-400 font-mono text-sm" />
             </div>

@@ -79,7 +79,7 @@ export function ContentForm({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className={`bg-white/60 dark:bg-neutral-900/50 backdrop-blur-md dark:border dark:border-neutral-800 rounded-3xl p-6 sm:p-8 dark:shadow-sm space-y-6 ${!canEdit ? 'pointer-events-none opacity-90 select-none' : ''}`}>
+          <div className="bg-white/60 dark:bg-neutral-900/50 backdrop-blur-md dark:border dark:border-neutral-800 rounded-3xl p-6 sm:p-8 dark:shadow-sm space-y-6">
             
             {(collection.fields || []).map((field: any) => (
               <div key={field.id} className="space-y-2">

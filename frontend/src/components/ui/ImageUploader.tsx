@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { UploadCloud, Loader2, Library, Trash2, Image as ImageIcon } from 'lucide-react';
 import { MediaLibraryModal } from '@/components/media/MediaLibraryModal';
+import { usePermissions } from '@/core/hooks/usePermissions';
 
 interface ImageUploaderProps {
   value: string;
@@ -13,11 +14,13 @@ interface ImageUploaderProps {
 }
 
 export function ImageUploader({ value, onChange, placeholder = "URL da imagem", className = "", layout = 'row' }: ImageUploaderProps) {
+  const { canManageContent } = usePermissions();
   const [isUploading, setIsUploading] = useState(false);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = async (file: File) => {
+    if (!canManageContent) return;
     setIsUploading(true);
     const formData = new FormData();
     formData.append('file', file);
@@ -49,14 +52,16 @@ export function ImageUploader({ value, onChange, placeholder = "URL da imagem", 
       {value ? (
         <div className="w-full h-48 rounded-xl border border-gray-200 dark:border-neutral-800 overflow-hidden bg-gray-50 dark:bg-neutral-950 relative group">
           <img src={value} alt="Preview" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = 'none')} />
-          <button
-            type="button"
-            onClick={() => onChange('')}
-            className="absolute top-2 right-2 p-2 bg-white/80 dark:bg-black/50 text-red-600 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white dark:hover:bg-black"
-            title="Remover imagem"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+          {canManageContent && (
+            <button
+              type="button"
+              onClick={() => onChange('')}
+              className="absolute top-2 right-2 p-2 bg-white/80 dark:bg-black/50 text-red-600 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white dark:hover:bg-black"
+              title="Remover imagem"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
         </div>
       ) : (
         <div className="w-full min-h-[128px] py-6 rounded-xl border border-dashed border-gray-300 dark:border-neutral-700 bg-gray-50/50 dark:bg-neutral-950/50 flex flex-col items-center justify-center transition-colors hover:bg-gray-50 dark:hover:bg-neutral-900/50 px-4 text-gray-400">
@@ -68,18 +73,22 @@ export function ImageUploader({ value, onChange, placeholder = "URL da imagem", 
               className="flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors shadow-sm"
             >
               <Library className="w-4 h-4 text-blue-500" />
-              Adicionar da biblioteca
+              {canManageContent ? 'Adicionar da biblioteca' : 'Abrir biblioteca de mídia'}
             </button>
-            <span className="text-gray-400 text-sm font-medium">ou</span>
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
-            >
-              {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
-              Enviar imagem
-            </button>
+            {canManageContent && (
+              <>
+                <span className="text-gray-400 text-sm font-medium">ou</span>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
+                >
+                  {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
+                  Enviar imagem
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}

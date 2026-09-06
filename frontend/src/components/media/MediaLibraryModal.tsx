@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { getMediaFiles, updateMediaFile, deleteMediaFile } from '@/core/media/actions';
 import type { MediaFile } from '@/core/media/actions';
 import { X, UploadCloud, Search, File, Trash, Loader2, Image as ImageIcon, CheckSquare, Square, Trash2, Copy, Check } from 'lucide-react';
+import { usePermissions } from '@/core/hooks/usePermissions';
 
 // Helper to format sizes
 function formatSize(bytes: number) {
@@ -32,6 +33,7 @@ export function MediaLibraryModal({
   isSelectionMode = false,
   isModal = true 
 }: MediaLibraryModalProps) {
+  const { canManageContent } = usePermissions();
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [selectedFile, setSelectedFile] = useState<MediaFile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -73,6 +75,7 @@ export function MediaLibraryModal({
   }, [selectedFile?.id]);
 
   const handleUpload = async (files: FileList) => {
+    if (!canManageContent) return;
     setIsUploading(true);
     try {
       const uploadPromises = Array.from(files).map(async (file) => {
@@ -94,7 +97,7 @@ export function MediaLibraryModal({
   };
 
   const handleUpdate = async () => {
-    if (!selectedFile) return;
+    if (!canManageContent || !selectedFile) return;
     await updateMediaFile(selectedFile.id, {
       alt: selectedFile.alt,
       comment: selectedFile.comment
@@ -102,12 +105,12 @@ export function MediaLibraryModal({
   };
 
   const handleDelete = () => {
-    if (!selectedFile) return;
+    if (!canManageContent || !selectedFile) return;
     setDeleteTarget('single');
   };
 
   const handleBulkDelete = () => {
-    if (selectedIds.size === 0) return;
+    if (!canManageContent || selectedIds.size === 0) return;
     setDeleteTarget('bulk');
   };
 
@@ -212,14 +215,16 @@ export function MediaLibraryModal({
           {isMultiSelectMode ? (
             // Multi-select toolbar
             <>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
-              >
-                {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
-                Enviar
-              </button>
+              {canManageContent && (
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                >
+                  {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
+                  Enviar
+                </button>
+              )}
               
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300 ml-2">
                 {selectedIds.size} selecionado(s)
@@ -227,14 +232,16 @@ export function MediaLibraryModal({
               <button onClick={selectAll} className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
                 Selecionar todos
               </button>
-              <button
-                onClick={handleBulkDelete}
-                disabled={selectedIds.size === 0 || isDeletingBulk}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-lg font-medium transition-colors"
-              >
-                {isDeletingBulk ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                Excluir Selecionados
-              </button>
+              {canManageContent && (
+                <button
+                  onClick={handleBulkDelete}
+                  disabled={selectedIds.size === 0 || isDeletingBulk}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-lg font-medium transition-colors"
+                >
+                  {isDeletingBulk ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  Excluir Selecionados
+                </button>
+              )}
               <button
                 onClick={exitMultiSelect}
                 className="flex items-center gap-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-neutral-700 dark:hover:bg-neutral-600 text-gray-700 dark:text-gray-200 rounded-lg font-medium transition-colors ml-auto"
@@ -256,14 +263,16 @@ export function MediaLibraryModal({
             // Normal toolbar
             <>
               <div className="flex gap-2">
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploading}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
-                >
-                  {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
-                  Enviar Arquivo
-                </button>
+                {canManageContent && (
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                  >
+                    {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
+                    Enviar Arquivo
+                  </button>
+                )}
                 {(!isSelectionMode || !!onSelectMultiple) && (
                   <button
                     onClick={() => { setIsMultiSelectMode(true); setSelectedFile(null); }}
@@ -319,16 +328,20 @@ export function MediaLibraryModal({
                 Nenhuma mídia encontrada
               </h3>
               <p className="text-gray-500 dark:text-gray-400 max-w-md mb-8">
-                Você ainda não enviou nenhum arquivo. Faça o upload da sua primeira imagem ou documento para popular a biblioteca.
+                {canManageContent 
+                  ? 'Você ainda não enviou nenhum arquivo. Faça o upload da sua primeira imagem ou documento para popular a biblioteca.'
+                  : 'Nenhum arquivo enviado até o momento.'}
               </p>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-                className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white font-medium rounded-xl transition-all shadow-sm shadow-blue-500/20 hover:shadow-blue-500/40 disabled:opacity-50"
-              >
-                {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <UploadCloud className="w-5 h-5" />}
-                Fazer Upload Agora
-              </button>
+              {canManageContent && (
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white font-medium rounded-xl transition-all shadow-sm shadow-blue-500/20 hover:shadow-blue-500/40 disabled:opacity-50"
+                >
+                  {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <UploadCloud className="w-5 h-5" />}
+                  Fazer Upload Agora
+                </button>
+              )}
             </div>
           ) : (
             <div className={isModal ? '' : `${glassPanel} p-6`}>
@@ -441,8 +454,9 @@ export function MediaLibraryModal({
                   <input
                     type="text"
                     value={selectedFile.alt}
-                    onChange={(e) => setSelectedFile({...selectedFile, alt: e.target.value})}
+                    onChange={(e) => canManageContent && setSelectedFile({...selectedFile, alt: e.target.value})}
                     onBlur={handleUpdate}
+                    readOnly={!canManageContent}
                     className={`w-full px-4 py-2.5 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-shadow ${inputClass(isModal)}`}
                     placeholder="Descreva a imagem..."
                   />
@@ -451,8 +465,9 @@ export function MediaLibraryModal({
                   <label className="block text-xs font-semibold text-gray-900 dark:text-gray-200 mb-1.5">Comentário / Legenda</label>
                   <textarea
                     value={selectedFile.comment}
-                    onChange={(e) => setSelectedFile({...selectedFile, comment: e.target.value})}
+                    onChange={(e) => canManageContent && setSelectedFile({...selectedFile, comment: e.target.value})}
                     onBlur={handleUpdate}
+                    readOnly={!canManageContent}
                     rows={3}
                     className={`w-full px-4 py-2.5 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-shadow resize-none ${inputClass(isModal)}`}
                     placeholder="Adicione uma legenda..."
@@ -460,13 +475,15 @@ export function MediaLibraryModal({
                 </div>
               </div>
 
-              <button
-                onClick={handleDelete}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-900/20 rounded-xl transition-colors"
-              >
-                <Trash className="w-4 h-4" />
-                Excluir Permanentemente
-              </button>
+              {canManageContent && (
+                <button
+                  onClick={handleDelete}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                >
+                  <Trash className="w-4 h-4" />
+                  Excluir Permanentemente
+                </button>
+              )}
             </div>
 
             {/* Insert button for selection mode */}

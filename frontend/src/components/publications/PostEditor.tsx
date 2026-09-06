@@ -156,6 +156,7 @@ export function PostEditor({
         field={field} 
         value={formData[field.name]} 
         onChange={(val) => handleChange(field.name, val)} 
+        readOnly={!canEdit}
       />
     );
   };
@@ -173,7 +174,7 @@ export function PostEditor({
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                 {isNew ? 'Nova Publicação' : (canEdit ? 'Editar Publicação' : 'Visualizar Publicação')}
               </h1>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/50">
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50">
                 {collection.name}
               </span>
               {!canEdit && (
@@ -215,7 +216,7 @@ export function PostEditor({
         )}
       </div>
 
-      <div className={`grid grid-cols-1 lg:grid-cols-3 gap-8 items-start ${!canEdit ? 'pointer-events-none opacity-90 select-none' : ''}`}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         
         {/* ─── EDITOR (left 2/3) ───────────────────────────────────────────── */}
         <div className="lg:col-span-2 space-y-6">
@@ -223,13 +224,16 @@ export function PostEditor({
           <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800 space-y-4">
              <div>
                <label className="text-sm font-semibold text-gray-900 dark:text-white block mb-2">Título da Publicação *</label>
-               <input type="text" value={title} onChange={e => {
-                 const newTitle = e.target.value;
-                 setTitle(newTitle);
-                 if (!isSlugManuallyEdited || !slug.trim()) {
-                   setSlug(slugify(newTitle));
-                 }
-               }}
+               <input type="text" value={title} 
+                 readOnly={!canEdit}
+                 onChange={e => {
+                   if (!canEdit) return;
+                   const newTitle = e.target.value;
+                   setTitle(newTitle);
+                   if (!isSlugManuallyEdited || !slug.trim()) {
+                     setSlug(slugify(newTitle));
+                   }
+                 }}
                 placeholder="Digite o título principal..." 
                 className="w-full px-4 py-3 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 transition-all text-gray-900 dark:text-white text-lg font-medium" />
              </div>
@@ -238,23 +242,27 @@ export function PostEditor({
                  <label className="text-sm font-semibold text-gray-900 dark:text-white block">Slug (URL Amigável)</label>
                  <span className="text-[10px] text-gray-400 font-medium">Formatado automaticamente ao sair do campo</span>
                </div>
-               <input type="text" value={slug} onChange={e => {
-                 const val = e.target.value;
-                 setSlug(val);
-                 if (val.trim() === '') {
-                   setIsSlugManuallyEdited(false);
-                 } else {
-                   setIsSlugManuallyEdited(true);
-                 }
-               }}
-               onBlur={() => {
-                 if (!slug.trim()) {
-                   setSlug(slugify(title));
-                   setIsSlugManuallyEdited(false);
-                 } else {
-                   setSlug(slugify(slug));
-                 }
-               }}
+               <input type="text" value={slug} 
+                 readOnly={!canEdit}
+                 onChange={e => {
+                   if (!canEdit) return;
+                   const val = e.target.value;
+                   setSlug(val);
+                   if (val.trim() === '') {
+                     setIsSlugManuallyEdited(false);
+                   } else {
+                     setIsSlugManuallyEdited(true);
+                   }
+                 }}
+                 onBlur={() => {
+                   if (!canEdit) return;
+                   if (!slug.trim()) {
+                     setSlug(slugify(title));
+                     setIsSlugManuallyEdited(false);
+                   } else {
+                     setSlug(slugify(slug));
+                   }
+                 }}
                 placeholder="ex: meu-primeiro-post" 
                 className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 transition-all text-gray-500 dark:text-gray-400 font-mono text-sm" />
              </div>
@@ -286,11 +294,11 @@ export function PostEditor({
                 <div>
                   <label className="text-xs font-semibold text-gray-500 dark:text-neutral-400 uppercase tracking-wider mb-2 block">Status</label>
                   <div className="grid grid-cols-2 gap-2">
-                    <button onClick={() => setStatus('draft')} 
+                    <button onClick={() => canEdit && setStatus('draft')} disabled={!canEdit}
                       className={`px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${status === 'draft' ? 'bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-500/10 dark:border-amber-500/30 dark:text-amber-400' : 'bg-gray-50 border-transparent text-gray-600 hover:bg-gray-100 dark:bg-neutral-800 dark:text-gray-400 dark:hover:bg-neutral-700'}`}>
                       Rascunho
                     </button>
-                    <button onClick={() => setStatus('published')}
+                    <button onClick={() => canEdit && setStatus('published')} disabled={!canEdit}
                       className={`px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${status === 'published' ? 'bg-green-50 border-green-200 text-green-700 dark:bg-emerald-500/10 dark:border-emerald-500/30 dark:text-emerald-400' : 'bg-gray-50 border-transparent text-gray-600 hover:bg-gray-100 dark:bg-neutral-800 dark:text-gray-400 dark:hover:bg-neutral-700'}`}>
                       Publicado
                     </button>
@@ -298,7 +306,7 @@ export function PostEditor({
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 dark:text-neutral-400 uppercase tracking-wider mb-2 block">Data de Publicação</label>
-                  <input type="date" value={publishDate} onChange={e => setPublishDate(e.target.value)}
+                  <input type="date" value={publishDate} readOnly={!canEdit} onChange={e => canEdit && setPublishDate(e.target.value)}
                     className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 text-gray-900 dark:text-white text-sm" />
                 </div>
               </div>
@@ -309,7 +317,7 @@ export function PostEditor({
             <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><Hash className="w-4 h-4 text-blue-500" /> Prioridade / Ordem</h3>
               <div>
-                <input type="number" value={priority} onChange={e => setPriority(e.target.value === '' ? '' : Number(e.target.value))} placeholder="Ex: 1, 2, 3..."
+                <input type="number" value={priority} readOnly={!canEdit} onChange={e => canEdit && setPriority(e.target.value === '' ? '' : Number(e.target.value))} placeholder="Ex: 1, 2, 3..."
                   className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 text-gray-900 dark:text-white text-sm" />
               </div>
             </div>
@@ -319,7 +327,7 @@ export function PostEditor({
             <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><Type className="w-4 h-4 text-blue-500" /> Autor</h3>
               <div>
-                <input type="text" value={author} onChange={e => setAuthor(e.target.value)} placeholder="Nome do autor"
+                <input type="text" value={author} readOnly={!canEdit} onChange={e => canEdit && setAuthor(e.target.value)} placeholder="Nome do autor"
                   className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 text-gray-900 dark:text-white text-sm" />
               </div>
             </div>
@@ -338,7 +346,8 @@ export function PostEditor({
               <div>
                 <textarea 
                   value={summary} 
-                  onChange={e => setSummary(e.target.value)} 
+                  readOnly={!canEdit}
+                  onChange={e => canEdit && setSummary(e.target.value)} 
                   rows={3} 
                   placeholder="Escreva um breve resumo da publicação..."
                   className={`w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border rounded-lg focus:outline-none text-gray-900 dark:text-white text-sm resize-none transition-colors ${
