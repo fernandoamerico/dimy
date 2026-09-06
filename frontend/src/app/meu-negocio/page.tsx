@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Briefcase, Save, Loader2, CheckCircle2, Building2, Phone, Mail, Globe, AtSign, Server, Download, Plus, Trash2, Link as LinkIcon, Camera, Users, Video, MessageCircle, ShieldAlert } from 'lucide-react';
