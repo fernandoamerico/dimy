@@ -133,7 +133,7 @@ export default function EquipePage() {
           ) : (
             <div className="divide-y divide-gray-100 dark:divide-neutral-800">
               {users.map(user => {
-                const roleInfo = roleMap[user.role] || roleMap['auditor'];
+                const roleInfo = roleMap[user.role] || roleMap['auditor'] || { label: 'Usuário', color: 'bg-gray-100 text-gray-800' };
                 const isSystemAdmin = user.role === 'admin';
                 const canEditThisUser = canManageUsers && (currentUserRole === 'admin' || !isSystemAdmin);
 

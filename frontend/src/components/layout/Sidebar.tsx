@@ -57,7 +57,7 @@ export function Sidebar({
       ]);
       
       const formattedNavs = navs.map((n: any) => ({ ...n, id: n.href, type: 'nav' })).filter((n: any) => {
-        if (n.href === '/aplicativos' && !canManageExtensions) return false;
+        if ((n.href === '/aplicativos' || n.href === '/loja') && !canManageExtensions) return false;
         if (n.href === '/configuracoes' && !canManageSystem) return false;
         if (n.href === '/schema' && !canManageSchema) return false;
         if (n.href === '/equipe' && !canManageUsers) return false;

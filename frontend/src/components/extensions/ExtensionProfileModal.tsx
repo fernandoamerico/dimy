@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { X, Star, Download, ChevronRight, ShieldAlert, User, Clock, CheckCircle2, MessageSquare, Loader2, Power, Trash2, Image as ImageIcon, Settings } from 'lucide-react';
-import { StoreExtension } from '@/core/extensions/storeMock';
+import type { StoreExtension } from '@/core/extensions/storeMock';
 import { getExtensionsStatus, installExtension, toggleExtension, uninstallExtension } from '@/core/extensions/actions';
 import { ImageUploader } from '@/components/ui/ImageUploader';
+import { usePermissions } from '@/core/hooks/usePermissions';
 import { toast } from 'sonner';
 
 interface ExtensionProfileModalProps {
@@ -19,6 +20,7 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
   const [activeTab, setActiveTab] = useState<'details' | 'reviews' | 'configure'>('details');
   const [isWorking, setIsWorking] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const { canManageExtensions } = usePermissions();
   
   // For uninstall modal inside profile
   const [showUninstallConfirm, setShowUninstallConfirm] = useState(false);
@@ -50,6 +52,10 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
   const isFakeStoreExtension = extension.id.startsWith('store_');
 
   const handleInstall = async () => {
+    if (!canManageExtensions) {
+      toast.error('Permissão negada. Apenas Administradores e Gerentes de TI podem instalar aplicativos.');
+      return;
+    }
     if (isFakeStoreExtension) {
       toast.info('Este é um aplicativo fictício de demonstração da Loja. Na versão final, ele seria instalado!');
       return;
@@ -66,6 +72,10 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
   };
 
   const handleToggle = async () => {
+    if (!canManageExtensions) {
+      toast.error('Permissão negada.');
+      return;
+    }
     if (!localStatus) return;
     if (localStatus.isEnabled && localStatus.isEssential) {
       toast.error('Este aplicativo é essencial e não pode ser desativado.');
@@ -84,6 +94,10 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
 
   const handleUninstall = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canManageExtensions) {
+      toast.error('Permissão negada.');
+      return;
+    }
     if (!adminPassword) return;
 
     setUninstallError('');
@@ -189,13 +203,15 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
                             <Settings className="w-4 h-4" /> Configurar
                           </button>
                         )}
-                        <button
-                          onClick={() => setShowUninstallConfirm(true)}
-                          disabled={isWorking}
-                          className="px-4 py-2.5 rounded-xl text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 transition-colors"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
+                        {canManageExtensions && (
+                          <button
+                            onClick={() => setShowUninstallConfirm(true)}
+                            disabled={isWorking}
+                            className="px-4 py-2.5 rounded-xl text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 transition-colors"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        )}
                         {extension.id === 'supabase_config' && (
                           <Link
                             href="/supabase"
@@ -213,7 +229,7 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
                     <CheckCircle2 className="w-4 h-4" />
                     Já instalado
                   </span>
-                ) : (
+                ) : canManageExtensions ? (
                   <button
                     onClick={handleInstall}
                     disabled={isWorking}
@@ -221,6 +237,15 @@ export function ExtensionProfileModal({ extension, localStatus, onClose, onRefre
                   >
                     {isWorking ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                     Baixar
+                  </button>
+                ) : (
+                  <button
+                    disabled={true}
+                    title="Instalação restrita a Administradores e Gerentes de TI"
+                    className="px-6 py-2.5 bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-neutral-500 rounded-xl font-medium text-sm cursor-not-allowed flex items-center gap-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    Instalação restrita
                   </button>
                 )}
               </div>

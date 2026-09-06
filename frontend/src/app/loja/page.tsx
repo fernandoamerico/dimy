@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Store, Search, Download, Star, Filter, Sparkles } from 'lucide-react';
-import { STORE_MOCK_DATA, StoreExtension } from '@/core/extensions/storeMock';
+import { Store, Search, Download, Star, Filter, Sparkles, ShieldAlert } from 'lucide-react';
+import { STORE_MOCK_DATA, type StoreExtension } from '@/core/extensions/storeMock';
 import { getExtensionsStatus } from '@/core/extensions/actions';
 import { ExtensionProfileModal } from '@/components/extensions/ExtensionProfileModal';
+import { usePermissions } from '@/core/hooks/usePermissions';
 import Link from 'next/link';
 
 type SortOption = 'recommended' | 'downloads' | 'rating' | 'newest';
@@ -16,6 +17,7 @@ export default function StorePage() {
   const [filterPrice, setFilterPrice] = useState<'all' | 'free' | 'paid'>('all');
   const [sortBy, setSortBy] = useState<SortOption>('recommended');
   const [selectedExtension, setSelectedExtension] = useState<StoreExtension | null>(null);
+  const { canManageExtensions } = usePermissions();
 
   const loadLocalStatuses = async () => {
     const status = await getExtensionsStatus();
@@ -57,6 +59,13 @@ export default function StorePage() {
     <DashboardLayout>
       <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 pb-10">
         
+        {!canManageExtensions && (
+          <div className="p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-800 dark:text-amber-300 rounded-2xl text-sm flex items-center gap-3">
+            <ShieldAlert className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400" />
+            <span>Apenas Gerentes de TI e Administradores possuem permissão para instalar novos aplicativos.</span>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">

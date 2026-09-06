@@ -4,7 +4,7 @@ import { Database, Plus, Settings2, Trash2 } from 'lucide-react';
 // import { revalidatePath } from 'next/cache';
 
 export default async function SchemaBuilderPage() {
-  const collections = [];
+  const collections: any[] = [];
 
   const handleDelete = async (formData: FormData) => {
     

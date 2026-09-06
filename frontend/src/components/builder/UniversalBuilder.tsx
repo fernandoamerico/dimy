@@ -633,7 +633,7 @@ export function UniversalBuilder({
             </div>
           ) : (
             fields.map((field, index) => {
-              const FieldIcon = ICON_MAP[field.type] || Type;
+              const FieldIcon = ICON_MAP[field.type] || LayoutTemplate;
               return (
                 <div key={index} className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md border border-slate-200/80 dark:border-neutral-800 rounded-2xl p-5 shadow-sm transition-all hover:border-blue-300 dark:hover:border-emerald-500/50">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2">

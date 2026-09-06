@@ -6,7 +6,8 @@ import { Blocks, CheckCircle2, Download, Power, ShieldAlert, FileText, Package, 
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import Link from 'next/link';
 import { ExtensionProfileModal } from '@/components/extensions/ExtensionProfileModal';
-import { STORE_MOCK_DATA, StoreExtension } from '@/core/extensions/storeMock';
+import { STORE_MOCK_DATA, type StoreExtension } from '@/core/extensions/storeMock';
+import { usePermissions } from '@/core/hooks/usePermissions';
 import { toast } from 'sonner';
 
 const IconsMap: Record<string, any> = {
@@ -23,6 +24,7 @@ export default function AplicativosPage() {
   const [extensions, setExtensions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const { canManageExtensions } = usePermissions();
   
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -49,6 +51,10 @@ export default function AplicativosPage() {
   }, []);
 
   const handleInstall = async (id: string) => {
+    if (!canManageExtensions) {
+      toast.error('Permissão negada. Apenas Administradores e Gerentes de TI podem instalar aplicativos.');
+      return;
+    }
     setActionLoading(id);
     const res = await installExtension(id);
     await new Promise(resolve => setTimeout(resolve, 800)); // Delay artificial para feedback visual
@@ -62,6 +68,10 @@ export default function AplicativosPage() {
   };
 
   const handleToggle = async (id: string, currentState: boolean, isEssential: boolean) => {
+    if (!canManageExtensions) {
+      toast.error('Permissão negada. Apenas Administradores e Gerentes de TI podem ativar/desativar aplicativos.');
+      return;
+    }
     if (currentState && isEssential) {
       toast.info('Este aplicativo é essencial e não pode ser desativado.');
       return;
@@ -81,6 +91,10 @@ export default function AplicativosPage() {
 
   const handleUninstallSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canManageExtensions) {
+      toast.error('Permissão negada.');
+      return;
+    }
     if (!extensionToUninstall || !adminPassword || !confirmDelete) return;
 
     setUninstallError('');
@@ -120,6 +134,7 @@ export default function AplicativosPage() {
           price: ext.price || 'free',
           screenshots: [],
           reviews: [],
+          isRecommended: false,
           createdAt: new Date().toISOString()
         });
       }
@@ -182,47 +197,55 @@ export default function AplicativosPage() {
         
         <div className="mt-auto pt-4 border-t border-gray-100 dark:border-neutral-800 flex items-center justify-between" onClick={(e) => e.stopPropagation()}>
           {!ext.isInstalled ? (
-            <button
-              onClick={() => handleInstall(ext.id)}
-              disabled={isWorking}
-              className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              <Download className="w-4 h-4" /> 
-              {isWorking ? 'Baixando...' : 'Baixar'}
-            </button>
+            canManageExtensions ? (
+              <button
+                onClick={() => handleInstall(ext.id)}
+                disabled={isWorking}
+                className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <Download className="w-4 h-4" /> 
+                {isWorking ? 'Baixando...' : 'Baixar'}
+              </button>
+            ) : (
+              <span className="text-xs text-gray-400 dark:text-neutral-500 italic">
+                Instalação restrita a Administradores/TI
+              </span>
+            )
           ) : (
             <div className="flex items-center justify-between w-full">
               <span className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
                 <CheckCircle2 className="w-4 h-4" /> Instalado
               </span>
               
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleToggle(ext.id, ext.isEnabled, ext.isEssential)}
-                  disabled={isWorking || ext.isEssential}
-                  className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium ${
-                    ext.isEnabled 
-                      ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-500/20' 
-                      : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20'
-                  } ${ext.isEssential ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  title={ext.isEnabled ? 'Desativar' : 'Ativar'}
-                >
-                  <Power className="w-4 h-4" />
-                  {ext.isEnabled ? '' : 'Ativar'}
-                </button>
-                
-                <button
-                  onClick={() => {
-                    setExtensionToUninstall(ext);
-                    setIsUninstallModalOpen(true);
-                  }}
-                  disabled={isWorking || ext.isEssential}
-                  className={`p-2 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 ${ext.isEssential ? 'hidden' : ''}`}
-                  title="Excluir"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
+              {canManageExtensions && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleToggle(ext.id, ext.isEnabled, ext.isEssential)}
+                    disabled={isWorking || ext.isEssential}
+                    className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium ${
+                      ext.isEnabled 
+                        ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-500/20' 
+                        : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20'
+                    } ${ext.isEssential ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    title={ext.isEnabled ? 'Desativar' : 'Ativar'}
+                  >
+                    <Power className="w-4 h-4" />
+                    {ext.isEnabled ? '' : 'Ativar'}
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setExtensionToUninstall(ext);
+                      setIsUninstallModalOpen(true);
+                    }}
+                    disabled={isWorking || ext.isEssential}
+                    className={`p-2 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 ${ext.isEssential ? 'hidden' : ''}`}
+                    title="Excluir"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
