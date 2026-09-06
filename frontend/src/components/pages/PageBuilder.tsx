@@ -49,6 +49,47 @@ function Panel({ title, icon: Icon, iconColor, children, defaultOpen = true }: {
   );
 }
 
+// ─── Field ID Input Component ─────────────────────────────────────────────────
+function FieldIdInput({ field, fields, index, onUpdate }: { field: any; fields: any[]; index: number; onUpdate: (index: number, newName: string) => void }) {
+  const [localName, setLocalName] = useState(field.name);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    setLocalName(field.name);
+    setError(false);
+  }, [field.name]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9_]+/g, '_');
+    setLocalName(val);
+    const isDuplicate = fields.some((f, i) => i !== index && f.name === val);
+    setError(isDuplicate);
+  };
+
+  const handleBlur = () => {
+    const isDuplicate = fields.some((f, i) => i !== index && f.name === localName);
+    if (isDuplicate || !localName) {
+      setLocalName(field.name);
+      setError(false);
+      if (isDuplicate) toast.error(`O ID "${localName}" já está em uso por outro bloco.`);
+    } else if (localName !== field.name) {
+      onUpdate(index, localName);
+    }
+  };
+
+  return (
+    <input
+      type="text"
+      value={localName}
+      onChange={handleChange}
+      onBlur={handleBlur}
+      onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+      className={`text-[10px] bg-gray-100 dark:bg-neutral-800 px-2 py-0.5 pl-6 rounded-md font-mono w-24 sm:w-32 focus:w-40 transition-all outline-none focus:bg-white dark:focus:bg-neutral-900 border ${error ? 'border-red-500 text-red-500 focus:border-red-500' : 'border-transparent text-gray-600 dark:text-neutral-300 hover:border-gray-300 dark:hover:border-neutral-600 focus:border-violet-500'}`}
+      title="Chave do JSON (API)"
+    />
+  );
+}
+
 // ─── Main Component ─────────────────────────────────────────────────────────
 export function PageBuilder({
   collection,
@@ -373,13 +414,11 @@ export function PageBuilder({
                     <div className="flex items-center gap-1 shrink-0">
                       <div className="relative group hidden md:flex items-center">
                         <span className="text-[10px] font-bold text-gray-400 absolute left-2 pointer-events-none">ID:</span>
-                        <input
-                          type="text"
-                          value={field.name}
-                          onChange={(e) => handleUpdateFieldName(index, e.target.value)}
-                          onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
-                          className="text-[10px] bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-300 px-2 py-0.5 pl-6 rounded-md font-mono w-24 sm:w-32 focus:w-40 transition-all border border-transparent hover:border-gray-300 dark:hover:border-neutral-600 focus:border-violet-500 focus:outline-none focus:bg-white dark:focus:bg-neutral-900"
-                          title="Chave do JSON (API)"
+                        <FieldIdInput 
+                          field={field} 
+                          fields={fields} 
+                          index={index} 
+                          onUpdate={handleUpdateFieldName} 
                         />
                       </div>
                       <button onClick={() => handleDuplicateField(field)} disabled={isSubmitting}
