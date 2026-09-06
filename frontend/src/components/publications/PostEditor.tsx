@@ -435,7 +435,8 @@ export function PostEditor({
                   <input 
                     type="text" 
                     value={seo.title} 
-                    onChange={e => setSeo({ ...seo, title: e.target.value })} 
+                    readOnly={!canEdit}
+                    onChange={e => canEdit && setSeo({ ...seo, title: e.target.value })} 
                     placeholder="Ex: {title} | {site_name}"
                     className={`w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border rounded-lg text-sm focus:outline-none transition-colors ${
                       seo.title.length > 140 
@@ -443,20 +444,22 @@ export function PostEditor({
                         : 'border-gray-200 dark:border-neutral-800 focus:ring-2 focus:ring-blue-500'
                     }`} 
                   />
-                  <div className="flex flex-wrap items-center gap-1 mt-1.5">
-                    <span className="text-[10px] text-gray-400 mr-1 font-medium">Atalhos:</span>
-                    {seoVariables.map(v => (
-                      <button
-                        key={v.code}
-                        type="button"
-                        onClick={() => setSeo((prev: any) => ({ ...prev, title: (prev.title ? prev.title + ' ' : '') + v.code }))}
-                        className="text-[10px] font-mono bg-gray-100 hover:bg-blue-50 hover:text-blue-600 dark:bg-neutral-800 dark:hover:bg-emerald-500/20 dark:hover:text-emerald-400 text-gray-600 dark:text-gray-400 px-1.5 py-0.5 rounded transition-colors"
-                        title={`Inserir ${v.label}`}
-                      >
-                        + {v.code}
-                      </button>
-                    ))}
-                  </div>
+                  {canEdit && (
+                    <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                      <span className="text-[10px] text-gray-400 mr-1 font-medium">Atalhos:</span>
+                      {seoVariables.map(v => (
+                        <button
+                          key={v.code}
+                          type="button"
+                          onClick={() => setSeo((prev: any) => ({ ...prev, title: (prev.title ? prev.title + ' ' : '') + v.code }))}
+                          className="text-[10px] font-mono bg-gray-100 hover:bg-blue-50 hover:text-blue-600 dark:bg-neutral-800 dark:hover:bg-emerald-500/20 dark:hover:text-emerald-400 text-gray-600 dark:text-gray-400 px-1.5 py-0.5 rounded transition-colors"
+                          title={`Inserir ${v.label}`}
+                        >
+                          + {v.code}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -468,7 +471,8 @@ export function PostEditor({
                   </div>
                   <textarea 
                     value={seo.description} 
-                    onChange={e => setSeo({ ...seo, description: e.target.value })} 
+                    readOnly={!canEdit}
+                    onChange={e => canEdit && setSeo({ ...seo, description: e.target.value })} 
                     rows={3}
                     placeholder="Ex: Confira a publicação {title} por {author}."
                     className={`w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border rounded-lg text-sm focus:outline-none transition-colors ${
@@ -477,20 +481,22 @@ export function PostEditor({
                         : 'border-gray-200 dark:border-neutral-800 focus:ring-2 focus:ring-blue-500'
                     }`} 
                   />
-                  <div className="flex flex-wrap items-center gap-1 mt-1.5">
-                    <span className="text-[10px] text-gray-400 mr-1 font-medium">Atalhos:</span>
-                    {seoVariables.map(v => (
-                      <button
-                        key={v.code}
-                        type="button"
-                        onClick={() => setSeo((prev: any) => ({ ...prev, description: (prev.description ? prev.description + ' ' : '') + v.code }))}
-                        className="text-[10px] font-mono bg-gray-100 hover:bg-blue-50 hover:text-blue-600 dark:bg-neutral-800 dark:hover:bg-emerald-500/20 dark:hover:text-emerald-400 text-gray-600 dark:text-gray-400 px-1.5 py-0.5 rounded transition-colors"
-                        title={`Inserir ${v.label}`}
-                      >
-                        + {v.code}
-                      </button>
-                    ))}
-                  </div>
+                  {canEdit && (
+                    <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                      <span className="text-[10px] text-gray-400 mr-1 font-medium">Atalhos:</span>
+                      {seoVariables.map(v => (
+                        <button
+                          key={v.code}
+                          type="button"
+                          onClick={() => setSeo((prev: any) => ({ ...prev, description: (prev.description ? prev.description + ' ' : '') + v.code }))}
+                          className="text-[10px] font-mono bg-gray-100 hover:bg-blue-50 hover:text-blue-600 dark:bg-neutral-800 dark:hover:bg-emerald-500/20 dark:hover:text-emerald-400 text-gray-600 dark:text-gray-400 px-1.5 py-0.5 rounded transition-colors"
+                          title={`Inserir ${v.label}`}
+                        >
+                          + {v.code}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Live Resolved Preview */}

@@ -7,12 +7,14 @@ interface TagSelectorProps {
   value: string[];
   onChange: (tags: string[]) => void;
   placeholder?: string;
+  disabled?: boolean;
 }
 
-export function TagSelector({ value = [], onChange, placeholder = "Pressione Enter para adicionar" }: TagSelectorProps) {
+export function TagSelector({ value = [], onChange, placeholder = "Pressione Enter para adicionar", disabled = false }: TagSelectorProps) {
   const [inputValue, setInputValue] = useState('');
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (disabled) return;
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
       const newTag = inputValue.trim();
@@ -29,6 +31,7 @@ export function TagSelector({ value = [], onChange, placeholder = "Pressione Ent
   };
 
   const removeTag = (tagToRemove: string) => {
+    if (disabled) return;
     onChange(value.filter(tag => tag !== tagToRemove));
   };
 
@@ -40,23 +43,30 @@ export function TagSelector({ value = [], onChange, placeholder = "Pressione Ent
           className="flex items-center gap-1 px-2.5 py-1 bg-blue-100 text-blue-700 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-lg text-xs font-semibold uppercase tracking-wider"
         >
           {tag}
-          <button 
-            type="button" 
-            onClick={() => removeTag(tag)}
-            className="hover:text-blue-900 dark:hover:text-emerald-200 focus:outline-none"
-          >
-            <X className="w-3 h-3" />
-          </button>
+          {!disabled && (
+            <button 
+              type="button" 
+              onClick={() => removeTag(tag)}
+              className="hover:text-blue-900 dark:hover:text-emerald-200 focus:outline-none"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          )}
         </span>
       ))}
-      <input
-        type="text"
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder={value.length === 0 ? placeholder : "Adicionar..."}
-        className="flex-1 min-w-[120px] bg-transparent focus:outline-none px-2 py-1 text-gray-900 dark:text-white placeholder-gray-400"
-      />
+      {!disabled && (
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={value.length === 0 ? placeholder : "Adicionar..."}
+          className="flex-1 min-w-[120px] bg-transparent focus:outline-none px-2 py-1 text-gray-900 dark:text-white placeholder-gray-400"
+        />
+      )}
+      {disabled && value.length === 0 && (
+        <span className="text-xs text-gray-400 italic px-2">Nenhum item configurado</span>
+      )}
     </div>
   );
 }

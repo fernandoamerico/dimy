@@ -283,11 +283,11 @@ export function ProductEditor({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-semibold text-gray-900 dark:text-white block mb-2 flex items-center gap-2"><Barcode className="w-4 h-4 text-gray-400" /> SKU</label>
-                <input type="text" value={sku} onChange={e => setSku(e.target.value)} placeholder="Ex: SRV-001" className={`${inputCls} font-mono`} />
+                <input type="text" value={sku} readOnly={!canEdit} onChange={e => canEdit && setSku(e.target.value)} placeholder="Ex: SRV-001" className={`${inputCls} font-mono`} />
               </div>
               <div>
                 <label className="text-sm font-semibold text-gray-900 dark:text-white block mb-2 flex items-center gap-2"><Scale className="w-4 h-4 text-gray-400" /> Peso (kg)</label>
-                <input type="number" step="0.01" value={weight} onChange={e => setWeight(e.target.value)} placeholder="Ex: 0.5" className={inputCls} />
+                <input type="number" step="0.01" value={weight} readOnly={!canEdit} onChange={e => canEdit && setWeight(e.target.value)} placeholder="Ex: 0.5" className={inputCls} />
               </div>
             </div>
 
@@ -322,8 +322,9 @@ export function ProductEditor({
                 <span className="text-xs text-gray-500 dark:text-gray-400">Variantes de preço</span>
                 <button
                   type="button"
-                  onClick={() => toggleVariants(!hasVariants)}
-                  className={`w-10 h-5 rounded-full relative transition-colors ${hasVariants ? 'bg-blue-500 dark:bg-emerald-500' : 'bg-gray-200 dark:bg-neutral-700'}`}
+                  disabled={!canEdit}
+                  onClick={() => canEdit && toggleVariants(!hasVariants)}
+                  className={`w-10 h-5 rounded-full relative transition-colors ${hasVariants ? 'bg-blue-500 dark:bg-emerald-500' : 'bg-gray-200 dark:bg-neutral-700'} ${!canEdit ? 'opacity-60 cursor-not-allowed' : ''}`}
                 >
                   <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${hasVariants ? 'translate-x-5' : 'translate-x-0'}`} />
                 </button>
@@ -337,16 +338,16 @@ export function ProductEditor({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-semibold text-gray-900 dark:text-white block mb-2">Preço *</label>
-                      <input type="number" step="0.01" value={price} onChange={e => setPrice(e.target.value)} placeholder="0.00" className={inputCls} />
+                      <input type="number" step="0.01" value={price} readOnly={!canEdit} onChange={e => canEdit && setPrice(e.target.value)} placeholder="0.00" className={inputCls} />
                     </div>
                     <div>
                       <label className="text-sm font-semibold text-gray-900 dark:text-white block mb-2">Preço Promocional</label>
-                      <input type="number" step="0.01" value={discountPrice} onChange={e => setDiscountPrice(e.target.value)} placeholder="0.00" className={inputCls} />
+                      <input type="number" step="0.01" value={discountPrice} readOnly={!canEdit} onChange={e => canEdit && setDiscountPrice(e.target.value)} placeholder="0.00" className={inputCls} />
                     </div>
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-gray-900 dark:text-white block mb-2">Descrição do Preço</label>
-                    <input type="text" value={priceDescription} onChange={e => setPriceDescription(e.target.value)} placeholder="Ex: à vista no PIX" className={inputCls} />
+                    <input type="text" value={priceDescription} readOnly={!canEdit} onChange={e => canEdit && setPriceDescription(e.target.value)} placeholder="Ex: à vista no PIX" className={inputCls} />
                   </div>
                 </div>
               ) : (
@@ -383,7 +384,8 @@ export function ProductEditor({
                         <input
                           type="text"
                           value={variant.name}
-                          onChange={e => updateVariant(variant.id, 'name', e.target.value)}
+                          readOnly={!canEdit}
+                          onChange={e => canEdit && updateVariant(variant.id, 'name', e.target.value)}
                           placeholder={`Ex: ${idx === 0 ? 'Básico' : idx === 1 ? 'Padrão' : 'Premium'}`}
                           className="col-span-4 px-3 py-2 text-sm bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 text-gray-900 dark:text-white"
                         />
@@ -395,7 +397,8 @@ export function ProductEditor({
                             type="number"
                             step="0.01"
                             value={variant.price}
-                            onChange={e => updateVariant(variant.id, 'price', e.target.value)}
+                            readOnly={!canEdit}
+                            onChange={e => canEdit && updateVariant(variant.id, 'price', e.target.value)}
                             placeholder="0,00"
                             className="w-full pl-8 pr-3 py-2 text-sm bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 text-gray-900 dark:text-white"
                           />
@@ -405,7 +408,8 @@ export function ProductEditor({
                         <input
                           type="text"
                           value={variant.sku || ''}
-                          onChange={e => updateVariant(variant.id, 'sku', e.target.value)}
+                          readOnly={!canEdit}
+                          onChange={e => canEdit && updateVariant(variant.id, 'sku', e.target.value)}
                           placeholder="SKU opcional"
                           className="col-span-3 px-3 py-2 text-sm font-mono bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 text-gray-900 dark:text-white"
                         />
@@ -414,45 +418,52 @@ export function ProductEditor({
                         <div className="col-span-12 flex flex-wrap items-center justify-start gap-2 border-t border-gray-100 dark:border-neutral-800/60 pt-3 mt-1">
                           <button
                              type="button"
-                             onClick={() => updateVariant(variant.id, 'isBestSeller', !variant.isBestSeller as any)}
-                             className={`px-2.5 py-1.5 text-[11px] font-bold tracking-wide uppercase rounded-lg transition-colors flex items-center gap-1.5 ${variant.isBestSeller ? 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400' : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-neutral-900 dark:text-gray-400 dark:hover:bg-neutral-800 border border-gray-200 dark:border-neutral-800'}`}
+                             disabled={!canEdit}
+                             onClick={() => canEdit && updateVariant(variant.id, 'isBestSeller', !variant.isBestSeller as any)}
+                             className={`px-2.5 py-1.5 text-[11px] font-bold tracking-wide uppercase rounded-lg transition-colors flex items-center gap-1.5 ${variant.isBestSeller ? 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400' : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-neutral-900 dark:text-gray-400 dark:hover:bg-neutral-800 border border-gray-200 dark:border-neutral-800'} ${!canEdit ? 'opacity-60 cursor-not-allowed' : ''}`}
                           >
                              <Star className="w-3.5 h-3.5" />
                              Mais Vendido
                           </button>
                           <button
                              type="button"
-                             onClick={() => updateVariant(variant.id, 'isRecommended', !variant.isRecommended as any)}
-                             className={`px-2.5 py-1.5 text-[11px] font-bold tracking-wide uppercase rounded-lg transition-colors flex items-center gap-1.5 ${variant.isRecommended ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-neutral-900 dark:text-gray-400 dark:hover:bg-neutral-800 border border-gray-200 dark:border-neutral-800'}`}
+                             disabled={!canEdit}
+                             onClick={() => canEdit && updateVariant(variant.id, 'isRecommended', !variant.isRecommended as any)}
+                             className={`px-2.5 py-1.5 text-[11px] font-bold tracking-wide uppercase rounded-lg transition-colors flex items-center gap-1.5 ${variant.isRecommended ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-neutral-900 dark:text-gray-400 dark:hover:bg-neutral-800 border border-gray-200 dark:border-neutral-800'} ${!canEdit ? 'opacity-60 cursor-not-allowed' : ''}`}
                           >
                              <ThumbsUp className="w-3.5 h-3.5" />
                              Recomendado
                           </button>
                           <button
                              type="button"
-                             onClick={() => updateVariant(variant.id, 'isFeatured', !variant.isFeatured as any)}
-                             className={`px-2.5 py-1.5 text-[11px] font-bold tracking-wide uppercase rounded-lg transition-colors flex items-center gap-1.5 ${variant.isFeatured ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400' : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-neutral-900 dark:text-gray-400 dark:hover:bg-neutral-800 border border-gray-200 dark:border-neutral-800'}`}
+                             disabled={!canEdit}
+                             onClick={() => canEdit && updateVariant(variant.id, 'isFeatured', !variant.isFeatured as any)}
+                             className={`px-2.5 py-1.5 text-[11px] font-bold tracking-wide uppercase rounded-lg transition-colors flex items-center gap-1.5 ${variant.isFeatured ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400' : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-neutral-900 dark:text-gray-400 dark:hover:bg-neutral-800 border border-gray-200 dark:border-neutral-800'} ${!canEdit ? 'opacity-60 cursor-not-allowed' : ''}`}
                           >
                              <Award className="w-3.5 h-3.5" />
                              Destaque
                           </button>
-                          <div className="flex-1" />
-                          <button
-                            type="button"
-                            onClick={() => duplicateVariant(variant.id)}
-                            className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:text-blue-400 dark:hover:bg-blue-500/10 rounded-lg transition-colors"
-                            title="Duplicar Variante"
-                          >
-                            <Copy className="w-4 h-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => removeVariant(variant.id)}
-                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-500/10 rounded-lg transition-colors"
-                            title="Excluir Variante"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
+                          {canEdit && (
+                            <>
+                              <div className="flex-1" />
+                              <button
+                                type="button"
+                                onClick={() => duplicateVariant(variant.id)}
+                                className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:text-blue-400 dark:hover:bg-blue-500/10 rounded-lg transition-colors"
+                                title="Duplicar Variante"
+                              >
+                                <Copy className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => removeVariant(variant.id)}
+                                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                                title="Excluir Variante"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
 
@@ -461,7 +472,8 @@ export function ProductEditor({
                         <input
                           type="text"
                           value={variant.description || ''}
-                          onChange={e => updateVariant(variant.id, 'description', e.target.value)}
+                          readOnly={!canEdit}
+                          onChange={e => canEdit && updateVariant(variant.id, 'description', e.target.value)}
                           placeholder="Descrição opcional (ex: Inclui suporte por 30 dias)"
                           className="w-full px-3 py-1.5 text-xs bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 text-gray-600 dark:text-gray-400 placeholder-gray-300 dark:placeholder-neutral-700"
                         />
@@ -473,17 +485,19 @@ export function ProductEditor({
                   {variants.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-8 border-2 border-dashed border-gray-200 dark:border-neutral-800 rounded-xl text-gray-400">
                       <Layers className="w-8 h-8 mb-2 opacity-40" />
-                      <p className="text-sm">Nenhuma variante ainda. Clique em "Adicionar Variante" para começar.</p>
+                      <p className="text-sm">Nenhuma variante cadastrada.</p>
                     </div>
                   )}
 
                   {/* Botão adicionar */}
-                  <button
-                    onClick={addVariant}
-                    className="flex items-center gap-2 w-full px-4 py-2.5 border-2 border-dashed border-gray-200 dark:border-neutral-800 hover:border-blue-300 dark:hover:border-emerald-500/50 text-gray-500 dark:text-neutral-500 hover:text-blue-600 dark:hover:text-emerald-400 rounded-xl text-sm font-medium transition-all"
-                  >
-                    <Plus className="w-4 h-4" /> Adicionar Variante
-                  </button>
+                  {canEdit && (
+                    <button
+                      onClick={addVariant}
+                      className="flex items-center gap-2 w-full px-4 py-2.5 border-2 border-dashed border-gray-200 dark:border-neutral-800 hover:border-blue-300 dark:hover:border-emerald-500/50 text-gray-500 dark:text-neutral-500 hover:text-blue-600 dark:hover:text-emerald-400 rounded-xl text-sm font-medium transition-all"
+                    >
+                      <Plus className="w-4 h-4" /> Adicionar Variante
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -519,12 +533,12 @@ export function ProductEditor({
                   <label className="text-xs font-semibold text-gray-500 dark:text-neutral-400 uppercase tracking-wider mb-2 block">Disponibilidade</label>
                   <div className="grid grid-cols-2 gap-2">
                     {(['available', 'out_of_stock'] as const).map(s => (
-                      <button key={s} onClick={() => setStatus(s)}
+                      <button key={s} disabled={!canEdit} onClick={() => canEdit && setStatus(s)}
                         className={`px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${status === s
                           ? s === 'available'
                             ? 'bg-green-50 border-green-200 text-green-700 dark:bg-emerald-500/10 dark:border-emerald-500/30 dark:text-emerald-400'
                             : 'bg-red-50 border-red-200 text-red-700 dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-400'
-                          : 'bg-gray-50 border-transparent text-gray-600 hover:bg-gray-100 dark:bg-neutral-800 dark:text-gray-400 dark:hover:bg-neutral-700'}`}>
+                          : 'bg-gray-50 border-transparent text-gray-600 hover:bg-gray-100 dark:bg-neutral-800 dark:text-gray-400 dark:hover:bg-neutral-700'} ${!canEdit ? 'opacity-60 cursor-not-allowed' : ''}`}>
                         {s === 'available' ? 'Disponível' : 'Esgotado'}
                       </button>
                     ))}
@@ -536,12 +550,12 @@ export function ProductEditor({
                 <label className="text-xs font-semibold text-gray-500 dark:text-neutral-400 uppercase tracking-wider mb-2 block">Tipo de Produto</label>
                 <div className="grid grid-cols-2 gap-2">
                   {[{ v: 'fisico', l: 'Físico' }, { v: 'digital', l: 'Digital' }].map(({ v, l }) => (
-                    <button key={v} onClick={() => setProductType(v)}
+                    <button key={v} disabled={!canEdit} onClick={() => canEdit && setProductType(v)}
                       className={`px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${productType === v
                         ? v === 'fisico'
                           ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-500/10 dark:border-blue-500/30 dark:text-blue-400'
                           : 'bg-purple-50 border-purple-200 text-purple-700 dark:bg-purple-500/10 dark:border-purple-500/30 dark:text-purple-400'
-                        : 'bg-gray-50 border-transparent text-gray-600 hover:bg-gray-100 dark:bg-neutral-800 dark:text-gray-400 dark:hover:bg-neutral-700'}`}>
+                        : 'bg-gray-50 border-transparent text-gray-600 hover:bg-gray-100 dark:bg-neutral-800 dark:text-gray-400 dark:hover:bg-neutral-700'} ${!canEdit ? 'opacity-60 cursor-not-allowed' : ''}`}>
                       {l}
                     </button>
                   ))}
@@ -578,7 +592,7 @@ export function ProductEditor({
           {meta.enable_sizes !== false && (
             <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><List className="w-4 h-4 text-blue-500" /> Tamanhos</h3>
-              <TagSelector value={sizes} onChange={setSizes} placeholder="P, M, G, GG..." />
+              <TagSelector value={sizes} onChange={setSizes} placeholder="P, M, G, GG..." disabled={!canEdit} />
             </div>
           )}
 
@@ -586,7 +600,7 @@ export function ProductEditor({
           {meta.enable_colors !== false && (
             <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><List className="w-4 h-4 text-amber-500" /> Cores</h3>
-              <TagSelector value={colors} onChange={setColors} placeholder="Preto, Branco, Azul..." />
+              <TagSelector value={colors} onChange={setColors} placeholder="Preto, Branco, Azul..." disabled={!canEdit} />
             </div>
           )}
         </div>

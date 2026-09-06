@@ -1,12 +1,11 @@
-'use client';
-
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Briefcase, Save, Loader2, CheckCircle2, Building2, Phone, Mail, Globe, AtSign, Server, Download, Plus, Trash2, Link as LinkIcon, Camera, Users, Video, MessageCircle } from 'lucide-react';
+import { Briefcase, Save, Loader2, CheckCircle2, Building2, Phone, Mail, Globe, AtSign, Server, Download, Plus, Trash2, Link as LinkIcon, Camera, Users, Video, MessageCircle, ShieldAlert } from 'lucide-react';
 import { ImageUploader } from '@/components/ui/ImageUploader';
 import { useDatabaseWarning } from '@/components/ui/DatabaseWarningProvider';
 import { toast } from 'sonner';
 import { countryCodes } from '@/core/countries';
+import { usePermissions } from '@/core/hooks/usePermissions';
 
 const CONFIG_KEYS = [
   'business_name',
@@ -44,6 +43,7 @@ interface CustomSocial {
 }
 
 export default function MeuNegocioPage() {
+  const { canEdit } = usePermissions();
   // Scalar fields (name, cnpj, single strings)
   const [form, setForm] = useState<Record<string, string>>({});
   
@@ -132,6 +132,7 @@ export default function MeuNegocioPage() {
   }, []);
 
   const handleScalarChange = (key: string, value: string) => {
+    if (!canEdit) return;
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -158,6 +159,7 @@ export default function MeuNegocioPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canEdit) return;
     guardedSubmit(async () => {
       setIsSaving(true);
       setSaved(false);
@@ -195,7 +197,8 @@ export default function MeuNegocioPage() {
       <input
         type={type}
         value={form[key] || ''}
-        onChange={(e) => handleScalarChange(key, e.target.value)}
+        readOnly={!canEdit}
+        onChange={(e) => canEdit && handleScalarChange(key, e.target.value)}
         className={`w-full ${icon ? 'pl-10' : 'pl-3'} pr-3 py-2.5 bg-gray-50/50 dark:bg-neutral-800/50 border border-gray-200 dark:border-neutral-700/80 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all`}
         placeholder={placeholder}
       />
@@ -207,15 +210,24 @@ export default function MeuNegocioPage() {
       <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 pb-10">
 
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-2xl border border-blue-200 dark:border-blue-500/20">
-            <Briefcase className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Meu Negócio</h1>
-            <p className="text-gray-500 dark:text-neutral-400 mt-1 text-sm">
-              Configure as informações centrais da sua empresa para uso em todo o site.
-            </p>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-2xl border border-blue-200 dark:border-blue-500/20">
+              <Briefcase className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Meu Negócio</h1>
+                {!canEdit && (
+                  <span className="shrink-0 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50 flex items-center gap-1.5">
+                    <ShieldAlert className="w-4 h-4" /> Modo de Visualização (Auditor)
+                  </span>
+                )}
+              </div>
+              <p className="text-gray-500 dark:text-neutral-400 mt-1 text-sm">
+                {!canEdit ? 'Visualizando informações da empresa em modo somente leitura.' : 'Configure as informações centrais da sua empresa para uso em todo o site.'}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -264,13 +276,15 @@ export default function MeuNegocioPage() {
             <div className="space-y-4 pt-4 border-t border-gray-50 dark:border-neutral-800/50">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Logos e Variações</label>
-                <button
-                  type="button"
-                  onClick={() => setLogos([...logos, { id: '', url: '' }])}
-                  className="text-xs font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:underline"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Adicionar Logo
-                </button>
+                {canEdit && (
+                  <button
+                    type="button"
+                    onClick={() => setLogos([...logos, { id: '', url: '' }])}
+                    className="text-xs font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:underline"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Adicionar Logo
+                  </button>
+                )}
               </div>
               
               <div className="space-y-4">
@@ -283,8 +297,9 @@ export default function MeuNegocioPage() {
                       <ImageUploader 
                         value={logo.url} 
                         onChange={(url) => {
+                          if (!canEdit) return;
                           const newLogos = [...logos];
-                          newLogos[index].url = url;
+                          if (newLogos[index]) newLogos[index].url = url;
                           setLogos(newLogos);
                         }} 
                         placeholder="Imagem" 
@@ -294,9 +309,11 @@ export default function MeuNegocioPage() {
                       <input
                         type="text"
                         value={logo.id}
+                        readOnly={!canEdit}
                         onChange={(e) => {
+                          if (!canEdit) return;
                           const newLogos = [...logos];
-                          newLogos[index].id = e.target.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9_]+/g, '_');
+                          if (newLogos[index]) newLogos[index].id = e.target.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9_]+/g, '_');
                           setLogos(newLogos);
                         }}
                         placeholder="ID (ex: logo_branca, logo_rodape)"
@@ -304,14 +321,16 @@ export default function MeuNegocioPage() {
                       />
                       <p className="text-xs text-gray-500">Este ID pode ser usado nos blocos do Page Builder para carregar a versão correta da logo.</p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setLogos(logos.filter((_, i) => i !== index))}
-                      className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                      title="Remover logo"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {canEdit && (
+                      <button
+                        type="button"
+                        onClick={() => setLogos(logos.filter((_, i) => i !== index))}
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                        title="Remover logo"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -327,13 +346,15 @@ export default function MeuNegocioPage() {
                 <h2 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                   <Phone className="w-4 h-4 text-gray-400" /> Telefones
                 </h2>
-                <button
-                  type="button"
-                  onClick={() => setPhones([...phones, { countryCode: '55', number: '' }])}
-                  className="text-xs font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:underline"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Adicionar Telefone
-                </button>
+                {canEdit && (
+                  <button
+                    type="button"
+                    onClick={() => setPhones([...phones, { countryCode: '55', number: '' }])}
+                    className="text-xs font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:underline"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Adicionar Telefone
+                  </button>
+                )}
               </div>
 
               <div className="space-y-3">
@@ -342,12 +363,14 @@ export default function MeuNegocioPage() {
                     <div className="flex w-full gap-2 relative">
                       <select
                         value={phone.countryCode}
+                        disabled={!canEdit}
                         onChange={(e) => {
+                          if (!canEdit) return;
                           const newPhones = [...phones];
-                          newPhones[index].countryCode = e.target.value;
+                          if (newPhones[index]) newPhones[index].countryCode = e.target.value;
                           setPhones(newPhones);
                         }}
-                        className="w-[120px] shrink-0 pl-2 pr-6 py-2.5 bg-gray-50/50 dark:bg-neutral-800/50 border border-gray-200 dark:border-neutral-700/80 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all appearance-none"
+                        className="w-[120px] shrink-0 pl-2 pr-6 py-2.5 bg-gray-50/50 dark:bg-neutral-800/50 border border-gray-200 dark:border-neutral-700/80 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all appearance-none disabled:opacity-60"
                       >
                         {countryCodes.map(c => (
                           <option key={c.code} value={c.code}>{c.flag} +{c.code}</option>
@@ -356,16 +379,18 @@ export default function MeuNegocioPage() {
                       <input
                         type="text"
                         value={phone.number}
+                        readOnly={!canEdit}
                         onChange={(e) => {
+                          if (!canEdit) return;
                           const newPhones = [...phones];
-                          newPhones[index].number = e.target.value;
+                          if (newPhones[index]) newPhones[index].number = e.target.value;
                           setPhones(newPhones);
                         }}
                         className="w-full px-3 py-2.5 bg-gray-50/50 dark:bg-neutral-800/50 border border-gray-200 dark:border-neutral-700/80 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
                         placeholder="(11) 99999-9999"
                       />
                     </div>
-                    {phones.length > 1 && (
+                    {canEdit && phones.length > 1 && (
                       <button
                         type="button"
                         onClick={() => setPhones(phones.filter((_, i) => i !== index))}
@@ -387,13 +412,15 @@ export default function MeuNegocioPage() {
                 <h2 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                   <Mail className="w-4 h-4 text-gray-400" /> E-mails
                 </h2>
-                <button
-                  type="button"
-                  onClick={() => setEmails([...emails, ''])}
-                  className="text-xs font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:underline"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Adicionar E-mail
-                </button>
+                {canEdit && (
+                  <button
+                    type="button"
+                    onClick={() => setEmails([...emails, ''])}
+                    className="text-xs font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:underline"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Adicionar E-mail
+                  </button>
+                )}
               </div>
 
               <div className="space-y-3">
@@ -404,7 +431,9 @@ export default function MeuNegocioPage() {
                       <input
                         type="email"
                         value={email}
+                        readOnly={!canEdit}
                         onChange={(e) => {
+                          if (!canEdit) return;
                           const newEmails = [...emails];
                           newEmails[index] = e.target.value;
                           setEmails(newEmails);
@@ -413,7 +442,7 @@ export default function MeuNegocioPage() {
                         placeholder="contato@empresa.com.br"
                       />
                     </div>
-                    {emails.length > 1 && (
+                    {canEdit && emails.length > 1 && (
                       <button
                         type="button"
                         onClick={() => setEmails(emails.filter((_, i) => i !== index))}
@@ -486,13 +515,15 @@ export default function MeuNegocioPage() {
                 <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
                   <LinkIcon className="w-4 h-4 text-gray-400" /> Outras Redes / Links
                 </h3>
-                <button
-                  type="button"
-                  onClick={() => setCustomSocials([...customSocials, { title: '', url: '' }])}
-                  className="text-xs font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:underline"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Adicionar Link
-                </button>
+                {canEdit && (
+                  <button
+                    type="button"
+                    onClick={() => setCustomSocials([...customSocials, { title: '', url: '' }])}
+                    className="text-xs font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:underline"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Adicionar Link
+                  </button>
+                )}
               </div>
 
               <div className="space-y-3">
@@ -507,9 +538,11 @@ export default function MeuNegocioPage() {
                       <input
                         type="text"
                         value={social.title}
+                        readOnly={!canEdit}
                         onChange={(e) => {
+                          if (!canEdit) return;
                           const newSocials = [...customSocials];
-                          newSocials[index].title = e.target.value;
+                          if (newSocials[index]) newSocials[index].title = e.target.value;
                           setCustomSocials(newSocials);
                         }}
                         className="w-full sm:w-1/3 px-3 py-2.5 bg-gray-50/50 dark:bg-neutral-800/50 border border-gray-200 dark:border-neutral-700/80 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
@@ -518,22 +551,26 @@ export default function MeuNegocioPage() {
                       <input
                         type="url"
                         value={social.url}
+                        readOnly={!canEdit}
                         onChange={(e) => {
+                          if (!canEdit) return;
                           const newSocials = [...customSocials];
-                          newSocials[index].url = e.target.value;
+                          if (newSocials[index]) newSocials[index].url = e.target.value;
                           setCustomSocials(newSocials);
                         }}
                         className="w-full px-3 py-2.5 bg-gray-50/50 dark:bg-neutral-800/50 border border-gray-200 dark:border-neutral-700/80 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
                         placeholder="URL (ex: https://pinterest.com/...)"
                       />
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setCustomSocials(customSocials.filter((_, i) => i !== index))}
-                      className="shrink-0 p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {canEdit && (
+                      <button
+                        type="button"
+                        onClick={() => setCustomSocials(customSocials.filter((_, i) => i !== index))}
+                        className="shrink-0 p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -541,25 +578,27 @@ export default function MeuNegocioPage() {
 
           </div>
 
-          <div className="flex justify-end pt-2">
-            <button
-              type="submit"
-              disabled={isSaving}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-medium text-sm transition-all shadow-sm
-                ${saved 
-                  ? 'bg-emerald-500 text-white shadow-emerald-500/20' 
-                  : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/20'
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              {isSaving ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</>
-              ) : saved ? (
-                <><CheckCircle2 className="w-4 h-4" /> Salvo!</>
-              ) : (
-                <><Save className="w-4 h-4" /> Salvar Alterações</>
-              )}
-            </button>
-          </div>
+          {canEdit && (
+            <div className="flex justify-end pt-2">
+              <button
+                type="submit"
+                disabled={isSaving}
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-medium text-sm transition-all shadow-sm
+                  ${saved 
+                    ? 'bg-emerald-500 text-white shadow-emerald-500/20' 
+                    : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/20'
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                {isSaving ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</>
+                ) : saved ? (
+                  <><CheckCircle2 className="w-4 h-4" /> Salvo!</>
+                ) : (
+                  <><Save className="w-4 h-4" /> Salvar Alterações</>
+                )}
+              </button>
+            </div>
+          )}
         </form>
       </div>
     </DashboardLayout>

@@ -102,7 +102,7 @@ export function BlockRenderer({ field, value, onChange, readOnly = false }: Bloc
                       <td key={ci} className="p-0 border-r border-gray-300 dark:border-neutral-700 last:border-r-0 relative">
                         <input type="text" value={col}
                           readOnly={readOnly}
-                          onChange={e => { if (!readOnly && t[ri]) { const t = tableVal.map((r: string[]) => [...r]); if (t[ri]) t[ri][ci] = e.target.value; onChange(t); } }}
+                          onChange={e => { if (!readOnly) { const t = tableVal.map((r: string[]) => [...r]); if (t[ri]) t[ri][ci] = e.target.value; onChange(t); } }}
                           className="w-full px-4 py-2.5 bg-transparent focus:outline-none focus:bg-blue-50/50 dark:focus:bg-emerald-500/10 hover:bg-gray-50 dark:hover:bg-neutral-800 text-gray-900 dark:text-white text-sm transition-colors" />
                       </td>
                     ))}
