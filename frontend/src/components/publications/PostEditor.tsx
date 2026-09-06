@@ -13,10 +13,11 @@ import { MediaLibraryModal } from '@/components/media/MediaLibraryModal';
 import { BlockRenderer } from '@/components/blocks/BlockRenderer';
 import { 
   ArrowLeft, Type, Image as ImageIcon, 
-  List, MousePointerClick, Save, Trash2, Plus, Settings, Library, Hash, Globe, HelpCircle, X, FileText
+  List, MousePointerClick, Save, Trash2, Plus, Settings, Library, Hash, Globe, HelpCircle, X, FileText, Eye
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { usePermissions } from '@/core/hooks/usePermissions';
 
 export function PostEditor({
   collection,
@@ -28,6 +29,7 @@ export function PostEditor({
   isNew?: boolean;
 }) {
   const router = useRouter();
+  const { canEdit } = usePermissions();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [savingMode, setSavingMode] = useState<'draft' | 'publish' | null>(null);
 
@@ -168,41 +170,52 @@ export function PostEditor({
           </Link>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{isNew ? 'Nova Publicação' : 'Editar Publicação'}</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {isNew ? 'Nova Publicação' : (canEdit ? 'Editar Publicação' : 'Visualizar Publicação')}
+              </h1>
               <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/50">
                 {collection.name}
               </span>
+              {!canEdit && (
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50 flex items-center gap-1.5">
+                  <Eye className="w-3.5 h-3.5" /> Modo de Visualização (Auditor)
+                </span>
+              )}
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Preencha os campos para sua publicação.</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              {canEdit ? 'Preencha os campos para sua publicação.' : 'Visualização em modo somente leitura.'}
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <button
-            onClick={() => handleSave('draft')}
-            disabled={isSubmitting}
-            className="flex-1 sm:flex-none px-4 py-2.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-700 font-medium transition-colors disabled:opacity-50 flex items-center gap-2 justify-center text-sm"
-          >
-            {savingMode === 'draft' ? (
-              <><div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> Salvando...</>
-            ) : (
-              <><Save className="w-4 h-4" /> Salvar Rascunho</>
-            )}
-          </button>
-          <button
-            onClick={() => handleSave('publish')}
-            disabled={isSubmitting}
-            className="flex-1 sm:flex-none px-4 py-2.5 text-white bg-blue-600 dark:bg-emerald-500 rounded-xl hover:bg-blue-700 dark:hover:bg-emerald-600 font-medium transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2 justify-center text-sm"
-          >
-            {savingMode === 'publish' ? (
-              <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Publicando...</>
-            ) : (
-              <><Globe className="w-4 h-4" /> Salvar e Publicar</>
-            )}
-          </button>
-        </div>
+        {canEdit && (
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              onClick={() => handleSave('draft')}
+              disabled={isSubmitting}
+              className="flex-1 sm:flex-none px-4 py-2.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-700 font-medium transition-colors disabled:opacity-50 flex items-center gap-2 justify-center text-sm"
+            >
+              {savingMode === 'draft' ? (
+                <><div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> Salvando...</>
+              ) : (
+                <><Save className="w-4 h-4" /> Salvar Rascunho</>
+              )}
+            </button>
+            <button
+              onClick={() => handleSave('publish')}
+              disabled={isSubmitting}
+              className="flex-1 sm:flex-none px-4 py-2.5 text-white bg-blue-600 dark:bg-emerald-500 rounded-xl hover:bg-blue-700 dark:hover:bg-emerald-600 font-medium transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2 justify-center text-sm"
+            >
+              {savingMode === 'publish' ? (
+                <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Publicando...</>
+              ) : (
+                <><Globe className="w-4 h-4" /> Salvar e Publicar</>
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+      <div className={`grid grid-cols-1 lg:grid-cols-3 gap-8 items-start ${!canEdit ? 'pointer-events-none opacity-90 select-none' : ''}`}>
         
         {/* ─── EDITOR (left 2/3) ───────────────────────────────────────────── */}
         <div className="lg:col-span-2 space-y-6">

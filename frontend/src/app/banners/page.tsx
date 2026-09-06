@@ -3,14 +3,16 @@
 import { useEffect, useState } from 'react';
 import { getCollections, deleteCollection } from '@/core/schema/actions';
 import { getDocuments } from '@/core/content/actions';
-import { Images, Plus, Folder, Trash2, LayoutGrid, List } from 'lucide-react';
+import { Images, Plus, Folder, Trash2, LayoutGrid, List, Eye } from 'lucide-react';
 import CreateCarouselModal from '@/components/banners/CreateCarouselModal';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageContainer } from '@/components/layout/PageContainer';
+import { usePermissions } from '@/core/hooks/usePermissions';
 
 export default function BannersPage() {
+  const { canManageContent } = usePermissions();
   const [carousels, setCarousels] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -58,6 +60,7 @@ export default function BannersPage() {
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
+    if (!canManageContent) return;
     if (!confirm('Excluir este carrossel? Todos os banners dentro dele serão perdidos.')) return;
     
     const toastId = toast.loading('Excluindo carrossel...');
@@ -116,13 +119,15 @@ export default function BannersPage() {
               </button>
             </div>
 
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-sm font-medium rounded-xl transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Novo Carrossel
-            </button>
+            {canManageContent && (
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-sm font-medium rounded-xl transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Novo Carrossel
+              </button>
+            )}
           </div>
         </div>
 
@@ -137,13 +142,15 @@ export default function BannersPage() {
             <p className="text-gray-500 dark:text-gray-400 max-w-md mb-8">
               Você ainda não possui nenhum carrossel. Crie seu primeiro grupo de banners para começar a gerenciar imagens.
             </p>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white font-medium rounded-xl transition-all shadow-sm shadow-blue-500/20 hover:shadow-blue-500/40"
-            >
-              <Plus className="w-5 h-5" />
-              Criar Primeiro Carrossel
-            </button>
+            {canManageContent && (
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white font-medium rounded-xl transition-all shadow-sm shadow-blue-500/20 hover:shadow-blue-500/40"
+              >
+                <Plus className="w-5 h-5" />
+                Criar Primeiro Carrossel
+              </button>
+            )}
           </div>
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -169,20 +176,32 @@ export default function BannersPage() {
                       {meta.description || 'Sem descrição'}
                     </p>
                   </Link>
-                  <div className="p-4 bg-gray-50 dark:bg-neutral-950 border-t border-slate-100 dark:border-neutral-800 flex justify-end gap-3">
-                    <button 
-                      onClick={(e) => handleDelete(cat.id, e)}
-                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
-                      title="Excluir Carrossel"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                    <Link 
-                      href={`/banners/list?slug=${cat.slug}`}
-                      className="text-sm font-medium text-blue-600 dark:text-emerald-400 hover:text-blue-700 dark:hover:text-emerald-300 flex items-center gap-1"
-                    >
-                      Gerenciar Itens
-                    </Link>
+                  <div className="p-4 bg-gray-50 dark:bg-neutral-950 border-t border-slate-100 dark:border-neutral-800 flex justify-between items-center">
+                    {canManageContent ? (
+                      <>
+                        <button 
+                          onClick={(e) => handleDelete(cat.id, e)}
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                          title="Excluir Carrossel"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                        <Link 
+                          href={`/banners/list?slug=${cat.slug}`}
+                          className="text-sm font-medium text-blue-600 dark:text-emerald-400 hover:text-blue-700 dark:hover:text-emerald-300 flex items-center gap-1"
+                        >
+                          Gerenciar Itens
+                        </Link>
+                      </>
+                    ) : (
+                      <Link 
+                        href={`/banners/list?slug=${cat.slug}`}
+                        className="text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 flex items-center gap-1 ml-auto"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        Visualizar Itens
+                      </Link>
+                    )}
                   </div>
                 </div>
               );
@@ -224,14 +243,24 @@ export default function BannersPage() {
                           {count}
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button 
-                              onClick={(e) => handleDelete(cat.id, e)}
-                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-neutral-800 rounded-lg transition-colors"
-                              title="Excluir"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                          <div className="flex items-center justify-end gap-2">
+                            {canManageContent ? (
+                              <button 
+                                onClick={(e) => handleDelete(cat.id, e)}
+                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-neutral-800 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                title="Excluir"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            ) : (
+                              <Link 
+                                href={`/banners/list?slug=${cat.slug}`}
+                                className="p-2 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors flex items-center gap-1 font-medium text-xs"
+                              >
+                                <Eye className="w-4 h-4" />
+                                <span>Visualizar</span>
+                              </Link>
+                            )}
                           </div>
                         </td>
                       </tr>

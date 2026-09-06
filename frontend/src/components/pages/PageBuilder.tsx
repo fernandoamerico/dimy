@@ -8,7 +8,7 @@ import { updateCollection } from '@/core/schema/actions';
 import {
   ArrowLeft, Save, Plus, Settings,
   Trash2, Code, Copy, Check, ChevronDown, ChevronUp, ArrowUp, ArrowDown,
-  FileEdit, Search, Paintbrush, FileCode, Power, Globe, ImagePlus
+  FileEdit, Search, Paintbrush, FileCode, Power, Globe, ImagePlus, ShieldAlert, Type
 } from 'lucide-react';
 import { BLOCK_TYPES, COLOR_MAP, BG_MAP, ICON_MAP, BADGE_MAP } from '@/core/blocks/BlockRegistry';
 import { BlockRenderer } from '@/components/blocks/BlockRenderer';
@@ -18,6 +18,7 @@ import { ImageUploader } from '@/components/ui/ImageUploader';
 import { GalleryBlockEditor } from '@/components/ui/GalleryBlockEditor';
 import { MediaLibraryModal } from '@/components/media/MediaLibraryModal';
 import { toast } from 'sonner';
+import { usePermissions } from '@/core/hooks/usePermissions';
 
 const GOOGLE_FONTS = ['Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins', 'Raleway', 'Outfit', 'Nunito', 'Oswald', 'Source Sans 3', 'Playfair Display'];
 
@@ -98,6 +99,7 @@ export function PageBuilder({
   collection: any;
   document: any;
 }) {
+  const { canEdit } = usePermissions();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [savingMode, setSavingMode] = useState<'draft' | 'publish' | null>(null);
@@ -159,6 +161,7 @@ export function PageBuilder({
 
   // ─── Save Page ────────────────────────────────────────────────────────────
   const handleSavePage = async (mode: 'draft' | 'publish') => {
+    if (!canEdit) return;
     setIsSubmitting(true);
     setSavingMode(mode);
 
@@ -196,6 +199,7 @@ export function PageBuilder({
 
   // ─── Add Block ────────────────────────────────────────────────────────────
   const handleAddBlock = async (blockType: string, baseLabel: string) => {
+    if (!canEdit) return;
     setIsSubmitting(true);
     
     // Auto-generate a unique label and name
@@ -221,6 +225,7 @@ export function PageBuilder({
 
   // ─── Duplicate Block ──────────────────────────────────────────────────────
   const handleDuplicateField = async (field: any) => {
+    if (!canEdit) return;
     setIsSubmitting(true);
     
     const baseLabel = `${field.label} (Cópia)`;
@@ -247,6 +252,7 @@ export function PageBuilder({
 
   // ─── Update Field Label ───────────────────────────────────────────────────
   const handleUpdateFieldLabel = async (index: number, newLabel: string) => {
+    if (!canEdit) return;
     if (!newLabel.trim() || fields[index].label === newLabel) return;
     
     setIsSubmitting(true);
@@ -259,6 +265,7 @@ export function PageBuilder({
 
   // ─── Update Field API Name ────────────────────────────────────────────────
   const handleUpdateFieldName = (index: number, rawNewName: string) => {
+    if (!canEdit) return;
     let newName = rawNewName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9_]+/g, '_');
     
     const oldName = fields[index].name;
@@ -288,7 +295,7 @@ export function PageBuilder({
 
   // ─── Remove Block ─────────────────────────────────────────────────────────
   const confirmRemoveField = async () => {
-    if (!fieldToDelete) return;
+    if (!canEdit || !fieldToDelete) return;
     setIsSubmitting(true);
     const updatedFields = fields.filter(f => f.name !== fieldToDelete);
     setFields(updatedFields);
@@ -304,6 +311,7 @@ export function PageBuilder({
 
   // ─── Reorder ──────────────────────────────────────────────────────────────
   const moveField = async (index: number, direction: 'up' | 'down') => {
+    if (!canEdit) return;
     const newFields = [...fields];
     const swapIdx = direction === 'up' ? index - 1 : index + 1;
     if (swapIdx < 0 || swapIdx >= newFields.length) return;
@@ -343,8 +351,14 @@ export function PageBuilder({
           </Link>
           <div className="min-w-0 flex-1 pr-8 lg:pr-24">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white line-clamp-2 break-words min-w-0">{collectionName}</h1>
-              {!isActive && (
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white line-clamp-2 break-words min-w-0">
+                {canEdit ? collectionName : `Visualizar Página: ${collectionName}`}
+              </h1>
+              {!canEdit ? (
+                <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50 flex items-center gap-1">
+                  <ShieldAlert className="w-3 h-3" /> Modo de Visualização (Auditor)
+                </span>
+              ) : !isActive && (
                 <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 border border-red-200 dark:border-red-900/50">
                   Desativada
                 </span>
@@ -353,33 +367,35 @@ export function PageBuilder({
             <p className="text-gray-500 dark:text-gray-400 mt-0.5 text-sm">Page Builder</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <button
-            onClick={() => handleSavePage('draft')}
-            disabled={isSubmitting}
-            className="flex-1 sm:flex-none px-4 py-2.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-700 font-medium transition-colors disabled:opacity-50 flex items-center gap-2 justify-center text-sm"
-          >
-            {savingMode === 'draft' ? (
-              <><div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> Salvando...</>
-            ) : (
-              <><Save className="w-4 h-4" /> Salvar Rascunho</>
-            )}
-          </button>
-          <button
-            onClick={() => handleSavePage('publish')}
-            disabled={isSubmitting}
-            className="flex-1 sm:flex-none px-4 py-2.5 text-white bg-blue-600 dark:bg-emerald-500 rounded-xl hover:bg-blue-700 dark:hover:bg-emerald-600 font-medium transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2 justify-center text-sm"
-          >
-            {savingMode === 'publish' ? (
-              <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Publicando...</>
-            ) : (
-              <><Globe className="w-4 h-4" /> Salvar e Publicar</>
-            )}
-          </button>
-        </div>
+        {canEdit && (
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              onClick={() => handleSavePage('draft')}
+              disabled={isSubmitting}
+              className="flex-1 sm:flex-none px-4 py-2.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-700 font-medium transition-colors disabled:opacity-50 flex items-center gap-2 justify-center text-sm"
+            >
+              {savingMode === 'draft' ? (
+                <><div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> Salvando...</>
+              ) : (
+                <><Save className="w-4 h-4" /> Salvar Rascunho</>
+              )}
+            </button>
+            <button
+              onClick={() => handleSavePage('publish')}
+              disabled={isSubmitting}
+              className="flex-1 sm:flex-none px-4 py-2.5 text-white bg-blue-600 dark:bg-emerald-500 rounded-xl hover:bg-blue-700 dark:hover:bg-emerald-600 font-medium transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2 justify-center text-sm"
+            >
+              {savingMode === 'publish' ? (
+                <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Publicando...</>
+              ) : (
+                <><Globe className="w-4 h-4" /> Salvar e Publicar</>
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className={`grid grid-cols-1 lg:grid-cols-3 gap-8 ${!canEdit ? 'pointer-events-none opacity-90 select-none' : ''}`}>
         {/* ─── EDITOR AREA (left 2/3) ──────────────────────────────────────── */}
         <div className="lg:col-span-2 space-y-4">
           {fields.length === 0 ? (

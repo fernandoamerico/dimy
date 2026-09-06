@@ -4,10 +4,12 @@ import { useEffect, useState, Suspense } from 'react';
 import { getCollectionBySlug, getDocuments, deleteDocument } from '@/core/content/actions';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Layers, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Layers, Plus, Edit2, Trash2, Eye } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { usePermissions } from '@/core/hooks/usePermissions';
 
 function ContentListContent() {
+  const { canManageContent } = usePermissions();
   const searchParams = useSearchParams();
   const slug = searchParams.get('slug') as string;
   const router = useRouter();
@@ -56,6 +58,7 @@ function ContentListContent() {
   }, [slug, router]);
 
   const handleDelete = async (id: string) => {
+    if (!canManageContent) return;
     if (!confirm('Excluir este registro?')) return;
     const res = await deleteDocument(id, slug);
     if (res.success) {
@@ -88,13 +91,15 @@ function ContentListContent() {
           </p>
         </div>
         
-        <Link 
-          href={`/content/nova?slug=${collection.slug}`}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 dark:bg-emerald-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-emerald-600 transition-colors shadow-sm font-medium"
-        >
-          <Plus className="w-4 h-4" />
-          Novo Registro
-        </Link>
+        {canManageContent && (
+          <Link 
+            href={`/content/nova?slug=${collection.slug}`}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 dark:bg-emerald-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-emerald-600 transition-colors shadow-sm font-medium"
+          >
+            <Plus className="w-4 h-4" />
+            Novo Registro
+          </Link>
+        )}
       </div>
 
       <div className="bg-white/60 dark:bg-neutral-900/60 backdrop-blur-md border border-slate-200/50 dark:border-neutral-800 rounded-2xl shadow-sm overflow-hidden">
@@ -107,13 +112,15 @@ function ContentListContent() {
             <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6">
               Esta coleção está vazia. Comece adicionando um novo registro.
             </p>
-            <Link 
-              href={`/content/nova?slug=${collection.slug}`}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors shadow-sm font-medium"
-            >
-              <Plus className="w-4 h-4" />
-              Criar {collection.name}
-            </Link>
+            {canManageContent && (
+              <Link 
+                href={`/content/nova?slug=${collection.slug}`}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors shadow-sm font-medium"
+              >
+                <Plus className="w-4 h-4" />
+                Criar {collection.name}
+              </Link>
+            )}
           </div>
         ) : (
           <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-slate-200 dark:border-neutral-800 overflow-x-auto">
@@ -144,21 +151,34 @@ function ContentListContent() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Link 
-                            href={`/content/item?slug=${collection.slug}&id=${doc.id}`}
-                            className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-emerald-400 hover:bg-blue-50 dark:hover:bg-emerald-500/10 rounded-md transition-colors"
-                            title="Editar"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </Link>
-                          
-                          <button 
-                            onClick={() => handleDelete(doc.id)}
-                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-md transition-colors"
-                            title="Excluir"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          {canManageContent ? (
+                            <>
+                              <Link 
+                                href={`/content/item?slug=${collection.slug}&id=${doc.id}`}
+                                className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-emerald-400 hover:bg-blue-50 dark:hover:bg-emerald-500/10 rounded-md transition-colors"
+                                title="Editar"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </Link>
+                              
+                              <button 
+                                onClick={() => handleDelete(doc.id)}
+                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-md transition-colors"
+                                title="Excluir"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </>
+                          ) : (
+                            <Link 
+                              href={`/content/item?slug=${collection.slug}&id=${doc.id}`}
+                              className="p-2 text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10 rounded-md transition-colors flex items-center gap-1 font-medium text-xs"
+                              title="Visualizar"
+                            >
+                              <Eye className="w-4 h-4" />
+                              <span>Visualizar</span>
+                            </Link>
+                          )}
                         </div>
                       </td>
                     </tr>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { getCollections, duplicateCollection } from '@/core/schema/actions';
 import { getDocuments } from '@/core/content/actions';
-import { FileText, Plus, Layers, Folder, Search, Trash2, LayoutGrid, List, Copy } from 'lucide-react';
+import { FileText, Plus, Layers, Folder, Search, Trash2, LayoutGrid, List, Copy, Eye } from 'lucide-react';
 import CreateCategoryModal from '@/components/publications/CreateCategoryModal';
 import { DeleteCategoryModal } from '@/components/publications/DeleteCategoryModal';
 import Link from 'next/link';
@@ -11,7 +11,10 @@ import { toast } from 'sonner';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageContainer } from '@/components/layout/PageContainer';
 
+import { usePermissions } from '@/core/hooks/usePermissions';
+
 export default function PublicationsPage() {
+  const { canManageContent } = usePermissions();
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -126,13 +129,15 @@ export default function PublicationsPage() {
               </button>
             </div>
 
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-sm font-medium rounded-xl transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Nova Categoria
-            </button>
+            {canManageContent && (
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-sm font-medium rounded-xl transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Nova Categoria
+              </button>
+            )}
           </div>
         </div>
 
@@ -192,28 +197,30 @@ export default function PublicationsPage() {
                       <FileText className="w-4 h-4" />
                       {count} Publicações
                     </div>
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={(e) => handleDuplicate(cat.id, e)}
-                        disabled={isDuplicating === cat.id}
-                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors disabled:opacity-50"
-                        title="Duplicar Categoria"
-                      >
-                        <Copy className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setCategoryToDelete(cat);
-                          setIsDeleteModalOpen(true);
-                        }}
-                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
-                        title="Excluir Categoria"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                    {canManageContent && (
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={(e) => handleDuplicate(cat.id, e)}
+                          disabled={isDuplicating === cat.id}
+                          className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors disabled:opacity-50"
+                          title="Duplicar Categoria"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setCategoryToDelete(cat);
+                            setIsDeleteModalOpen(true);
+                          }}
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                          title="Excluir Categoria"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -266,28 +273,40 @@ export default function PublicationsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button 
-                            onClick={(e) => handleDuplicate(cat.id, e)}
-                            disabled={isDuplicating === cat.id}
-                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors disabled:opacity-50"
-                            title="Duplicar Categoria"
-                          >
-                            <Copy className="w-4 h-4" />
-                          </button>
-                          <button 
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setCategoryToDelete(cat);
-                              setIsDeleteModalOpen(true);
-                            }}
-                            className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 rounded-lg transition-colors"
-                            title="Excluir Categoria"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
+                        {canManageContent ? (
+                          <div className="flex items-center justify-end gap-2">
+                            <button 
+                              onClick={(e) => handleDuplicate(cat.id, e)}
+                              disabled={isDuplicating === cat.id}
+                              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors disabled:opacity-50"
+                              title="Duplicar Categoria"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setCategoryToDelete(cat);
+                                setIsDeleteModalOpen(true);
+                              }}
+                              className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                              title="Excluir Categoria"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-end">
+                            <Link
+                              href={`/publicacoes/list?slug=${cat.slug}`}
+                              className="p-2 text-blue-600 hover:bg-blue-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10 rounded-lg transition-colors"
+                              title="Visualizar Categoria"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Link>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   );

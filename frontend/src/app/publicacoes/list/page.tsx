@@ -6,13 +6,15 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { getCollectionBySlug, getDocuments, deleteDocument, createDocument } from '@/core/content/actions';
 import { getCollections } from '@/core/schema/actions';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Plus, Settings, FileText, ArrowLeft, Trash2, Edit2, Search, Filter, ChevronLeft, ChevronRight, X, Copy } from 'lucide-react';
+import { Plus, Settings, FileText, ArrowLeft, Trash2, Edit2, Search, Filter, ChevronLeft, ChevronRight, X, Copy, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { usePermissions } from '@/core/hooks/usePermissions';
 
 function PublicationItemsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { canManageContent, canManageSchema } = usePermissions();
   const slug = searchParams.get('slug') as string;
   const [collection, setCollection] = useState<any>(null);
   const [documents, setDocuments] = useState<any[]>([]);
@@ -27,8 +29,6 @@ function PublicationItemsContent() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-
-
 
   const fetchContent = async () => {
     setLoading(true);
@@ -152,21 +152,25 @@ function PublicationItemsContent() {
           </div>
           
           <div className="flex items-center gap-3">
-            <Link 
-              href={`/publicacoes/configuracoes?slug=${collection?.slug}`}
-              className="flex items-center gap-2 px-4 py-2 bg-transparent hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-xl transition-colors"
-            >
-              <Settings className="w-4 h-4" />
-              Configurações
-            </Link>
-            <button
-              onClick={handleCreatePost}
-              disabled={isCreating}
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-sm font-medium rounded-xl transition-colors shadow-sm shadow-blue-500/20 disabled:opacity-50"
-            >
-              <Plus className="w-4 h-4" />
-              Nova Publicação
-            </button>
+            {canManageSchema && (
+              <Link 
+                href={`/publicacoes/configuracoes?slug=${collection?.slug}`}
+                className="flex items-center gap-2 px-4 py-2 bg-transparent hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-xl transition-colors"
+              >
+                <Settings className="w-4 h-4" />
+                Configurações
+              </Link>
+            )}
+            {canManageContent && (
+              <button
+                onClick={handleCreatePost}
+                disabled={isCreating}
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-sm font-medium rounded-xl transition-colors shadow-sm shadow-blue-500/20 disabled:opacity-50"
+              >
+                <Plus className="w-4 h-4" />
+                Nova Publicação
+              </button>
+            )}
           </div>
         </div>
 
@@ -180,16 +184,18 @@ function PublicationItemsContent() {
               Nenhuma publicação ainda
             </h3>
             <p className="text-gray-500 dark:text-gray-400 max-w-md mb-8">
-              Você ainda não criou nenhum item para {collection?.name}. Clique no botão abaixo para começar.
+              Você ainda não possui itens cadastrados em {collection?.name}.
             </p>
-            <button
-              onClick={handleCreatePost}
-              disabled={isCreating}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white font-medium rounded-xl transition-all shadow-sm shadow-blue-500/20 hover:shadow-blue-500/40 disabled:opacity-50"
-            >
-              <Plus className="w-5 h-5" />
-              Criar Primeira Publicação
-            </button>
+            {canManageContent && (
+              <button
+                onClick={handleCreatePost}
+                disabled={isCreating}
+                className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white font-medium rounded-xl transition-all shadow-sm shadow-blue-500/20 hover:shadow-blue-500/40 disabled:opacity-50"
+              >
+                <Plus className="w-5 h-5" />
+                Criar Primeira Publicação
+              </button>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
@@ -206,7 +212,7 @@ function PublicationItemsContent() {
                 />
               </div>
               <div className="flex items-center gap-3">
-                {selectedDocs.length > 0 && (
+                {canManageContent && selectedDocs.length > 0 && (
                   <button
                     onClick={handleBulkDelete}
                     className="flex items-center gap-2 px-3 py-2 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 text-sm font-medium rounded-xl transition-colors"
@@ -235,14 +241,16 @@ function PublicationItemsContent() {
               <table className="w-full min-w-[700px] text-left text-sm text-gray-500 dark:text-gray-400">
                 <thead className="bg-gray-50/50 dark:bg-neutral-950/50 border-b border-gray-200 dark:border-neutral-800 text-xs uppercase text-gray-500 dark:text-neutral-400">
                   <tr>
-                    <th className="px-6 py-4 w-12">
-                      <input 
-                        type="checkbox"
-                        checked={paginatedDocuments.length > 0 && selectedDocs.length === paginatedDocuments.length}
-                        onChange={handleSelectAll}
-                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-neutral-600 dark:bg-neutral-800"
-                      />
-                    </th>
+                    {canManageContent && (
+                      <th className="px-6 py-4 w-12">
+                        <input 
+                          type="checkbox"
+                          checked={paginatedDocuments.length > 0 && selectedDocs.length === paginatedDocuments.length}
+                          onChange={handleSelectAll}
+                          className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-neutral-600 dark:bg-neutral-800"
+                        />
+                      </th>
+                    )}
                     <th className="px-6 py-4 font-semibold">Título</th>
                     <th className="px-6 py-4 font-semibold">Status</th>
                     <th className="px-6 py-4 font-semibold">Última Atualização</th>
@@ -255,14 +263,16 @@ function PublicationItemsContent() {
                     const isPublished = doc.data?._status === 'published';
                     return (
                       <tr key={doc.id} className={`transition-colors group ${selectedDocs.includes(doc.id) ? 'bg-blue-50/50 dark:bg-emerald-500/5' : 'hover:bg-gray-50 dark:hover:bg-neutral-800/50'}`}>
-                        <td className="px-6 py-4">
-                          <input 
-                            type="checkbox"
-                            checked={selectedDocs.includes(doc.id)}
-                            onChange={() => handleSelectOne(doc.id)}
-                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-neutral-600 dark:bg-neutral-800"
-                          />
-                        </td>
+                        {canManageContent && (
+                          <td className="px-6 py-4">
+                            <input 
+                              type="checkbox"
+                              checked={selectedDocs.includes(doc.id)}
+                              onChange={() => handleSelectOne(doc.id)}
+                              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-neutral-600 dark:bg-neutral-800"
+                            />
+                          </td>
+                        )}
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             {doc.data?._cover?.image ? (
@@ -297,25 +307,37 @@ function PublicationItemsContent() {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => handleDuplicate(doc)}
-                              className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-emerald-400 hover:bg-blue-50 dark:hover:bg-neutral-800 rounded-lg transition-colors"
-                              title="Duplicar"
-                            >
-                              <Copy className="w-4 h-4" />
-                            </button>
-                            <Link href={`/publicacoes/item?slug=${collection.slug}&id=${doc.id}`}
-                              className="p-2 text-blue-600 hover:bg-blue-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10 rounded-lg transition-colors"
-                              title="Editar"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </Link>
-                            <button onClick={() => handleDelete(doc.id)}
-                              className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 rounded-lg transition-colors"
-                              title="Excluir"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            {canManageContent ? (
+                              <>
+                                <button
+                                  onClick={() => handleDuplicate(doc)}
+                                  className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-emerald-400 hover:bg-blue-50 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+                                  title="Duplicar"
+                                >
+                                  <Copy className="w-4 h-4" />
+                                </button>
+                                <Link href={`/publicacoes/item?slug=${collection.slug}&id=${doc.id}`}
+                                  className="p-2 text-blue-600 hover:bg-blue-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10 rounded-lg transition-colors"
+                                  title="Editar"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </Link>
+                                <button onClick={() => handleDelete(doc.id)}
+                                  className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                                  title="Excluir"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </>
+                            ) : (
+                              <Link href={`/publicacoes/item?slug=${collection.slug}&id=${doc.id}`}
+                                className="p-2 text-blue-600 hover:bg-blue-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10 rounded-lg transition-colors flex items-center gap-1 text-xs font-medium"
+                                title="Visualizar"
+                              >
+                                <Eye className="w-4 h-4" />
+                                <span className="hidden sm:inline">Visualizar</span>
+                              </Link>
+                            )}
                           </div>
                         </td>
                       </tr>

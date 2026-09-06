@@ -6,11 +6,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { getCollectionBySlug, getDocuments, deleteDocument, createDocument, duplicateDocument, updateDocument } from '@/core/content/actions';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import EditPageModal from '@/components/pages/EditPageModal';
-import { Plus, FileText, ArrowLeft, Trash2, Edit2, Search, Loader2, Copy, Settings, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, FileText, ArrowLeft, Trash2, Edit2, Search, Loader2, Copy, Settings, ArrowUp, ArrowDown, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { usePermissions } from '@/core/hooks/usePermissions';
 
 function PaginasListContent() {
+  const { canManageContent } = usePermissions();
   const router = useRouter();
   const searchParams = useSearchParams();
   const slug = searchParams.get('slug') as string;
@@ -196,22 +198,24 @@ function PaginasListContent() {
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsEditModalOpen(true)}
-              className="flex items-center justify-center p-2 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-xl transition-colors border border-transparent hover:border-emerald-200 dark:hover:border-emerald-900/50"
-              title="Configurações da Página"
-            >
-              <Settings className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => setIsNewModalOpen(true)}
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-xl transition-colors shadow-sm shadow-emerald-500/20"
-            >
-              <Plus className="w-4 h-4" />
-              Nova Seção
-            </button>
-          </div>
+          {canManageContent && (
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setIsEditModalOpen(true)}
+                className="flex items-center justify-center p-2 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-xl transition-colors border border-transparent hover:border-emerald-200 dark:hover:border-emerald-900/50"
+                title="Configurações da Página"
+              >
+                <Settings className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setIsNewModalOpen(true)}
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-xl transition-colors shadow-sm shadow-emerald-500/20"
+              >
+                <Plus className="w-4 h-4" />
+                Nova Seção
+              </button>
+            </div>
+          )}
         </div>
 
         {/* List */}
@@ -226,13 +230,15 @@ function PaginasListContent() {
             <p className="text-gray-500 dark:text-gray-400 max-w-md mb-8">
               Sua página está vazia. Crie a primeira seção (como um Banner ou Rodapé) para começar a desenhar.
             </p>
-            <button
-              onClick={() => setIsNewModalOpen(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl transition-all shadow-sm shadow-emerald-500/20 hover:shadow-emerald-500/40"
-            >
-              <Plus className="w-5 h-5" />
-              Criar Primeira Seção
-            </button>
+            {canManageContent && (
+              <button
+                onClick={() => setIsNewModalOpen(true)}
+                className="flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl transition-all shadow-sm shadow-emerald-500/20 hover:shadow-emerald-500/40"
+              >
+                <Plus className="w-5 h-5" />
+                Criar Primeira Seção
+              </button>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
@@ -291,38 +297,49 @@ function PaginasListContent() {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <Link href={`/paginas/item?slug=${collection.slug}&id=${doc.id}`}
-                              className="p-2 text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10 rounded-lg transition-colors flex items-center gap-2 font-medium"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                              <span className="hidden sm:inline">Editar Visual</span>
-                            </Link>
-                            
-                            {!searchQuery && (
-                              <div className="flex items-center mx-2 border-x border-gray-200 dark:border-neutral-700 px-2">
-                                <button onClick={() => moveSection(index, 'up')} disabled={index === 0 || isReordering}
-                                  className="p-1.5 text-gray-400 hover:text-blue-500 dark:hover:text-emerald-400 disabled:opacity-30 rounded transition-colors" title="Mover para cima">
-                                  <ArrowUp className="w-4 h-4" />
-                                </button>
-                                <button onClick={() => moveSection(index, 'down')} disabled={index === filteredDocuments.length - 1 || isReordering}
-                                  className="p-1.5 text-gray-400 hover:text-blue-500 dark:hover:text-emerald-400 disabled:opacity-30 rounded transition-colors" title="Mover para baixo">
-                                  <ArrowDown className="w-4 h-4" />
-                                </button>
-                              </div>
-                            )}
+                            {canManageContent ? (
+                              <>
+                                <Link href={`/paginas/item?slug=${collection.slug}&id=${doc.id}`}
+                                  className="p-2 text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10 rounded-lg transition-colors flex items-center gap-2 font-medium"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                  <span className="hidden sm:inline">Editar Visual</span>
+                                </Link>
+                                
+                                {!searchQuery && (
+                                  <div className="flex items-center mx-2 border-x border-gray-200 dark:border-neutral-700 px-2">
+                                    <button onClick={() => moveSection(index, 'up')} disabled={index === 0 || isReordering}
+                                      className="p-1.5 text-gray-400 hover:text-blue-500 dark:hover:text-emerald-400 disabled:opacity-30 rounded transition-colors" title="Mover para cima">
+                                      <ArrowUp className="w-4 h-4" />
+                                    </button>
+                                    <button onClick={() => moveSection(index, 'down')} disabled={index === filteredDocuments.length - 1 || isReordering}
+                                      className="p-1.5 text-gray-400 hover:text-blue-500 dark:hover:text-emerald-400 disabled:opacity-30 rounded transition-colors" title="Mover para baixo">
+                                      <ArrowDown className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                )}
 
-                            <button onClick={() => handleDuplicateSection(doc.id)}
-                              className="p-2 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-500/10 rounded-lg transition-colors"
-                              title="Duplicar"
-                            >
-                              <Copy className="w-4 h-4" />
-                            </button>
-                            <button onClick={() => setDeleteItem(doc.id)}
-                              className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 rounded-lg transition-colors"
-                              title="Excluir"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                                <button onClick={() => handleDuplicateSection(doc.id)}
+                                  className="p-2 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-500/10 rounded-lg transition-colors"
+                                  title="Duplicar"
+                                >
+                                  <Copy className="w-4 h-4" />
+                                </button>
+                                <button onClick={() => setDeleteItem(doc.id)}
+                                  className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                                  title="Excluir"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </>
+                            ) : (
+                              <Link href={`/paginas/item?slug=${collection.slug}&id=${doc.id}`}
+                                className="p-2 text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10 rounded-lg transition-colors flex items-center gap-2 font-medium"
+                              >
+                                <Eye className="w-4 h-4" />
+                                <span className="hidden sm:inline">Visualizar</span>
+                              </Link>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -346,7 +363,7 @@ function PaginasListContent() {
           onClose={() => setIsEditModalOpen(false)}
           page={collection}
           onSuccess={() => {
-            fetchData();
+            fetchContent();
           }}
         />
 

@@ -15,9 +15,10 @@ import { toast } from 'sonner';
 import {
   ArrowLeft, Image as ImageIcon, List, MousePointerClick,
   Save, Trash2, Plus, Settings, DollarSign, Barcode, Scale,
-  Layers, ChevronDown, GripVertical, X, AlertCircle, CheckSquare, ListChecks, ToggleLeft, Library, Copy, Star, Award, ThumbsUp
+  Layers, ChevronDown, GripVertical, X, AlertCircle, CheckSquare, ListChecks, ToggleLeft, Library, Copy, Star, Award, ThumbsUp, Eye
 } from 'lucide-react';
 import Link from 'next/link';
+import { usePermissions } from '@/core/hooks/usePermissions';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Variant {
@@ -51,6 +52,7 @@ export function ProductEditor({
   isNew?: boolean;
 }) {
   const router = useRouter();
+  const { canEdit } = usePermissions();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState<Record<string, any>>(document?.data || {});
@@ -215,22 +217,33 @@ export function ProductEditor({
           </Link>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{isNew ? 'Novo Produto' : 'Editar Produto'}</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {isNew ? 'Novo Produto' : (canEdit ? 'Editar Produto' : 'Visualizar Produto')}
+              </h1>
               <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50">
                 {collection.name}
               </span>
+              {!canEdit && (
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50 flex items-center gap-1.5">
+                  <Eye className="w-3.5 h-3.5" /> Modo de Visualização (Auditor)
+                </span>
+              )}
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Preencha as informações do produto e blocos extras.</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              {canEdit ? 'Preencha as informações do produto e blocos extras.' : 'Visualização em modo somente leitura.'}
+            </p>
           </div>
         </div>
-        <button onClick={handleSave} disabled={isSubmitting}
-          className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-sm font-semibold rounded-xl transition-all shadow-sm shadow-blue-500/20 hover:shadow-blue-500/40 disabled:opacity-50">
-          <Save className="w-4 h-4" />
-          {isSubmitting ? 'Salvando...' : 'Salvar Produto'}
-        </button>
+        {canEdit && (
+          <button onClick={handleSave} disabled={isSubmitting}
+            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-sm font-semibold rounded-xl transition-all shadow-sm shadow-blue-500/20 hover:shadow-blue-500/40 disabled:opacity-50">
+            <Save className="w-4 h-4" />
+            {isSubmitting ? 'Salvando...' : 'Salvar Produto'}
+          </button>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+      <div className={`grid grid-cols-1 lg:grid-cols-3 gap-8 items-start ${!canEdit ? 'pointer-events-none opacity-90 select-none' : ''}`}>
 
         {/* ─── EDITOR (left 2/3) ─────────────────────────────────────────── */}
         <div className="lg:col-span-2 space-y-6">

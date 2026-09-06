@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createDocument, updateDocument } from '@/core/content/actions';
-import { ArrowLeft, Save, Trash2, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Save, Trash2, Image as ImageIcon, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { toast } from 'sonner';
 import { ImageUploader } from '@/components/ui/ImageUploader';
+import { usePermissions } from '@/core/hooks/usePermissions';
 
 export function ContentForm({ 
   collection, 
@@ -18,6 +19,7 @@ export function ContentForm({
   documentId?: string | null,
   backUrl?: string
 }) {
+  const { canEdit } = usePermissions();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<Record<string, any>>(initialData);
@@ -25,11 +27,13 @@ export function ContentForm({
   const resolvedBackUrl = backUrl || `/content/list?slug=${collection.slug}`;
 
   const handleChange = (fieldName: string, value: any) => {
+    if (!canEdit) return;
     setFormData(prev => ({ ...prev, [fieldName]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canEdit) return;
     setIsSubmitting(true);
     
     let result;
@@ -56,23 +60,32 @@ export function ContentForm({
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {documentId ? `Editar ${collection.name}` : `Novo ${collection.name}`}
-            </h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {!canEdit 
+                  ? `Visualizar ${collection.name}` 
+                  : documentId ? `Editar ${collection.name}` : `Novo ${collection.name}`}
+              </h1>
+              {!canEdit && (
+                <span className="shrink-0 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50 flex items-center gap-1">
+                  <ShieldAlert className="w-3.5 h-3.5" /> Modo de Visualização (Auditor)
+                </span>
+              )}
+            </div>
             <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
-              Preencha os campos abaixo para salvar.
+              {!canEdit ? 'Visualizando detalhes em modo de apenas leitura.' : 'Preencha os campos abaixo para salvar.'}
             </p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="bg-white/60 dark:bg-neutral-900/50 backdrop-blur-md dark:border dark:border-neutral-800 rounded-3xl p-6 sm:p-8 dark:shadow-sm space-y-6">
+          <div className={`bg-white/60 dark:bg-neutral-900/50 backdrop-blur-md dark:border dark:border-neutral-800 rounded-3xl p-6 sm:p-8 dark:shadow-sm space-y-6 ${!canEdit ? 'pointer-events-none opacity-90 select-none' : ''}`}>
             
             {(collection.fields || []).map((field: any) => (
               <div key={field.id} className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
                   {field.label}
-                  {field.required && <span className="text-red-500 text-xs">*</span>}
+                  {field.required && canEdit && <span className="text-red-500 text-xs">*</span>}
                 </label>
                 
                 {field.type === 'text' && (
@@ -80,7 +93,8 @@ export function ContentForm({
                     type="text" 
                     value={formData[field.name] || ''}
                     onChange={(e) => handleChange(field.name, e.target.value)}
-                    required={field.required}
+                    required={field.required && canEdit}
+                    readOnly={!canEdit}
                     className="w-full px-4 py-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 text-gray-900 dark:text-white transition-shadow"
                   />
                 )}
@@ -89,7 +103,8 @@ export function ContentForm({
                   <textarea 
                     value={formData[field.name] || ''}
                     onChange={(e) => handleChange(field.name, e.target.value)}
-                    required={field.required}
+                    required={field.required && canEdit}
+                    readOnly={!canEdit}
                     rows={6}
                     className="w-full px-4 py-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 text-gray-900 dark:text-white transition-shadow resize-y"
                   />
@@ -100,7 +115,8 @@ export function ContentForm({
                     type="number" 
                     value={formData[field.name] || ''}
                     onChange={(e) => handleChange(field.name, e.target.value)}
-                    required={field.required}
+                    required={field.required && canEdit}
+                    readOnly={!canEdit}
                     className="w-full px-4 py-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 text-gray-900 dark:text-white transition-shadow"
                   />
                 )}
@@ -111,6 +127,7 @@ export function ContentForm({
                       type="checkbox" 
                       checked={!!formData[field.name]}
                       onChange={(e) => handleChange(field.name, e.target.checked)}
+                      disabled={!canEdit}
                       className="w-5 h-5 text-blue-600 dark:text-emerald-500 rounded border-gray-300 dark:border-neutral-700 focus:ring-blue-500 dark:focus:ring-emerald-500 bg-white dark:bg-neutral-900"
                     />
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Sim / Ativo</span>
@@ -133,28 +150,30 @@ export function ContentForm({
 
           <div className="flex justify-end gap-3 pt-4">
             <Link 
-              href={`/content/list?slug=${collection.slug}`}
+              href={resolvedBackUrl}
               className="px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors shadow-sm"
             >
-              Cancelar
+              {!canEdit ? 'Voltar' : 'Cancelar'}
             </Link>
-            <button 
-              type="submit"
-              disabled={isSubmitting}
-              className="px-6 py-3 text-sm font-medium text-white bg-blue-600 dark:bg-emerald-500 rounded-xl hover:bg-blue-700 dark:hover:bg-emerald-600 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Salvando...
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4" />
-                  Salvar
-                </>
-              )}
-            </button>
+            {canEdit && (
+              <button 
+                type="submit"
+                disabled={isSubmitting}
+                className="px-6 py-3 text-sm font-medium text-white bg-blue-600 dark:bg-emerald-500 rounded-xl hover:bg-blue-700 dark:hover:bg-emerald-600 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Salvar
+                  </>
+                )}
+              </button>
+            )}
           </div>
       </form>
       </div>

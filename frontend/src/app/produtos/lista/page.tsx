@@ -6,13 +6,15 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { getCollectionBySlug, getDocuments, deleteDocument, createDocument } from '@/core/content/actions';
 import { getCollections } from '@/core/schema/actions';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Plus, Settings, Package, ArrowLeft, Trash2, Edit2, Tags, X, Copy } from 'lucide-react';
+import { Plus, Settings, Package, ArrowLeft, Trash2, Edit2, Tags, X, Copy, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { usePermissions } from '@/core/hooks/usePermissions';
 
 function ProductItemsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { canManageContent, canManageSchema } = usePermissions();
   const slug = searchParams.get('slug') as string;
   const [collection, setCollection] = useState<any>(null);
   const [allCategories, setAllCategories] = useState<any[]>([]);
@@ -89,7 +91,7 @@ function ProductItemsContent() {
   }, [slug]);
 
   const handleDelete = (id: string, itemSlug: string) => {
-    setDeleteItem({ id, itemSlug });
+    setDeleteItem({ id, slug: itemSlug });
   };
 
   if (loading) {
@@ -123,7 +125,7 @@ function ProductItemsContent() {
           </div>
           
           <div className="flex items-center gap-3">
-            {collection && (
+            {canManageSchema && collection && (
               <Link 
                 href={`/produtos/categorias/builder?id=${collection.id}`}
                 className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-xl transition-colors"
@@ -132,29 +134,31 @@ function ProductItemsContent() {
                 Configurar Esqueleto
               </Link>
             )}
-            {collection ? (
-              <Link 
-                href={`/produtos/item?slug=${collection.slug}&id=novo`}
-                className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-sm font-medium rounded-xl transition-colors shadow-sm shadow-blue-500/20"
-              >
-                <Plus className="w-4 h-4" />
-                Novo Produto
-              </Link>
-            ) : allCategories.length > 0 && (
-              <div className="relative group">
-                <button className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-sm font-medium rounded-xl transition-colors shadow-sm shadow-blue-500/20">
+            {canManageContent && (
+              collection ? (
+                <Link 
+                  href={`/produtos/item?slug=${collection.slug}&id=novo`}
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-sm font-medium rounded-xl transition-colors shadow-sm shadow-blue-500/20"
+                >
                   <Plus className="w-4 h-4" />
                   Novo Produto
-                </button>
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 flex flex-col py-2">
-                  <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase">Escolha a categoria:</div>
-                  {allCategories.map(cat => (
-                    <Link key={cat.id} href={`/produtos/item?slug=${cat.slug}&id=novo`} className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-800">
-                      {cat.name}
-                    </Link>
-                  ))}
+                </Link>
+              ) : allCategories.length > 0 && (
+                <div className="relative group">
+                  <button className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-sm font-medium rounded-xl transition-colors shadow-sm shadow-blue-500/20">
+                    <Plus className="w-4 h-4" />
+                    Novo Produto
+                  </button>
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 flex flex-col py-2">
+                    <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase">Escolha a categoria:</div>
+                    {allCategories.map(cat => (
+                      <Link key={cat.id} href={`/produtos/item?slug=${cat.slug}&id=novo`} className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-800">
+                        {cat.name}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )
             )}
           </div>
         </div>
@@ -169,7 +173,7 @@ function ProductItemsContent() {
               Nenhum produto encontrado
             </h3>
             <p className="text-gray-500 dark:text-gray-400 max-w-md mb-8">
-              Você ainda não cadastrou produtos {collection ? 'nesta categoria' : ''}. Clique no botão acima para começar.
+              Você ainda não possui produtos cadastrados {collection ? 'nesta categoria' : ''}.
             </p>
           </div>
         ) : (
@@ -239,25 +243,37 @@ function ProductItemsContent() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => handleDuplicate(doc)}
-                            className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-emerald-400 hover:bg-blue-50 dark:hover:bg-neutral-800 rounded-lg transition-colors"
-                            title="Duplicar"
-                          >
-                            <Copy className="w-4 h-4" />
-                          </button>
-                          <Link href={`/produtos/item?slug=${itemSlug}&id=${doc.id}`}
-                            className="p-2 text-blue-600 hover:bg-blue-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10 rounded-lg transition-colors"
-                            title="Editar"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </Link>
-                          <button onClick={() => handleDelete(doc.id, itemSlug)}
-                            className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 rounded-lg transition-colors"
-                            title="Excluir"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          {canManageContent ? (
+                            <>
+                              <button
+                                onClick={() => handleDuplicate(doc)}
+                                className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-emerald-400 hover:bg-blue-50 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+                                title="Duplicar"
+                              >
+                                <Copy className="w-4 h-4" />
+                              </button>
+                              <Link href={`/produtos/item?slug=${itemSlug}&id=${doc.id}`}
+                                className="p-2 text-blue-600 hover:bg-blue-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10 rounded-lg transition-colors"
+                                title="Editar"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </Link>
+                              <button onClick={() => handleDelete(doc.id, itemSlug)}
+                                className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                                title="Excluir"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </>
+                          ) : (
+                            <Link href={`/produtos/item?slug=${itemSlug}&id=${doc.id}`}
+                              className="p-2 text-blue-600 hover:bg-blue-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10 rounded-lg transition-colors flex items-center gap-1 text-xs font-medium"
+                              title="Visualizar"
+                            >
+                              <Eye className="w-4 h-4" />
+                              <span className="hidden sm:inline">Visualizar</span>
+                            </Link>
+                          )}
                         </div>
                       </td>
                     </tr>

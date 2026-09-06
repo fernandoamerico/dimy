@@ -3,15 +3,17 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { getCollections, deleteCollection, duplicateCollection } from '@/core/schema/actions';
-import { FileText, Plus, Layers, Folder, Layout, Trash2, X, AlertTriangle, Copy, Settings } from 'lucide-react';
+import { FileText, Plus, Layers, Folder, Layout, Trash2, X, AlertTriangle, Copy, Settings, Eye } from 'lucide-react';
 import CreatePageModal from '@/components/pages/CreatePageModal';
 import EditPageModal from '@/components/pages/EditPageModal';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { toast } from 'sonner';
+import { usePermissions } from '@/core/hooks/usePermissions';
 
 export default function PagesListPage() {
+  const { canManageContent } = usePermissions();
   const [pages, setPages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -116,13 +118,15 @@ export default function PagesListPage() {
             </p>
           </div>
           
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-sm font-medium rounded-xl transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Nova Página
-          </button>
+          {canManageContent && (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-sm font-medium rounded-xl transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Nova Página
+            </button>
+          )}
         </div>
 
         {pages.length === 0 ? (
@@ -136,13 +140,15 @@ export default function PagesListPage() {
             <p className="text-gray-500 dark:text-gray-400 max-w-md mb-8">
               Você ainda não possui nenhuma página principal. Crie sua primeira página, como "Home", para depois adicionar seções a ela.
             </p>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white font-medium rounded-xl transition-all shadow-sm shadow-blue-500/20 hover:shadow-blue-500/40"
-            >
-              <Plus className="w-5 h-5" />
-              Criar Primeira Página
-            </button>
+            {canManageContent && (
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white font-medium rounded-xl transition-all shadow-sm shadow-blue-500/20 hover:shadow-blue-500/40"
+              >
+                <Plus className="w-5 h-5" />
+                Criar Primeira Página
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -178,40 +184,50 @@ export default function PagesListPage() {
                     <div className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-gray-400">
                       Criado em {page.created_at ? new Date(page.created_at).toLocaleDateString('pt-BR') : '...'}
                     </div>
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setPageToEdit(page);
-                          setIsEditModalOpen(true);
-                        }}
-                        className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors"
-                        title="Configurações da Página"
+                    {canManageContent ? (
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setPageToEdit(page);
+                            setIsEditModalOpen(true);
+                          }}
+                          className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors"
+                          title="Configurações da Página"
+                        >
+                          <Settings className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={(e) => handleDuplicate(page.id, e)}
+                          disabled={isDuplicating === page.id}
+                          className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors disabled:opacity-50"
+                          title="Duplicar Página"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setPageToDelete(page);
+                            setIsDeleteModalOpen(true);
+                          }}
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                          title="Excluir Página"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <Link
+                        href={`/paginas/list?slug=${page.slug}`}
+                        className="px-3 py-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 rounded-lg transition-colors flex items-center gap-1.5"
                       >
-                        <Settings className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={(e) => handleDuplicate(page.id, e)}
-                        disabled={isDuplicating === page.id}
-                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors disabled:opacity-50"
-                        title="Duplicar Página"
-                      >
-                        <Copy className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setPageToDelete(page);
-                          setIsDeleteModalOpen(true);
-                        }}
-                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
-                      title="Excluir Página"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                    </div>
+                        <Eye className="w-3.5 h-3.5" />
+                        Visualizar
+                      </Link>
+                    )}
                   </div>
                 </div>
               );

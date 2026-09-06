@@ -5,11 +5,13 @@ import { createPortal } from 'react-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getCollectionBySlug, getDocuments, deleteDocument, createDocument } from '@/core/content/actions';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Plus, Settings, Images, ArrowLeft, Trash2, Edit2, Search, ImageIcon, X, Copy } from 'lucide-react';
+import { Plus, Settings, Images, ArrowLeft, Trash2, Edit2, Search, ImageIcon, X, Copy, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { usePermissions } from '@/core/hooks/usePermissions';
 
 function BannerItemsContent() {
+  const { canManageContent } = usePermissions();
   const router = useRouter();
   const searchParams = useSearchParams();
   const slug = searchParams.get('slug') as string;
@@ -37,6 +39,7 @@ function BannerItemsContent() {
   }, [slug]);
 
   const handleDuplicate = async (doc: any) => {
+    if (!canManageContent) return;
     try {
       const newData = { ...doc.data };
       if (newData.title) {
@@ -56,10 +59,12 @@ function BannerItemsContent() {
   };
 
   const handleCreatePost = () => {
+    if (!canManageContent) return;
     router.push(`/banners/item?slug=${collection?.slug}&id=nova`);
   };
 
   const handleDelete = (id: string) => {
+    if (!canManageContent) return;
     setDeleteItem(id);
   };
 
@@ -93,15 +98,17 @@ function BannerItemsContent() {
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleCreatePost}
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-sm font-medium rounded-xl transition-colors shadow-sm shadow-blue-500/20"
-            >
-              <Plus className="w-4 h-4" />
-              Novo Banner
-            </button>
-          </div>
+          {canManageContent && (
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleCreatePost}
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-sm font-medium rounded-xl transition-colors shadow-sm shadow-blue-500/20"
+              >
+                <Plus className="w-4 h-4" />
+                Novo Banner
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Content Table */}
@@ -113,13 +120,15 @@ function BannerItemsContent() {
               </div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">Nenhum banner cadastrado</h3>
               <p className="text-gray-500 dark:text-gray-400 mb-6">Comece adicionando seu primeiro banner neste carrossel.</p>
-              <button
-                onClick={handleCreatePost}
-                className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white font-medium rounded-xl transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                Adicionar Banner
-              </button>
+              {canManageContent && (
+                <button
+                  onClick={handleCreatePost}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white font-medium rounded-xl transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Adicionar Banner
+                </button>
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -171,27 +180,40 @@ function BannerItemsContent() {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => handleDuplicate(doc)}
-                              className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-emerald-400 hover:bg-blue-50 dark:hover:bg-neutral-800 rounded-lg transition-colors"
-                              title="Duplicar"
-                            >
-                              <Copy className="w-4 h-4" />
-                            </button>
-                            <Link 
-                              href={`/banners/item?slug=${collection.slug}&id=${doc.id}`}
-                              className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-emerald-400 hover:bg-blue-50 dark:hover:bg-neutral-800 rounded-lg transition-colors"
-                              title="Editar"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </Link>
-                            <button 
-                              onClick={() => handleDelete(doc.id)}
-                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-neutral-800 rounded-lg transition-colors"
-                              title="Excluir"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            {canManageContent ? (
+                              <>
+                                <button
+                                  onClick={() => handleDuplicate(doc)}
+                                  className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-emerald-400 hover:bg-blue-50 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+                                  title="Duplicar"
+                                >
+                                  <Copy className="w-4 h-4" />
+                                </button>
+                                <Link 
+                                  href={`/banners/item?slug=${collection.slug}&id=${doc.id}`}
+                                  className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-emerald-400 hover:bg-blue-50 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+                                  title="Editar"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </Link>
+                                <button 
+                                  onClick={() => handleDelete(doc.id)}
+                                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+                                  title="Excluir"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </>
+                            ) : (
+                              <Link 
+                                href={`/banners/item?slug=${collection.slug}&id=${doc.id}`}
+                                className="p-2 text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10 rounded-lg transition-colors flex items-center gap-1 font-medium text-xs"
+                                title="Visualizar"
+                              >
+                                <Eye className="w-4 h-4" />
+                                <span>Visualizar</span>
+                              </Link>
+                            )}
                           </div>
                         </td>
                       </tr>
