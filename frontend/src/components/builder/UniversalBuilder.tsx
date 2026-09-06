@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { updateCollection, getCollections } from '@/core/schema/actions';
@@ -13,6 +13,7 @@ import {
 import { BLOCK_TYPES, COLOR_MAP, BG_MAP, ICON_MAP, BADGE_MAP } from '@/core/blocks/BlockRegistry';
 import { toast } from 'sonner';
 import { PageContainer } from '@/components/layout/PageContainer';
+import { DeleteCategoryModal } from '@/components/publications/DeleteCategoryModal';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 export type AppType = 'publication' | 'page' | 'product';
@@ -35,6 +36,22 @@ export function UniversalBuilder({
   const [collectionName, setCollectionName] = useState(collection.name);
   const [collectionSlug, setCollectionSlug] = useState(collection.slug);
   const [isCollectionSlugEdited, setIsCollectionSlugEdited] = useState(false);
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [allCategories, setAllCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    getCollections().then((cols) => {
+      setAllCategories(cols.filter((c: any) => {
+        try {
+          const meta = JSON.parse(c.metadata || '{}');
+          if (appType === 'publication') return meta.is_publication === true;
+          if (appType === 'product') return meta.is_product_category === true;
+          return true;
+        } catch { return false; }
+      }));
+    });
+  }, [appType]);
 
   // Parse metadata
   const initialMeta = (() => {
@@ -569,12 +586,22 @@ export function UniversalBuilder({
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Configure a estrutura de blocos e campos padrão.</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {isSubmitting && (
             <span className="text-xs text-gray-500 dark:text-gray-400 font-medium animate-pulse">
               Salvando...
             </span>
           )}
+          <button
+            type="button"
+            onClick={() => setIsDeleteModalOpen(true)}
+            disabled={isSubmitting}
+            className="flex items-center gap-2 px-4 py-2.5 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 border border-red-200 dark:border-red-900/50 text-sm font-semibold rounded-xl transition-all shadow-sm disabled:opacity-50"
+            title="Excluir Categoria"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span className="hidden sm:inline">Excluir Categoria</span>
+          </button>
           <button onClick={handleSaveCategory} disabled={isSubmitting}
             className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-sm font-semibold rounded-xl transition-all shadow-sm shadow-blue-500/20 hover:shadow-blue-500/40 disabled:opacity-50">
             Salvar Configurações
@@ -786,6 +813,17 @@ export function UniversalBuilder({
         </div>,
         document.body
       )}
+      {/* Delete Category Modal */}
+      <DeleteCategoryModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        category={collection}
+        allCategories={allCategories}
+        onSuccess={() => {
+          router.push(backUrl || '/publicacoes');
+          router.refresh();
+        }}
+      />
     </PageContainer>
   );
 }

@@ -12,7 +12,7 @@ import { MediaLibraryModal } from '@/components/media/MediaLibraryModal';
 import { BlockRenderer } from '@/components/blocks/BlockRenderer';
 import { 
   ArrowLeft, Type, Image as ImageIcon, 
-  List, MousePointerClick, Save, Trash2, Plus, Settings, Library, Hash, Globe
+  List, MousePointerClick, Save, Trash2, Plus, Settings, Library, Hash, Globe, HelpCircle, X
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -45,6 +45,15 @@ export function PostEditor({
   
   // SEO
   const [seo, setSeo] = useState(formData._seo || { title: '', description: '', keywords: '' });
+  const [showSeoHelp, setShowSeoHelp] = useState(false);
+
+  const seoVariables = [
+    { code: '{title}', label: 'Título da publicação' },
+    { code: '{slug}', label: 'Slug da URL' },
+    { code: '{author}', label: 'Autor' },
+    { code: '{date}', label: 'Data de publicação' },
+    { code: '{site_name}', label: 'Nome da categoria/site' },
+  ];
   
   // Cover
   const [cover, setCover] = useState(formData._cover || { image: '', alt: '' });
@@ -278,18 +287,109 @@ export function PostEditor({
           )}
 
           {meta.enable_seo !== false && (
-            <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><Settings className="w-4 h-4 text-gray-400" /> SEO</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="text-[10px] font-semibold text-gray-500 uppercase">Meta Title</label>
-                  <input type="text" value={seo.title} onChange={e => setSeo({ ...seo, title: e.target.value })} placeholder="Ex: Meu Post"
-                    className="mt-1 w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" />
+            <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800 relative">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                  <Settings className="w-4 h-4 text-gray-400" /> SEO
+                </h3>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowSeoHelp(!showSeoHelp)}
+                    className="p-1.5 text-gray-500 hover:text-blue-600 dark:hover:text-emerald-400 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg transition-colors flex items-center gap-1 text-xs font-medium"
+                    title="Ver Variáveis Disponíveis"
+                  >
+                    <HelpCircle className="w-4 h-4 text-blue-500" />
+                    <span>Variáveis</span>
+                  </button>
+
+                  {showSeoHelp && (
+                    <div className="absolute right-0 top-8 z-50 w-72 sm:w-80 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-2xl shadow-xl p-4 text-xs animate-in fade-in zoom-in-95 duration-150">
+                      <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-100 dark:border-neutral-700">
+                        <span className="font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+                          <HelpCircle className="w-4 h-4 text-blue-500" /> Variáveis de SEO
+                        </span>
+                        <button onClick={() => setShowSeoHelp(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      <p className="text-gray-500 dark:text-gray-400 mb-3 leading-relaxed">
+                        Insira as variáveis abaixo nos campos. Elas serão substituídas dinamicamente pelas informações do post:
+                      </p>
+                      <div className="space-y-1.5 max-h-56 overflow-y-auto">
+                        {seoVariables.map(v => (
+                          <div key={v.code} className="flex items-center justify-between bg-gray-50 dark:bg-neutral-900 p-2 rounded-xl border border-gray-100 dark:border-neutral-700/50">
+                            <div>
+                              <code className="font-mono text-blue-600 dark:text-emerald-400 font-bold">{v.code}</code>
+                              <span className="block text-[10px] text-gray-500 dark:text-gray-400">{v.label}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSeo(prev => ({ ...prev, title: (prev.title ? prev.title + ' ' : '') + v.code }));
+                                toast.success(`Variável ${v.code} inserida no Meta Title!`);
+                              }}
+                              className="text-[10px] bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 dark:text-emerald-400 px-2 py-1 rounded-lg font-medium transition-colors"
+                            >
+                              + Inserir
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
+              </div>
+
+              <div className="space-y-4">
                 <div>
-                  <label className="text-[10px] font-semibold text-gray-500 uppercase">Meta Description</label>
-                  <textarea value={seo.description} onChange={e => setSeo({ ...seo, description: e.target.value })} rows={3}
-                    className="mt-1 w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" />
+                  <label className="text-[10px] font-semibold text-gray-500 uppercase block mb-1">Meta Title</label>
+                  <input 
+                    type="text" 
+                    value={seo.title} 
+                    onChange={e => setSeo({ ...seo, title: e.target.value })} 
+                    placeholder="Ex: {title} | {site_name}"
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" 
+                  />
+                  <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                    <span className="text-[10px] text-gray-400 mr-1 font-medium">Atalhos:</span>
+                    {seoVariables.map(v => (
+                      <button
+                        key={v.code}
+                        type="button"
+                        onClick={() => setSeo(prev => ({ ...prev, title: (prev.title ? prev.title + ' ' : '') + v.code }))}
+                        className="text-[10px] font-mono bg-gray-100 hover:bg-blue-50 hover:text-blue-600 dark:bg-neutral-800 dark:hover:bg-emerald-500/20 dark:hover:text-emerald-400 text-gray-600 dark:text-gray-400 px-1.5 py-0.5 rounded transition-colors"
+                        title={`Inserir ${v.label}`}
+                      >
+                        + {v.code}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-semibold text-gray-500 uppercase block mb-1">Meta Description</label>
+                  <textarea 
+                    value={seo.description} 
+                    onChange={e => setSeo({ ...seo, description: e.target.value })} 
+                    rows={3}
+                    placeholder="Ex: Confira a publicação {title} por {author}."
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" 
+                  />
+                  <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                    <span className="text-[10px] text-gray-400 mr-1 font-medium">Atalhos:</span>
+                    {seoVariables.map(v => (
+                      <button
+                        key={v.code}
+                        type="button"
+                        onClick={() => setSeo(prev => ({ ...prev, description: (prev.description ? prev.description + ' ' : '') + v.code }))}
+                        className="text-[10px] font-mono bg-gray-100 hover:bg-blue-50 hover:text-blue-600 dark:bg-neutral-800 dark:hover:bg-emerald-500/20 dark:hover:text-emerald-400 text-gray-600 dark:text-gray-400 px-1.5 py-0.5 rounded transition-colors"
+                        title={`Inserir ${v.label}`}
+                      >
+                        + {v.code}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>

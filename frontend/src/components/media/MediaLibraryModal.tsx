@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { getMediaFiles, updateMediaFile, deleteMediaFile } from '@/core/media/actions';
 import type { MediaFile } from '@/core/media/actions';
-import { X, UploadCloud, Search, File, Trash, Loader2, Image as ImageIcon, CheckSquare, Square, Trash2 } from 'lucide-react';
+import { X, UploadCloud, Search, File, Trash, Loader2, Image as ImageIcon, CheckSquare, Square, Trash2, Copy, Check } from 'lucide-react';
 
 // Helper to format sizes
 function formatSize(bytes: number) {
@@ -45,6 +45,10 @@ export function MediaLibraryModal({
   const [isDeletingBulk, setIsDeletingBulk] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<'single' | 'bulk' | null>(null);
 
+  // File detail helpers
+  const [loadedDimensions, setLoadedDimensions] = useState<string | null>(null);
+  const [copiedUrl, setCopiedUrl] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchMedia = async () => {
@@ -62,6 +66,11 @@ export function MediaLibraryModal({
       }
     }
   }, [isOpen, search, mimeType, onSelectMultiple]);
+
+  useEffect(() => {
+    setLoadedDimensions(null);
+    setCopiedUrl(false);
+  }, [selectedFile?.id]);
 
   const handleUpload = async (files: FileList) => {
     setIsUploading(true);
@@ -378,7 +387,17 @@ export function MediaLibraryModal({
 
               <div className={`aspect-video rounded-xl overflow-hidden flex items-center justify-center ${isModal ? 'bg-gray-200 dark:bg-neutral-800' : 'bg-white/50 dark:bg-neutral-800/50 shadow-inner'}`}>
                 {selectedFile.mime_type.startsWith('image/') ? (
-                  <img src={selectedFile.url} alt={selectedFile.name} className="w-full h-full object-contain" />
+                  <img 
+                    src={selectedFile.url} 
+                    alt={selectedFile.name} 
+                    className="w-full h-full object-contain" 
+                    onLoad={(e) => {
+                      const img = e.currentTarget;
+                      if (img.naturalWidth && img.naturalHeight) {
+                        setLoadedDimensions(`${img.naturalWidth} x ${img.naturalHeight} px`);
+                      }
+                    }}
+                  />
                 ) : (
                   <File className="w-12 h-12 text-gray-400" />
                 )}
@@ -388,12 +407,35 @@ export function MediaLibraryModal({
                 <p><strong className="text-gray-900 dark:text-gray-200">Nome:</strong> {selectedFile.name}</p>
                 <p><strong className="text-gray-900 dark:text-gray-200">Data:</strong> {new Date(selectedFile.created_at).toLocaleDateString()}</p>
                 <p><strong className="text-gray-900 dark:text-gray-200">Tamanho:</strong> {formatSize(selectedFile.size)}</p>
-                {selectedFile.dimensions && (
-                  <p><strong className="text-gray-900 dark:text-gray-200">Dimensões:</strong> {selectedFile.dimensions}</p>
+                {(selectedFile.dimensions || loadedDimensions) && (
+                  <p><strong className="text-gray-900 dark:text-gray-200">Dimensões:</strong> {selectedFile.dimensions || loadedDimensions}</p>
                 )}
               </div>
 
               <div className={`space-y-4 pt-4 border-t ${isModal ? 'border-gray-200 dark:border-neutral-800' : 'border-gray-200/50 dark:border-neutral-700/50'}`}>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-900 dark:text-gray-200 mb-1.5">URL do Arquivo</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      readOnly
+                      value={selectedFile.url}
+                      className={`flex-1 px-3 py-2 text-xs font-mono rounded-xl outline-none truncate ${inputClass(isModal)}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(selectedFile.url);
+                        setCopiedUrl(true);
+                        setTimeout(() => setCopiedUrl(false), 2000);
+                      }}
+                      className="p-2 text-gray-500 hover:text-blue-600 dark:hover:text-emerald-400 bg-gray-100 dark:bg-neutral-800 rounded-xl transition-colors shrink-0"
+                      title="Copiar URL"
+                    >
+                      {copiedUrl ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-900 dark:text-gray-200 mb-1.5">Texto Alternativo (Alt)</label>
                   <input
