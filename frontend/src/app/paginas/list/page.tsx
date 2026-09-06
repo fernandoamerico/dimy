@@ -20,6 +20,7 @@ function PaginasListContent() {
   const [isCreating, setIsCreating] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [deleteItem, setDeleteItem] = useState<string | null>(null);
+  const [isReordering, setIsReordering] = useState(false);
 
   // Filtros
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,11 +54,13 @@ function PaginasListContent() {
       return title.toLowerCase().includes(searchQuery.toLowerCase());
     })
     .sort((a, b) => {
-      const orderA = typeof a.data?.order === 'number' ? a.data.order : 999999;
-      const orderB = typeof b.data?.order === 'number' ? b.data.order : 999999;
-      if (orderA !== orderB) return orderA - orderB;
+      const orderA = typeof a.data?.order === 'number' ? a.data.order : null;
+      const orderB = typeof b.data?.order === 'number' ? b.data.order : null;
+      if (orderA !== null && orderB !== null) return orderA - orderB;
+      if (orderA !== null) return -1;
+      if (orderB !== null) return 1;
       
-      // Fallback
+      // Fallback por data de criação
       const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
       return dateA - dateB;
@@ -68,41 +71,52 @@ function PaginasListContent() {
       toast.error('Limpe a busca antes de reordenar.');
       return;
     }
+    if (isReordering) return;
     
-    const newDocs = [...filteredDocuments];
     const swapIdx = direction === 'up' ? index - 1 : index + 1;
-    if (swapIdx < 0 || swapIdx >= newDocs.length) return;
+    if (swapIdx < 0 || swapIdx >= filteredDocuments.length) return;
 
-    // Swap locally
-    const docA = newDocs[index];
-    const docB = newDocs[swapIdx];
+    setIsReordering(true);
 
-    // Certifique-se de que eles têm uma ordem 
-    const orderA = typeof docA.data?.order === 'number' ? docA.data.order : index;
-    const orderB = typeof docB.data?.order === 'number' ? docB.data.order : swapIdx;
+    // Copia a lista atual ordenada
+    const newDocs = [...filteredDocuments];
 
-    const dataA = { ...docA.data, order: orderB };
-    const dataB = { ...docB.data, order: orderA };
+    // Troca os dois itens de posição no array
+    const temp = newDocs[index];
+    newDocs[index] = newDocs[swapIdx];
+    newDocs[swapIdx] = temp;
 
-    // Optmistic update
-    setDocuments(prev => prev.map(d => {
-      if (d.id === docA.id) return { ...d, data: dataA };
-      if (d.id === docB.id) return { ...d, data: dataB };
-      return d;
+    // Atribui uma ordem sequencial explícita (0, 1, 2, 3...) para TODOS os documentos
+    const updatedDocsWithNewOrder = newDocs.map((doc, idx) => ({
+      ...doc,
+      data: {
+        ...(doc.data || {}),
+        order: idx
+      }
     }));
 
+    // Atualização otimista do estado local
+    setDocuments(prev => {
+      const updatedMap = new Map(updatedDocsWithNewOrder.map(d => [d.id, d]));
+      return prev.map(d => updatedMap.get(d.id) || d);
+    });
+
     try {
-      const results = await Promise.all([
-        updateDocument(docA.id, collection.slug, dataA),
-        updateDocument(docB.id, collection.slug, dataB)
-      ]);
+      const results = await Promise.all(
+        updatedDocsWithNewOrder.map(doc =>
+          updateDocument(doc.id, collection.slug, doc.data)
+        )
+      );
       
-      if (!results[0].success || !results[1].success) {
-        throw new Error(results[0].error || results[1].error || 'Falha na API');
+      const failed = results.find(r => !r?.success);
+      if (failed) {
+        throw new Error(failed.error || 'Falha ao salvar a nova ordem');
       }
-    } catch (e) {
-      toast.error('Erro ao salvar a ordem das seções');
-      fetchContent(); // Revert
+    } catch (e: any) {
+      toast.error(e.message || 'Erro ao salvar a ordem das seções');
+      fetchContent(); // Reverte em caso de erro
+    } finally {
+      setIsReordering(false);
     }
   };
 
@@ -286,11 +300,11 @@ function PaginasListContent() {
                             
                             {!searchQuery && (
                               <div className="flex items-center mx-2 border-x border-gray-200 dark:border-neutral-700 px-2">
-                                <button onClick={() => moveSection(index, 'up')} disabled={index === 0}
+                                <button onClick={() => moveSection(index, 'up')} disabled={index === 0 || isReordering}
                                   className="p-1.5 text-gray-400 hover:text-blue-500 dark:hover:text-emerald-400 disabled:opacity-30 rounded transition-colors" title="Mover para cima">
                                   <ArrowUp className="w-4 h-4" />
                                 </button>
-                                <button onClick={() => moveSection(index, 'down')} disabled={index === filteredDocuments.length - 1}
+                                <button onClick={() => moveSection(index, 'down')} disabled={index === filteredDocuments.length - 1 || isReordering}
                                   className="p-1.5 text-gray-400 hover:text-blue-500 dark:hover:text-emerald-400 disabled:opacity-30 rounded transition-colors" title="Mover para baixo">
                                   <ArrowDown className="w-4 h-4" />
                                 </button>
