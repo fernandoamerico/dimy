@@ -37,7 +37,7 @@ export function PostEditor({
   
   // Publication metadata defaults
   const [title, setTitle] = useState(formData._title || '');
-  const [slug, setSlug] = useState(formData._slug || (formData._title ? slugify(formData._title) : ''));
+  const [slug, setSlug] = useState(formData._slug ? slugify(formData._slug) : (formData._title ? slugify(formData._title) : ''));
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(Boolean(formData._slug));
   const [status, setStatus] = useState<'draft' | 'published'>(formData._status || 'draft');
   const [publishDate, setPublishDate] = useState(formData._publishDate || new Date().toISOString().split('T')[0]);
@@ -92,7 +92,8 @@ export function PostEditor({
     const newStatus = mode === 'publish' ? 'published' : 'draft';
     setStatus(newStatus);
 
-    const finalSlug = slug.trim() ? slug.trim() : slugify(title);
+    const finalSlug = slugify(slug.trim() || title);
+    setSlug(finalSlug);
 
     // Validação de unicidade do slug
     const allDocs = await getDocuments(collection.id);
@@ -210,19 +211,36 @@ export function PostEditor({
              <div>
                <label className="text-sm font-semibold text-gray-900 dark:text-white block mb-2">Título da Publicação *</label>
                <input type="text" value={title} onChange={e => {
-                 setTitle(e.target.value);
-                 if (!isSlugManuallyEdited) {
-                   setSlug(slugify(e.target.value));
+                 const newTitle = e.target.value;
+                 setTitle(newTitle);
+                 if (!isSlugManuallyEdited || !slug.trim()) {
+                   setSlug(slugify(newTitle));
                  }
                }}
                 placeholder="Digite o título principal..." 
                 className="w-full px-4 py-3 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 transition-all text-gray-900 dark:text-white text-lg font-medium" />
              </div>
              <div>
-               <label className="text-sm font-semibold text-gray-900 dark:text-white block mb-2">Slug (URL Amigável)</label>
+               <div className="flex items-center justify-between mb-2">
+                 <label className="text-sm font-semibold text-gray-900 dark:text-white block">Slug (URL Amigável)</label>
+                 <span className="text-[10px] text-gray-400 font-medium">Formatado automaticamente ao sair do campo</span>
+               </div>
                <input type="text" value={slug} onChange={e => {
-                 setSlug(e.target.value);
-                 setIsSlugManuallyEdited(true);
+                 const val = e.target.value;
+                 setSlug(val);
+                 if (val.trim() === '') {
+                   setIsSlugManuallyEdited(false);
+                 } else {
+                   setIsSlugManuallyEdited(true);
+                 }
+               }}
+               onBlur={() => {
+                 if (!slug.trim()) {
+                   setSlug(slugify(title));
+                   setIsSlugManuallyEdited(false);
+                 } else {
+                   setSlug(slugify(slug));
+                 }
                }}
                 placeholder="ex: meu-primeiro-post" 
                 className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 transition-all text-gray-500 dark:text-gray-400 font-mono text-sm" />
@@ -296,14 +314,25 @@ export function PostEditor({
 
           {meta.enable_summary !== false && (
             <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 dark:shadow-sm dark:border dark:border-neutral-800">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><FileText className="w-4 h-4 text-blue-500" /> Resumo do Post</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-blue-500" /> Resumo do Post
+                </h3>
+                <span className={`text-[10px] font-semibold transition-colors ${summary.length > 140 ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
+                  {summary.length}/140
+                </span>
+              </div>
               <div>
                 <textarea 
                   value={summary} 
                   onChange={e => setSummary(e.target.value)} 
                   rows={3} 
                   placeholder="Escreva um breve resumo da publicação..."
-                  className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500 text-gray-900 dark:text-white text-sm resize-none" 
+                  className={`w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border rounded-lg focus:outline-none text-gray-900 dark:text-white text-sm resize-none transition-colors ${
+                    summary.length > 140 
+                      ? 'border-red-500 dark:border-red-500 focus:ring-2 focus:ring-red-500' 
+                      : 'border-gray-200 dark:border-neutral-800 focus:ring-2 focus:ring-blue-500 dark:focus:ring-emerald-500'
+                  }`} 
                 />
               </div>
             </div>
@@ -375,13 +404,22 @@ export function PostEditor({
 
               <div className="space-y-4">
                 <div>
-                  <label className="text-[10px] font-semibold text-gray-500 uppercase block mb-1">Meta Title</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[10px] font-semibold text-gray-500 uppercase">Meta Title</label>
+                    <span className={`text-[10px] font-semibold transition-colors ${seo.title.length > 140 ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
+                      {seo.title.length}/140
+                    </span>
+                  </div>
                   <input 
                     type="text" 
                     value={seo.title} 
                     onChange={e => setSeo({ ...seo, title: e.target.value })} 
                     placeholder="Ex: {title} | {site_name}"
-                    className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" 
+                    className={`w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border rounded-lg text-sm focus:outline-none transition-colors ${
+                      seo.title.length > 140 
+                        ? 'border-red-500 dark:border-red-500 focus:ring-2 focus:ring-red-500' 
+                        : 'border-gray-200 dark:border-neutral-800 focus:ring-2 focus:ring-blue-500'
+                    }`} 
                   />
                   <div className="flex flex-wrap items-center gap-1 mt-1.5">
                     <span className="text-[10px] text-gray-400 mr-1 font-medium">Atalhos:</span>
@@ -400,13 +438,22 @@ export function PostEditor({
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-semibold text-gray-500 uppercase block mb-1">Meta Description</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[10px] font-semibold text-gray-500 uppercase">Meta Description</label>
+                    <span className={`text-[10px] font-semibold transition-colors ${seo.description.length > 140 ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
+                      {seo.description.length}/140
+                    </span>
+                  </div>
                   <textarea 
                     value={seo.description} 
                     onChange={e => setSeo({ ...seo, description: e.target.value })} 
                     rows={3}
                     placeholder="Ex: Confira a publicação {title} por {author}."
-                    className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" 
+                    className={`w-full px-3 py-2 bg-gray-50 dark:bg-neutral-950 border rounded-lg text-sm focus:outline-none transition-colors ${
+                      seo.description.length > 140 
+                        ? 'border-red-500 dark:border-red-500 focus:ring-2 focus:ring-red-500' 
+                        : 'border-gray-200 dark:border-neutral-800 focus:ring-2 focus:ring-blue-500'
+                    }`} 
                   />
                   <div className="flex flex-wrap items-center gap-1 mt-1.5">
                     <span className="text-[10px] text-gray-400 mr-1 font-medium">Atalhos:</span>
