@@ -12,7 +12,7 @@ import { MediaLibraryModal } from '@/components/media/MediaLibraryModal';
 import { BlockRenderer } from '@/components/blocks/BlockRenderer';
 import { 
   ArrowLeft, Type, Image as ImageIcon, 
-  List, MousePointerClick, Save, Trash2, Plus, Settings, Library, Hash
+  List, MousePointerClick, Save, Trash2, Plus, Settings, Library, Hash, Globe
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -28,6 +28,7 @@ export function PostEditor({
 }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [savingMode, setSavingMode] = useState<'draft' | 'publish' | null>(null);
 
   // Initialize data
   const [formData, setFormData] = useState<Record<string, any>>(document?.data || {});
@@ -60,13 +61,17 @@ export function PostEditor({
     setFormData(prev => ({ ...prev, [fieldName]: value }));
   };
 
-  const handleSave = async () => {
+  const handleSave = async (mode: 'draft' | 'publish') => {
     if (!title.trim()) {
       toast.error('O título da publicação é obrigatório.');
       return;
     }
 
     setIsSubmitting(true);
+    setSavingMode(mode);
+
+    const newStatus = mode === 'publish' ? 'published' : 'draft';
+    setStatus(newStatus);
 
     const finalSlug = slug.trim() ? slug.trim() : slugify(title);
 
@@ -76,6 +81,7 @@ export function PostEditor({
     if (isDuplicate) {
       toast.error('Este slug (URL) já está em uso por outra publicação. Por favor, modifique o slug.');
       setIsSubmitting(false);
+      setSavingMode(null);
       return;
     }
 
@@ -83,7 +89,7 @@ export function PostEditor({
       ...formData,
       _title: title,
       _slug: finalSlug,
-      _status: status,
+      _status: newStatus,
       _publishDate: publishDate,
       _author: author,
       _priority: priority,
@@ -93,9 +99,9 @@ export function PostEditor({
 
     if (isNew) {
       const res = await createDocument(collection.id, collection.slug, dataToSave);
-      if (res.success) {
-        toast.success('Publicação criada!');
-        router.push(`/publicacoes/list?slug=${collection.slug}`);
+      if (res.success && res.id) {
+        toast.success(mode === 'publish' ? 'Publicação criada e publicada!' : 'Rascunho criado com sucesso!');
+        router.replace(`/publicacoes/item?slug=${collection.slug}&id=${res.id}`);
         router.refresh();
       } else {
         toast.error(res.error || 'Erro ao criar publicação.');
@@ -103,7 +109,7 @@ export function PostEditor({
     } else {
       const res = await updateDocument(document.id, collection.slug, dataToSave);
       if (res.success) {
-        toast.success('Publicação salva!');
+        toast.success(mode === 'publish' ? 'Publicação salva e publicada!' : 'Rascunho salvo com sucesso!');
         router.refresh();
       } else {
         toast.error(res.error || 'Erro ao salvar publicação.');
@@ -111,6 +117,7 @@ export function PostEditor({
     }
 
     setIsSubmitting(false);
+    setSavingMode(null);
   };
 
   // ─── Render field editor ──────────────────────────────────────────────────
@@ -142,11 +149,28 @@ export function PostEditor({
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Preencha os campos para sua publicação.</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <button onClick={handleSave} disabled={isSubmitting}
-            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-sm font-semibold rounded-xl transition-all shadow-sm shadow-blue-500/20 hover:shadow-blue-500/40 disabled:opacity-50">
-            <Save className="w-4 h-4" />
-            {isSubmitting ? 'Salvando...' : 'Salvar Publicação'}
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <button
+            onClick={() => handleSave('draft')}
+            disabled={isSubmitting}
+            className="flex-1 sm:flex-none px-4 py-2.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-700 font-medium transition-colors disabled:opacity-50 flex items-center gap-2 justify-center text-sm"
+          >
+            {savingMode === 'draft' ? (
+              <><div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> Salvando...</>
+            ) : (
+              <><Save className="w-4 h-4" /> Salvar Rascunho</>
+            )}
+          </button>
+          <button
+            onClick={() => handleSave('publish')}
+            disabled={isSubmitting}
+            className="flex-1 sm:flex-none px-4 py-2.5 text-white bg-blue-600 dark:bg-emerald-500 rounded-xl hover:bg-blue-700 dark:hover:bg-emerald-600 font-medium transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2 justify-center text-sm"
+          >
+            {savingMode === 'publish' ? (
+              <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Publicando...</>
+            ) : (
+              <><Globe className="w-4 h-4" /> Salvar e Publicar</>
+            )}
           </button>
         </div>
       </div>
