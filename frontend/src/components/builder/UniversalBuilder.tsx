@@ -465,6 +465,14 @@ export function UniversalBuilder({
       return (
         <>
           <div className="flex items-center justify-between">
+            <div><span className="block text-sm font-medium text-gray-900 dark:text-white">Visibilidade Pública</span><span className="block text-xs text-gray-500 dark:text-gray-400">Acesso via API sem token</span></div>
+            <button 
+              onClick={() => handleToggle('is_public', !isPublic, setIsPublic, 'Tornado Público!', 'Tornado Privado.')}
+              className={`w-10 h-5 rounded-full relative transition-colors ${isPublic ? 'bg-blue-500' : 'bg-gray-200 dark:bg-neutral-700'}`}>
+              <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${isPublic ? 'translate-x-5' : 'translate-x-0'}`} />
+            </button>
+          </div>
+          <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-neutral-800 mt-2">
             <div><span className="block text-sm font-medium text-gray-900 dark:text-white">Status/Agendamento</span><span className="block text-xs text-gray-500 dark:text-gray-400">Ativa Publicado, Rascunho, Data</span></div>
             <button 
               onClick={() => handleToggle('enable_status', !enableStatus, setEnableStatus, 'Status ativado!', 'Status desativado.')}
@@ -526,6 +534,14 @@ export function UniversalBuilder({
       return (
         <>
           <div className="flex items-center justify-between">
+            <div><span className="block text-sm font-medium text-gray-900 dark:text-white">Visibilidade Pública</span><span className="block text-xs text-gray-500 dark:text-gray-400">Acesso via API sem token</span></div>
+            <button 
+              onClick={() => handleToggle('is_public', !isPublic, setIsPublic, 'Tornado Público!', 'Tornado Privado.')}
+              className={`w-10 h-5 rounded-full relative transition-colors ${isPublic ? 'bg-blue-500' : 'bg-gray-200 dark:bg-neutral-700'}`}>
+              <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${isPublic ? 'translate-x-5' : 'translate-x-0'}`} />
+            </button>
+          </div>
+          <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-neutral-800 mt-2">
             <div><span className="block text-sm font-medium text-gray-900 dark:text-white">Status/Estoque</span><span className="block text-xs text-gray-500 dark:text-gray-400">Ativa Disponível, Esgotado</span></div>
             <button 
               onClick={() => handleToggle('enable_status', !enableStatus, setEnableStatus, 'Status ativado!', 'Status desativado.')}

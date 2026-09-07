@@ -56,6 +56,7 @@ func GetCollectionsHandler(w http.ResponseWriter, r *http.Request) {
 				var meta struct {
 					IsPublic *bool `json:"is_public"`
 					IsActive *bool `json:"is_active"`
+					Visibility *string `json:"visibility"`
 				}
 				if err := json.Unmarshal([]byte(metadata.String), &meta); err == nil {
 					if meta.IsActive != nil && !*meta.IsActive {
@@ -63,6 +64,8 @@ func GetCollectionsHandler(w http.ResponseWriter, r *http.Request) {
 					}
 					if meta.IsPublic != nil {
 						isPublic = *meta.IsPublic
+					} else if meta.Visibility != nil && *meta.Visibility == "public" {
+						isPublic = true
 					}
 				}
 			}

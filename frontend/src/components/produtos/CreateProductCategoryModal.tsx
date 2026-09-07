@@ -37,6 +37,7 @@ export default function CreateProductCategoryModal({
     const metadata = JSON.stringify({
       is_product: true, // Marker for product categories
       description,
+      is_public: isPublic,
       visibility: isPublic ? 'public' : 'private',
       show_in_sidebar: showInSidebar,
       enable_status: true,

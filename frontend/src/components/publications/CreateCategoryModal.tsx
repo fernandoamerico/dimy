@@ -43,6 +43,7 @@ export default function CreateCategoryModal({
     // Metadata payload
     const metadata = JSON.stringify({
       is_publication: true,
+      is_public: formData.isPublic,
       visibility: formData.isPublic ? 'public' : 'private',
       description: formData.description,
       show_in_sidebar: formData.showInSidebar,
