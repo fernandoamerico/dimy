@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Briefcase, Save, Loader2, CheckCircle2, Building2, Phone, Mail, Globe, AtSign, Server, Download, Plus, Trash2, Link as LinkIcon, Camera, Users, Video, MessageCircle, ShieldAlert } from 'lucide-react';
+import { Briefcase, Save, Loader2, CheckCircle2, Building2, Phone, Mail, Globe, AtSign, Plus, Trash2, Link as LinkIcon, Camera, Users, Video, MessageCircle, ShieldAlert } from 'lucide-react';
 import { ImageUploader } from '@/components/ui/ImageUploader';
 import { useDatabaseWarning } from '@/components/ui/DatabaseWarningProvider';
 import { toast } from 'sonner';
@@ -138,29 +138,8 @@ export default function MeuNegocioPage() {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleDownloadJSON = async () => {
-    try {
-      const res = await fetch('/api/business');
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'business_info.json';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      toast.success('JSON baixado com sucesso!');
-    } catch {
-      toast.error('Erro ao baixar o JSON da API. (O backend está rodando?)');
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!canEdit) return;
     guardedSubmit(async () => {
       setIsSaving(true);
@@ -175,7 +154,7 @@ export default function MeuNegocioPage() {
       };
 
       try {
-        await Promise.all(
+        const responses = await Promise.all(
           Object.entries(payload).map(([key, value]) =>
             fetch('/api/system/config', {
               method: 'POST',
@@ -184,8 +163,14 @@ export default function MeuNegocioPage() {
             })
           )
         );
-        setSaved(true);
-        setTimeout(() => setSaved(false), 3000);
+        const hasError = responses.some(res => !res.ok);
+        if (hasError) {
+          toast.error('Erro ao salvar as informações.');
+        } else {
+          setSaved(true);
+          toast.success('Informações salvas com sucesso!');
+          setTimeout(() => setSaved(false), 3000);
+        }
       } catch {
         toast.error('Erro ao salvar as informações.');
       }
@@ -212,9 +197,9 @@ export default function MeuNegocioPage() {
       <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 pb-10">
 
         {/* Header */}
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-2xl border border-blue-200 dark:border-blue-500/20">
+            <div className="p-3 bg-blue-100 dark:bg-emerald-500/10 text-blue-600 dark:text-emerald-400 rounded-2xl border border-blue-200 dark:border-emerald-500/20">
               <Briefcase className="w-6 h-6" />
             </div>
             <div>
@@ -231,29 +216,27 @@ export default function MeuNegocioPage() {
               </p>
             </div>
           </div>
-        </div>
 
-        {/* API Info */}
-        <div className="bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-800/30 rounded-2xl p-5 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <div className="flex gap-3">
-            <div className="p-2 bg-emerald-100 dark:bg-emerald-800/50 text-emerald-600 dark:text-emerald-400 rounded-xl h-fit">
-              <Server className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-emerald-900 dark:text-emerald-300 text-sm">Integração API (Pública)</h3>
-              <p className="text-emerald-700 dark:text-emerald-400/80 text-xs mt-0.5">
-                Esses dados estão disponíveis no endpoint <code className="bg-emerald-200/50 dark:bg-emerald-900/40 px-1.5 py-0.5 rounded font-mono font-bold">GET /api/business</code>
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={handleDownloadJSON}
-            type="button"
-            className="shrink-0 inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-neutral-900 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/40 font-medium text-sm rounded-xl transition-colors shadow-sm"
-          >
-            <Download className="w-4 h-4" />
-            Baixar Estrutura JSON
-          </button>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={() => handleSubmit()}
+              disabled={isSaving}
+              className={`inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl font-medium text-sm transition-all shadow-sm shrink-0
+                ${saved 
+                  ? 'bg-emerald-500 text-white shadow-emerald-500/20' 
+                  : 'bg-gray-900 hover:bg-gray-800 text-white dark:bg-emerald-500 dark:hover:bg-emerald-600 dark:text-gray-900'
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              {isSaving ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</>
+              ) : saved ? (
+                <><CheckCircle2 className="w-4 h-4" /> Salvo!</>
+              ) : (
+                <><Save className="w-4 h-4" /> Salvar Alterações</>
+              )}
+            </button>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -579,28 +562,6 @@ export default function MeuNegocioPage() {
             </div>
 
           </div>
-
-          {canEdit && (
-            <div className="flex justify-end pt-2">
-              <button
-                type="submit"
-                disabled={isSaving}
-                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-medium text-sm transition-all shadow-sm
-                  ${saved 
-                    ? 'bg-emerald-500 text-white shadow-emerald-500/20' 
-                    : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/20'
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                {isSaving ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</>
-                ) : saved ? (
-                  <><CheckCircle2 className="w-4 h-4" /> Salvo!</>
-                ) : (
-                  <><Save className="w-4 h-4" /> Salvar Alterações</>
-                )}
-              </button>
-            </div>
-          )}
         </form>
       </div>
     </DashboardLayout>

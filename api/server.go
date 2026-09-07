@@ -23,7 +23,7 @@ func StartServer(port string, frontendFS fs.FS) error {
 	
 	mux.HandleFunc("GET /api/config", handlers.GetConfigHandler)
 	mux.HandleFunc("GET /api/system/config", handlers.RequireAuth(handlers.RequireRole("manager", "it_manager", "auditor")(handlers.GetSystemConfigHandler)))
-	mux.HandleFunc("POST /api/system/config", handlers.RequireAuth(handlers.RequireRole()(handlers.SetSystemConfigHandler))) // Apenas admin
+	mux.HandleFunc("POST /api/system/config", handlers.RequireAuth(handlers.RequireRole("manager", "it_manager")(handlers.SetSystemConfigHandler)))
 	mux.HandleFunc("POST /api/system/test-supabase", handlers.RequireAuth(handlers.RequireRole()(handlers.TestSupabaseConnectionHandler)))
 	mux.HandleFunc("POST /api/system/test-r2", handlers.RequireAuth(handlers.RequireRole()(handlers.TestR2ConnectionHandler)))
 	mux.HandleFunc("GET /api/system/test-database", handlers.RequireAuth(handlers.RequireRole()(handlers.TestDatabaseConnectionHandler)))

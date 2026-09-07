@@ -7,7 +7,7 @@ export type CreateCollectionInput = {
   slug: string;
   icon?: string;
   metadata?: string;
-  fields: Array<{
+  fields?: Array<{
     name: string;
     label: string;
     type: string;
