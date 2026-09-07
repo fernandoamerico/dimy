@@ -27,7 +27,6 @@ func parseTime(timeStr string) time.Time {
 // GetCollectionsHandler returns schema collections. Managers see all, others see only public.
 func GetCollectionsHandler(w http.ResponseWriter, r *http.Request) {
 	role := GetUserRole(r)
-	isManager := (role == "admin" || role == "manager" || role == "auditor" || role == "it_manager")
 
 	rows, err := db.Instance.Query("SELECT id, name, slug, icon, metadata, created_at, updated_at FROM schema_collections ORDER BY created_at DESC")
 	if err != nil {
@@ -50,7 +49,8 @@ func GetCollectionsHandler(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		
-		if !isManager {
+		// Se não tem role definida (usuário não autenticado/público)
+		if role == "" {
 			isPublic := false
 			if metadata.Valid && metadata.String != "" {
 				var meta struct {
