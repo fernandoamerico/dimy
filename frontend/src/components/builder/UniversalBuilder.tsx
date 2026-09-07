@@ -74,6 +74,7 @@ export function UniversalBuilder({
   
   // Visibility
   const [showInSidebar, setShowInSidebar] = useState(initialMeta.show_in_sidebar === true);
+  const [isPublic, setIsPublic] = useState(initialMeta.is_public ?? (initialMeta.visibility === 'public'));
 
   // ─── Helpers ──────────────────────────────────────────────────────────────
   const buildMetadata = (overrides: Record<string, any> = {}) => {
@@ -91,6 +92,7 @@ export function UniversalBuilder({
       enable_sizes: enableSizes,
       enable_colors: enableColors,
       show_in_sidebar: showInSidebar,
+      is_public: isPublic,
       ...overrides,
     });
   };
