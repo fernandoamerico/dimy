@@ -24,8 +24,11 @@ func parseTime(timeStr string) time.Time {
 	return time.Time{}
 }
 
-// GetCollectionsHandler returns all schema collections
+// GetCollectionsHandler returns schema collections. Managers see all, others see only public.
 func GetCollectionsHandler(w http.ResponseWriter, r *http.Request) {
+	role := GetUserRole(r)
+	isManager := (role == "admin" || role == "manager" || role == "auditor" || role == "it_manager")
+
 	rows, err := db.Instance.Query("SELECT id, name, slug, icon, metadata, created_at, updated_at FROM schema_collections ORDER BY created_at DESC")
 	if err != nil {
 		http.Error(w, "Erro ao buscar coleções: "+err.Error(), http.StatusInternalServerError)
@@ -46,6 +49,28 @@ func GetCollectionsHandler(w http.ResponseWriter, r *http.Request) {
 		if err := rows.Scan(&col.ID, &col.Name, &col.Slug, &icon, &metadata, &createdAt, &updatedAt); err != nil {
 			continue
 		}
+		
+		if !isManager {
+			isPublic := false
+			if metadata.Valid && metadata.String != "" {
+				var meta struct {
+					IsPublic *bool `json:"is_public"`
+					IsActive *bool `json:"is_active"`
+				}
+				if err := json.Unmarshal([]byte(metadata.String), &meta); err == nil {
+					if meta.IsActive != nil && !*meta.IsActive {
+						continue // skip inactive
+					}
+					if meta.IsPublic != nil {
+						isPublic = *meta.IsPublic
+					}
+				}
+			}
+			if !isPublic {
+				continue
+			}
+		}
+
 		if icon.Valid {
 			col.Icon = &icon.String
 		}

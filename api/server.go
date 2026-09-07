@@ -50,7 +50,7 @@ func StartServer(port string, frontendFS fs.FS) error {
 	mux.HandleFunc("POST /api/extensions/uninstall/{id}", handlers.RequireAuth(handlers.RequireRole("it_manager")(handlers.UninstallExtensionHandler)))
 	
 	// Schema API
-	mux.HandleFunc("GET /api/schema/collections", handlers.RequireAuth(handlers.RequireRole("manager", "auditor")(handlers.GetCollectionsHandler)))
+	mux.HandleFunc("GET /api/schema/collections", handlers.GetCollectionsHandler)
 	mux.HandleFunc("GET /api/schema/collections/{id}", handlers.RequireAuth(handlers.RequireRole("manager", "auditor")(handlers.GetCollectionByIdHandler)))
 	mux.HandleFunc("POST /api/schema/collections", handlers.RequireAuth(handlers.RequireRole("manager")(handlers.CreateCollectionHandler)))
 	mux.HandleFunc("PUT /api/schema/collections/{id}", handlers.RequireAuth(handlers.RequireRole("manager")(handlers.UpdateCollectionHandler)))

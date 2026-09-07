@@ -102,6 +102,42 @@ func IsAuthenticated(r *http.Request) bool {
 	return true
 }
 
+// GetUserRole returns the role of the authenticated user or api key, or an empty string
+func GetUserRole(r *http.Request) string {
+	// 1. Check for Bearer Token
+	authHeader := r.Header.Get("Authorization")
+	if strings.HasPrefix(authHeader, "Bearer ") {
+		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+		var active bool
+		var role string
+		err := db.Instance.QueryRow("SELECT active, role FROM api_keys WHERE key = $1", tokenStr).Scan(&active, &role)
+		if err == nil && active {
+			return role
+		}
+	}
+
+	// 2. Check for Session Cookie
+	cookie, err := r.Cookie("dimy_session")
+	if err != nil || cookie.Value == "" {
+		return ""
+	}
+
+	claims := &Claims{}
+	token, err := jwt.ParseWithClaims(cookie.Value, claims, func(token *jwt.Token) (interface{}, error) {
+		return jwtSecretKey, nil
+	})
+
+	if err == nil && token.Valid {
+		var role string
+		err = db.Instance.QueryRow("SELECT role FROM users WHERE id = $1", claims.UserID).Scan(&role)
+		if err == nil {
+			return role
+		}
+	}
+
+	return ""
+}
+
 // RequireRole enforces that the user has one of the specified roles.
 // It expects RequireAuth to have already populated "user_role" in the context.
 // The 'admin' role is always granted access.
