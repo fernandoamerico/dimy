@@ -49,12 +49,15 @@ export function Sidebar({
   useEffect(() => {
     async function fetchData() {
       // Import here to avoid circular dependency issues if any
-      const { getEnabledNavItems, getSidebarOrder } = await import('@/core/extensions/actions');
-      const [cols, navs, order] = await Promise.all([
+      const { getEnabledNavItems, getSidebarOrder, getExtensionsStatus } = await import('@/core/extensions/actions');
+      const [cols, navs, order, extStatus] = await Promise.all([
         getCollections(),
         getEnabledNavItems(),
-        getSidebarOrder()
+        getSidebarOrder(),
+        getExtensionsStatus()
       ]);
+      
+      const enabledExts = new Set(extStatus.filter((e: any) => e.isEnabled).map((e: any) => e.id));
       
       const formattedNavs = navs.map((n: any) => ({ ...n, id: n.href, type: 'nav' })).filter((n: any) => {
         if ((n.href === '/aplicativos' || n.href === '/loja') && !canManageExtensions) return false;
@@ -69,6 +72,14 @@ export function Sidebar({
         if (!c.metadata) return false; // If no metadata, hide by default since it might be a page/category
         try {
           const meta = JSON.parse(c.metadata);
+          
+          if (meta.is_active === false) return false;
+          
+          if (meta.is_product && !enabledExts.has('schema_products')) return false;
+          if (meta.is_publication && !enabledExts.has('core_publications')) return false;
+          if (meta.is_page && !enabledExts.has('core_pages')) return false;
+          if (meta.is_banner && !enabledExts.has('schema_sliders')) return false;
+
           if (meta.is_product) return true; // Keep products visible by default (if they exist)
           
           if ((meta.is_page || meta.is_publication || meta.is_banner) && !meta.show_in_sidebar) {
