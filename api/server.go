@@ -85,6 +85,26 @@ func StartServer(port string, frontendFS fs.FS) error {
 			http.NotFound(w, r)
 			return
 		}
+		
+		// Clean the path
+		path := r.URL.Path
+		if path == "/" {
+			path = "/index.html"
+		} else {
+			// If it's a directory request or has a trailing slash, strip it for the .html check
+			cleanPath := strings.TrimSuffix(path, "/")
+			
+			// Check if the exact path exists
+			_, err := fs.Stat(staticDir, strings.TrimPrefix(path, "/"))
+			if err != nil {
+				// Try with .html extension
+				htmlPath := strings.TrimPrefix(cleanPath, "/") + ".html"
+				if _, err := fs.Stat(staticDir, htmlPath); err == nil {
+					r.URL.Path = cleanPath + ".html"
+				}
+			}
+		}
+		
 		fileServer.ServeHTTP(w, r)
 	})
 

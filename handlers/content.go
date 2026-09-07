@@ -287,6 +287,7 @@ func checkCollectionAccess(r *http.Request, metadata sql.NullString) (int, strin
 	var meta struct {
 		IsActive *bool `json:"is_active"`
 		IsPublic *bool `json:"is_public"`
+		Visibility *string `json:"visibility"`
 	}
 	
 	if err := json.Unmarshal([]byte(metadata.String), &meta); err == nil {
@@ -297,6 +298,8 @@ func checkCollectionAccess(r *http.Request, metadata sql.NullString) (int, strin
 		isPublic := false
 		if meta.IsPublic != nil {
 			isPublic = *meta.IsPublic
+		} else if meta.Visibility != nil && *meta.Visibility == "public" {
+			isPublic = true
 		}
 		
 		if !isPublic && !IsAuthenticated(r) {
