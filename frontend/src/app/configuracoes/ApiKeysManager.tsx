@@ -19,6 +19,7 @@ export function ApiKeysManager() {
   const [isLoading, setIsLoading] = useState(true)
   const [isCreating, setIsCreating] = useState(false)
   const [newName, setNewName] = useState('')
+  const [newRole, setNewRole] = useState('read')
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
 
@@ -44,9 +45,10 @@ export function ApiKeysManager() {
 
     try {
       setIsCreating(true)
-      const newKey = await apiKeysService.create(newName)
+      const newKey = await apiKeysService.create(newName, newRole)
       setNewlyCreatedKey(newKey.key)
       setNewName('')
+      setNewRole('read')
       await fetchKeys() // reload the list
     } catch (err) {
       console.error(err)
@@ -89,6 +91,19 @@ export function ApiKeysManager() {
               className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
               required
             />
+          </div>
+          <div className="w-full sm:w-48">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">Cargo (Role)</label>
+            <select
+              value={newRole}
+              onChange={e => setNewRole(e.target.value)}
+              className="w-full bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+            >
+              <option value="read">Leitura</option>
+              <option value="write">Escrita</option>
+              <option value="manager">Gerente (Admin)</option>
+              <option value="auditor">Auditor</option>
+            </select>
           </div>
           <button
             type="submit"
@@ -154,7 +169,7 @@ export function ApiKeysManager() {
                       {k.name}
                     </td>
                     <td className="py-4 text-sm text-gray-500 dark:text-neutral-400 capitalize">
-                      {k.role === 'read' ? 'Leitura' : k.role}
+                      {k.role === 'read' ? 'Leitura' : k.role === 'write' ? 'Escrita' : k.role === 'manager' ? 'Gerente' : k.role === 'auditor' ? 'Auditor' : k.role}
                     </td>
                     <td className="py-4 text-sm text-gray-500 dark:text-neutral-400">
                       {new Date(k.createdAt).toLocaleDateString('pt-BR')}

@@ -38,10 +38,8 @@ func GetApiKeysHandler(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		
-		t, _ := time.Parse("2006-01-02 15:04:05", createdAt)
-		k.CreatedAt = t
-		t2, _ := time.Parse("2006-01-02 15:04:05", updatedAt)
-		k.UpdatedAt = t2
+		k.CreatedAt = parseDate(createdAt)
+		k.UpdatedAt = parseDate(updatedAt)
 		
 		keys = append(keys, k)
 	}
@@ -56,6 +54,26 @@ func GetApiKeysHandler(w http.ResponseWriter, r *http.Request) {
 
 type CreateApiKeyPayload struct {
 	Name string `json:"name"`
+	Role string `json:"role"`
+}
+
+func parseDate(dateStr string) time.Time {
+	formats := []string{
+		time.RFC3339,
+		time.RFC3339Nano,
+		"2006-01-02 15:04:05",
+		"2006-01-02 15:04:05.999999",
+		"2006-01-02 15:04:05-07:00",
+		"2006-01-02T15:04:05",
+		"2006-01-02T15:04:05.999Z",
+	}
+	for _, format := range formats {
+		if t, err := time.Parse(format, dateStr); err == nil {
+			return t
+		}
+	}
+	// fallback if all fails
+	return time.Time{}
 }
 
 func generateSecureToken() string {
@@ -74,12 +92,17 @@ func CreateApiKeyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	role := payload.Role
+	if role != "read" && role != "write" && role != "manager" && role != "auditor" {
+		role = "read" // fallback
+	}
+
 	id := uuid.NewString()
 	secretKey := generateSecureToken()
 
 	_, err := db.Instance.Exec(
-		"INSERT INTO api_keys (id, name, key, role, active, created_at, updated_at) VALUES ($1, $2, $3, 'read', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
-		id, payload.Name, secretKey,
+		"INSERT INTO api_keys (id, name, key, role, active, created_at, updated_at) VALUES ($1, $2, $3, $4, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+		id, payload.Name, secretKey, role,
 	)
 	if err != nil {
 		http.Error(w, "Erro ao criar chave de API", http.StatusInternalServerError)
@@ -91,7 +114,7 @@ func CreateApiKeyHandler(w http.ResponseWriter, r *http.Request) {
 		ID:     id,
 		Name:   payload.Name,
 		Key:    secretKey,
-		Role:   "read",
+		Role:   role,
 		Active: true,
 	}
 

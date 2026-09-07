@@ -74,9 +74,9 @@ export async function logout() {
 
 export const apiKeysService = {
   list: () => fetchAPI('/system/api-keys'),
-  create: (name: string) => fetchAPI('/system/api-keys', { 
+  create: (name: string, role: string) => fetchAPI('/system/api-keys', { 
     method: 'POST', 
-    body: JSON.stringify({ name }) 
+    body: JSON.stringify({ name, role }) 
   }),
   delete: (id: string) => fetchAPI(`/system/api-keys/${id}`, { method: 'DELETE' }),
 };
