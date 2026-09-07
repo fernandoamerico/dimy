@@ -6,8 +6,25 @@ import { Header } from './Header';
 import { TitleUpdater } from './TitleUpdater';
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('dimy_sidebar_collapsed');
+        if (saved !== null) {
+          return JSON.parse(saved);
+        }
+      } catch (e) {}
+    }
+    return false;
+  });
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  const handleSetIsSidebarCollapsed = (value: boolean) => {
+    setIsSidebarCollapsed(value);
+    try {
+      localStorage.setItem('dimy_sidebar_collapsed', JSON.stringify(value));
+    } catch (e) {}
+  };
 
   return (
     <div className="min-h-screen bg-transparent font-sans text-slate-900 dark:text-neutral-200 selection:bg-blue-200 dark:selection:bg-emerald-500/30">
@@ -15,7 +32,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       <div className="relative">
         <Sidebar 
           isSidebarCollapsed={isSidebarCollapsed} 
-          setIsSidebarCollapsed={setIsSidebarCollapsed} 
+          setIsSidebarCollapsed={handleSetIsSidebarCollapsed} 
           isMobileSidebarOpen={isMobileSidebarOpen}
           setIsMobileSidebarOpen={setIsMobileSidebarOpen}
         />
