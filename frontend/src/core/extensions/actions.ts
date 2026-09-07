@@ -142,9 +142,10 @@ export async function getEnabledNavItems() {
     for (const ext of EXTENSION_REGISTRY) {
       const dbEnabled = dbMap.get(ext.id);
       
+      const isDefaultEnabled = ext.type === 'core' || ext.id.startsWith('core_') || ext.id.startsWith('schema_') || ext.id === 'business_info';
       const isEnabled = dbEnabled !== undefined 
         ? dbEnabled 
-        : (ext.type === 'core' ? true : false);
+        : isDefaultEnabled;
       
       if (isEnabled && ext.navItems) {
         navItems.push(...ext.navItems);
@@ -155,7 +156,7 @@ export async function getEnabledNavItems() {
   } catch (error) {
     console.error('Error fetching enabled nav items:', error);
     return EXTENSION_REGISTRY
-      .filter((ext: any) => ext.type === 'core')
+      .filter((ext: any) => ext.type === 'core' || ext.id.startsWith('core_') || ext.id.startsWith('schema_') || ext.id === 'business_info')
       .flatMap((ext: any) => ext.navItems || []);
   }
 }
