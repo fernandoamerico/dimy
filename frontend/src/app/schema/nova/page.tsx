@@ -19,6 +19,7 @@ export default function NovaColecaoPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
+  const [isPublic, setIsPublic] = useState(false);
   const [fields, setFields] = useState<FieldDef[]>([]);
 
   // Simple slug generator
@@ -61,6 +62,7 @@ export default function NovaColecaoPage() {
     const result = await createCollection({
       name,
       slug,
+      metadata: JSON.stringify({ is_public: isPublic, is_active: true }),
       fields: fields.map((f, index) => ({
         name: f.name || f.label.toLowerCase().replace(/[^a-z0-9]/g, '_'),
         label: f.label || 'Sem Nome',
@@ -119,6 +121,21 @@ export default function NovaColecaoPage() {
                 className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow font-mono text-sm"
                 required
               />
+            </div>
+
+            <div className="space-y-1.5 sm:col-span-2 pt-2 border-t border-gray-100">
+              <label className="text-sm font-medium text-gray-700">Visibilidade da API</label>
+              <label className="flex items-center gap-2 cursor-pointer mt-1">
+                <input 
+                  type="checkbox" 
+                  checked={isPublic}
+                  onChange={(e) => setIsPublic(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 transition-colors"
+                />
+                <span className="text-sm text-gray-600 select-none">
+                  Coleção Pública (Esquema e documentos acessíveis sem token de autenticação)
+                </span>
+              </label>
             </div>
           </div>
         </div>
