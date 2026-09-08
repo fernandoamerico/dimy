@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Bold, Italic, Underline, Strikethrough, List, ListOrdered, Link as LinkIcon, Eraser, Code, Check, X } from 'lucide-react';
+import { Bold, Italic, Underline, Strikethrough, List, ListOrdered, Link as LinkIcon, Eraser, Code, Check, X, AlignLeft, AlignCenter, AlignRight, AlignJustify } from 'lucide-react';
 
 interface WysiwygEditorProps {
   value: string;
@@ -12,6 +12,21 @@ interface WysiwygEditorProps {
 export function WysiwygEditor({ value, onChange, placeholder = 'Escreva seu texto aqui...' }: WysiwygEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const [isSourceMode, setIsSourceMode] = useState(false);
+  const [alignIndex, setAlignIndex] = useState(0);
+
+  const alignments = [
+    { id: 'left', icon: <AlignLeft size={16} />, cmd: 'justifyLeft', title: 'Alinhar à Esquerda' },
+    { id: 'center', icon: <AlignCenter size={16} />, cmd: 'justifyCenter', title: 'Centralizar' },
+    { id: 'right', icon: <AlignRight size={16} />, cmd: 'justifyRight', title: 'Alinhar à Direita' },
+    { id: 'justify', icon: <AlignJustify size={16} />, cmd: 'justifyFull', title: 'Justificar' }
+  ];
+
+  const cycleAlignment = () => {
+    if (isSourceMode) return;
+    const nextIndex = (alignIndex + 1) % alignments.length;
+    setAlignIndex(nextIndex);
+    execCmd(alignments[nextIndex].cmd);
+  };
   
   const [linkPopup, setLinkPopup] = useState<{
     visible: boolean;
@@ -163,6 +178,12 @@ export function WysiwygEditor({ value, onChange, placeholder = 'Escreva seu text
         </button>
         <button type="button" onClick={() => execCmd('insertOrderedList')} disabled={isSourceMode} className="p-1.5 hover:bg-gray-200 dark:hover:bg-neutral-800 rounded text-gray-700 dark:text-gray-300 transition-colors disabled:opacity-50" title="Lista Numerada">
           <ListOrdered size={16}/>
+        </button>
+
+        <div className="w-px h-5 bg-gray-300 dark:bg-neutral-700 mx-1"></div>
+        
+        <button type="button" onClick={cycleAlignment} disabled={isSourceMode} className="p-1.5 hover:bg-gray-200 dark:hover:bg-neutral-800 rounded text-gray-700 dark:text-gray-300 transition-colors disabled:opacity-50" title={alignments[alignIndex].title}>
+          {alignments[alignIndex].icon}
         </button>
 
         <div className="w-px h-5 bg-gray-300 dark:bg-neutral-700 mx-1"></div>

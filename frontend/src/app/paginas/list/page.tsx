@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { getCollectionBySlug, getDocuments, deleteDocument, createDocument, duplicateDocument, updateDocument } from '@/core/content/actions';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import EditPageModal from '@/components/pages/EditPageModal';
-import { Plus, FileText, ArrowLeft, Trash2, Edit2, Search, Loader2, Copy, Settings, ArrowUp, ArrowDown, Eye } from 'lucide-react';
+import { Plus, FileText, ArrowLeft, Trash2, Edit2, Search, Loader2, Copy, Settings, ArrowUp, ArrowDown, Eye, ListOrdered, Check, X as XIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { usePermissions } from '@/core/hooks/usePermissions';
@@ -22,7 +22,8 @@ function PaginasListContent() {
   const [isCreating, setIsCreating] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [deleteItem, setDeleteItem] = useState<string | null>(null);
-  const [isReordering, setIsReordering] = useState(false);
+  const [isOrderingMode, setIsOrderingMode] = useState(false);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
 
   // Filtros
   const [searchQuery, setSearchQuery] = useState('');
@@ -68,17 +69,14 @@ function PaginasListContent() {
       return dateA - dateB;
     });
 
-  const moveSection = async (index: number, direction: 'up' | 'down') => {
+  const moveSection = (index: number, direction: 'up' | 'down') => {
     if (searchQuery) {
       toast.error('Limpe a busca antes de reordenar.');
       return;
     }
-    if (isReordering) return;
     
     const swapIdx = direction === 'up' ? index - 1 : index + 1;
     if (swapIdx < 0 || swapIdx >= filteredDocuments.length) return;
-
-    setIsReordering(true);
 
     // Copia a lista atual ordenada
     const newDocs = [...filteredDocuments];
@@ -88,7 +86,7 @@ function PaginasListContent() {
     newDocs[index] = newDocs[swapIdx];
     newDocs[swapIdx] = temp;
 
-    // Atribui uma ordem sequencial explícita (0, 1, 2, 3...) para TODOS os documentos
+    // Atribui uma ordem sequencial explícita (0, 1, 2, 3...) para TODOS os documentos localmente
     const updatedDocsWithNewOrder = newDocs.map((doc, idx) => ({
       ...doc,
       data: {
@@ -97,15 +95,18 @@ function PaginasListContent() {
       }
     }));
 
-    // Atualização otimista do estado local
+    // Atualização do estado local
     setDocuments(prev => {
       const updatedMap = new Map(updatedDocsWithNewOrder.map(d => [d.id, d]));
       return prev.map(d => updatedMap.get(d.id) || d);
     });
+  };
 
+  const saveOrder = async () => {
+    setIsSavingOrder(true);
     try {
       const results = await Promise.all(
-        updatedDocsWithNewOrder.map(doc =>
+        filteredDocuments.map(doc =>
           updateDocument(doc.id, collection.slug, doc.data)
         )
       );
@@ -114,12 +115,19 @@ function PaginasListContent() {
       if (failed) {
         throw new Error(failed.error || 'Falha ao salvar a nova ordem');
       }
+      toast.success('Ordem salva com sucesso!');
+      setIsOrderingMode(false);
     } catch (e: any) {
       toast.error(e.message || 'Erro ao salvar a ordem das seções');
       fetchContent(); // Reverte em caso de erro
     } finally {
-      setIsReordering(false);
+      setIsSavingOrder(false);
     }
+  };
+
+  const cancelOrder = () => {
+    setIsOrderingMode(false);
+    fetchContent();
   };
 
   const handleCreateSection = async (e: React.FormEvent) => {
@@ -200,20 +208,50 @@ function PaginasListContent() {
           
           {canManageContent && (
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => setIsEditModalOpen(true)}
-                className="flex items-center justify-center p-2 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-xl transition-colors border border-transparent hover:border-emerald-200 dark:hover:border-emerald-900/50"
-                title="Configurações da Página"
-              >
-                <Settings className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => setIsNewModalOpen(true)}
-                className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-xl transition-colors shadow-sm shadow-emerald-500/20"
-              >
-                <Plus className="w-4 h-4" />
-                Nova Seção
-              </button>
+              {isOrderingMode ? (
+                <>
+                  <button
+                    onClick={cancelOrder}
+                    disabled={isSavingOrder}
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-xl transition-colors disabled:opacity-50"
+                  >
+                    <XIcon className="w-4 h-4" />
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={saveOrder}
+                    disabled={isSavingOrder}
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors shadow-sm disabled:opacity-50"
+                  >
+                    {isSavingOrder ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                    Salvar Ordem
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setIsOrderingMode(true)}
+                    className="flex items-center justify-center p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-xl transition-colors border border-transparent"
+                    title="Ordenar Seções"
+                  >
+                    <ListOrdered className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => setIsEditModalOpen(true)}
+                    className="flex items-center justify-center p-2 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-xl transition-colors border border-transparent hover:border-emerald-200 dark:hover:border-emerald-900/50"
+                    title="Configurações da Página"
+                  >
+                    <Settings className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => setIsNewModalOpen(true)}
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-xl transition-colors shadow-sm shadow-emerald-500/20"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Nova Seção
+                  </button>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -299,38 +337,44 @@ function PaginasListContent() {
                           <div className="flex items-center justify-end gap-2">
                             {canManageContent ? (
                               <>
-                                <Link href={`/paginas/item?slug=${collection.slug}&id=${doc.id}`}
-                                  className="p-2 text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10 rounded-lg transition-colors flex items-center gap-2 font-medium"
-                                >
-                                  <Edit2 className="w-4 h-4" />
-                                  <span className="hidden sm:inline">Editar Visual</span>
-                                </Link>
+                                {!isOrderingMode && (
+                                  <Link href={`/paginas/item?slug=${collection.slug}&id=${doc.id}`}
+                                    className="p-2 text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10 rounded-lg transition-colors flex items-center gap-2 font-medium"
+                                  >
+                                    <Edit2 className="w-4 h-4" />
+                                    <span className="hidden sm:inline">Editar Visual</span>
+                                  </Link>
+                                )}
                                 
-                                {!searchQuery && (
-                                  <div className="flex items-center mx-2 border-x border-gray-200 dark:border-neutral-700 px-2">
-                                    <button onClick={() => moveSection(index, 'up')} disabled={index === 0 || isReordering}
+                                {isOrderingMode && !searchQuery && (
+                                  <div className="flex items-center mx-2 px-2">
+                                    <button onClick={() => moveSection(index, 'up')} disabled={index === 0}
                                       className="p-1.5 text-gray-400 hover:text-blue-500 dark:hover:text-emerald-400 disabled:opacity-30 rounded transition-colors" title="Mover para cima">
                                       <ArrowUp className="w-4 h-4" />
                                     </button>
-                                    <button onClick={() => moveSection(index, 'down')} disabled={index === filteredDocuments.length - 1 || isReordering}
+                                    <button onClick={() => moveSection(index, 'down')} disabled={index === filteredDocuments.length - 1}
                                       className="p-1.5 text-gray-400 hover:text-blue-500 dark:hover:text-emerald-400 disabled:opacity-30 rounded transition-colors" title="Mover para baixo">
                                       <ArrowDown className="w-4 h-4" />
                                     </button>
                                   </div>
                                 )}
 
-                                <button onClick={() => handleDuplicateSection(doc.id)}
-                                  className="p-2 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-500/10 rounded-lg transition-colors"
-                                  title="Duplicar"
-                                >
-                                  <Copy className="w-4 h-4" />
-                                </button>
-                                <button onClick={() => setDeleteItem(doc.id)}
-                                  className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 rounded-lg transition-colors"
-                                  title="Excluir"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
+                                {!isOrderingMode && (
+                                  <>
+                                    <button onClick={() => handleDuplicateSection(doc.id)}
+                                      className="p-2 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-500/10 rounded-lg transition-colors"
+                                      title="Duplicar"
+                                    >
+                                      <Copy className="w-4 h-4" />
+                                    </button>
+                                    <button onClick={() => setDeleteItem(doc.id)}
+                                      className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                                      title="Excluir"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </>
+                                )}
                               </>
                             ) : (
                               <Link href={`/paginas/item?slug=${collection.slug}&id=${doc.id}`}
